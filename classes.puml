@@ -1,0 +1,69 @@
+@startuml
+!theme blueprint
+
+title Classes Map
+
+' Interface
+interface ISocket {
+    +close()
+    +bind()
+    +getFd()
+    +setFd(int fd)
+}
+
+' Classe abstraite
+abstract class ASocket {
+    -sockFd : int
+    -address : string
+
+    +ASocket()
+    +connect()
+    +disconnect()
+}
+
+' Socket client
+class SocketClient {
+}
+
+' Socket serveur
+class SocketServer {
+    +listen()
+    +accept() : SocketClient
+}
+
+' Relations
+ISocket <|.. ASocket
+ASocket <|-- SocketClient
+ASocket <|-- SocketServer
+
+
+
+' Interface
+interface IAutre {
+    + pub()
+}
+
+' Abstraite
+abstract class AAutre {
+    - priv : int
+    + pub()
+}
+
+' Classe 1
+class autre1 {
+    - priv : int
+    + pub()
+}
+
+' classe 2
+class autre2 {
+    - priv : int
+    + pub()
+}
+
+' Relations
+IAutre <|.. AAutre
+AAutre <|-- autre1
+AAutre <|-- autre2
+
+@enduml

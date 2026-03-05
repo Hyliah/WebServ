@@ -1,0 +1,23 @@
+@startuml
+!theme blueprint
+
+start
+->passive soket : server ;
+
+:Create Socket : socket();
+
+:Bind Port : bind();
+
+:Listen : listen();
+
+while (Not Sigint?)
+
+:Accept Client : accept();
+
+:Handle Request : tbd;
+
+endwhile
+
+stop
+
+@enduml

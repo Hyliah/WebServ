@@ -1,0 +1,17 @@
+@startuml
+!theme blueprint
+
+actor User
+participant Main
+participant Class1
+participant Class2
+
+User -> Main : element one
+Main -> Class1 : function()
+
+Class1 -> Class2 : element
+
+Class1 -> Class2 : element
+Class2 -> Class1 : element
+
+@enduml
