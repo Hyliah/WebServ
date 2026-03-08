@@ -14,7 +14,7 @@ interface ISocket {
 ' Classe abstraite
 abstract class ASocket {
     -sockFd : int
-    -address : string
+    
 
     +ASocket()
     +connect()
@@ -23,10 +23,14 @@ abstract class ASocket {
 
 ' Socket client
 class SocketClient {
+    -buffer : string - read()
+    -clientPort : int - ntohs()
+
 }
 
 ' Socket serveur
 class SocketServer {
+    -address : string - recup de htons ?
     +listen()
     +accept() : SocketClient
 }
