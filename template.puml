@@ -1,17 +1,59 @@
+' @startuml
+' !theme blueprint
+
+' actor User
+' participant Main
+' participant Class1
+' participant Class2
+
+' User -> Main : element one
+' Main -> Class1 : function()
+
+' Class1 -> Class2 : element
+
+' Class1 -> Class2 : element
+' Class2 -> Class1 : element
+
+' @enduml
+
+
+
+' @startuml
+
+' class CalculScore {
+'   + calculScore(note, coef)
+'   --
+'   Entrée : note, coef
+'   Traitement : note * coef
+'   Sortie : score
+' }
+
+' @enduml
+
+
 @startuml
-!theme blueprint
 
-actor User
-participant Main
-participant Class1
-participant Class2
+actor Programme
+participant "ObjetClasse" as Obj
 
-User -> Main : element one
-Main -> Class1 : function()
+Programme -> Obj : creerObjet()
 
-Class1 -> Class2 : element
+Programme -> Obj : fonction1(a, b, c)
+note right
+fonction1 utilise
+les paramètres a, b, c
+pour effectuer un calcul
+end note
 
-Class1 -> Class2 : element
-Class2 -> Class1 : element
+Obj --> Programme : resultat1
+
+Programme -> Obj : fonction2(x, y)
+note right
+fonction2 utilise
+les paramètres x et y
+pour produire un résultat
+end note
+
+Obj --> Programme : resultat2
 
 @enduml
