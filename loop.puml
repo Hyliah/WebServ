@@ -1,0 +1,297 @@
+@startuml
+!theme blueprint
+
+start
+
+:listen();
+
+note right
+socket en écoute
+end note
+
+partition "Boucle d'écoute du socket" {
+
+	while (signal != sigint)
+		
+		:accept();
+			note right
+			création socket client
+			end note
+
+		:poll();
+
+		if (READ event ?) then (oui)
+		:recv();
+			note right
+			ajout au buffer
+			end note
+
+		if (requete complete ?) then (non)
+			:attendre prochain recv;
+			detach
+		endif
+
+
+		partition "HTTP parsing" {
+
+			:parse request line;
+
+			if (request line invalide ?) then (oui)
+				:[400 Bad Request];
+				detach
+			endif
+
+			:parse headers;
+
+			if (Content-Length présent ?) then (oui)
+				:attendre body complet;
+			endif
+
+		}
+
+		partition "routing serveur" {
+			:Selection serveur via Host header;
+			:Selection location;
+		}
+
+		if (Méthode autorisée ?) then (non)
+			:[405 Method not allowed];
+			detach
+		endif
+
+		if (Taille Body ok ?) then (non)
+			:[413 Payload too large];
+			detach
+		endif
+
+		if (Ressource existe ?) then (non)
+			:[404 Not found];
+			detach
+		endif
+
+
+		partition "méthode HTTP" {
+
+			if (HTTP method ?)
+
+			elseif (GET)
+				:Lire fichier;
+				:Génération body;
+				:Creation HTTP response;
+				:Ajout headers;
+
+			elseif (POST)
+				if (CGI ?) then (oui)
+				partition "CGI execution" {
+
+					:création pipes;
+					:fork();
+
+					if (process enfant ?) then (oui)
+						:execve CGI;
+					else (non)
+						:read stdout CGI;
+					endif
+
+				}
+				else (non)
+					:Upload fichier;
+				endif
+
+			:Creation HTTP response;
+
+			elseif (DELETE)
+				:Suppression ressource;
+
+				if (suppression ok ?) then (oui)
+					:[200 / 204];
+				else (non)
+					:[403 / 404];
+				endif
+
+			endif
+
+		}
+
+		endif
+
+
+		if (WRITE event ?) then (oui)
+
+		partition "envoi réponse" {
+
+			:send();
+
+			if (response fully sent ?) then (oui)
+
+			if (connection close ?) then (oui)
+			:close socket;
+			else (non)
+			:reset état requête;
+			endif
+
+			else (non)
+
+			:poll WRITE;
+			detach
+
+			endif
+
+		}
+
+		endif
+
+	endwhile
+}
+
+stop
+
+@enduml
+
+
+
+' @startuml
+
+' !theme blueprint
+
+' start
+
+
+' :listen();
+
+' note right
+' socket en écoute
+' end note
+
+' partition "Boucle d'écoute du socket" {
+
+' while (signal != sigint)
+' note right
+' Boucle principale :
+' attend la reception d un accept()
+' variable globale qui met a jour l'état : 
+' if (global_signal == SIGINT ou 130 si je dis pas de betises) -> on sort
+' end note
+
+' :accept(); 
+
+' note right
+' création d'un socket client
+' end note
+
+' :poll();
+' note right
+' détecte READ
+' end note
+
+' :recv();
+' note right
+' ajout au buffer
+' end note
+
+' if (requete complete ?) then (non)
+' :attendre prochain recv;
+' detach
+
+' else (oui)
+'   partition "parsing HTTP" {
+
+' 	:selection du serveur;
+' 	:selection de la location;
+	  
+	
+' 	if (Méthode autorisée ?) then (non)
+' 		:[405 Method not allowed];
+' 		detach
+' 	else (oui)
+' 	endif
+
+' 	if (Taille Body ok?) then (non)
+' 		:[413 Payload too large];
+' 		detach
+' 	else (oui)
+' 	endif
+
+' 	if (Ressource existe?) then (non)
+' 		:[404 Not found] ajouter un dino;
+' 		detach
+' 	else (oui)
+' 	endif
+
+' 	partition "méthode HTTP" {
+' 		:method HTTP;
+' 		if (HTTP method ?) then (GET)
+' 			if (CGI?) then (non)
+' 			:Upload;
+' 			detach
+' 			else (oui)
+' 				:Fork/exec;
+' 				detach
+' 			endif
+
+' 		elseif (DELETE)
+' 			:close ? Pas le droit a unlink me semble;
+' 			:successful ?
+' 			:[200 / 204]
+		
+' 		elseif (GET)
+' 			:Lire fichier;
+' 			:Génération body;
+' 			:Creation HTTP response;
+' 			:Ajout headers;
+
+' 			if (réponse envoyée? ?) then (non)
+' 				:Poll() WRITE;
+' 				detach
+' 			else (oui)
+' 			endif
+
+' 			if (connection close ?) then (non)
+' 				:Poll() WRITE;
+' 				detach
+' 			else (oui)
+' 				:close() soket;
+' 				detach
+' 			endif
+
+' 		endif
+' 	}
+'   }
+
+' endif
+
+' ' :recv();
+' ' note right
+' ' ajout au buffer
+' ' end note
+
+
+
+' ' if (fichier valide ?) then (oui)
+
+' '   partition "traiterDonnees(data)" {
+
+' '       :nettoyer données;
+
+' '       if (données complètes ?) then (oui)
+' '           :calculer résultat;
+' '       else (non)
+' '           :remplir valeurs manquantes;
+' '       endif
+
+' '   }
+
+' ' else (non)
+
+' '   :afficher message erreur;
+
+' ' endif
+
+' ' :Sauvegarder résultat;
+
+' endwhile
+' }
+
+' stop
+
+' @enduml
