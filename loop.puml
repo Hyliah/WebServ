@@ -11,7 +11,7 @@ end note
 
 partition "Boucle d'écoute du socket" {
 
-	while (signal != sigint)
+	while (signal != SIGINT - ou 130 a voir)
 		
 		:accept();
 			note right
