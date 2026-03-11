@@ -1,0 +1,97 @@
+RECAP DE COMMENT FONCTIONNE UN FICHIER DE CONFIG
+
+.config car usage general pour fichier de configuration 
+
+c'est un fichier texte qui contient tous les paramètres du serveur web
+Va etre parsé au demarrage du serveur 
+il y a des blocs {} imbriqués
+et des directives ;
+
+les directive importantes a implementer :
+
+| Directive | Exemple | Description |
+| --- | --- | --- |
+| listen | `listen 8080;` | port du serveur |
+| server_name | `server_name localhost;` | nom du serveur |
+| root | `root /var/www/html;` | dossier racine |
+| index | `index index.html;` | fichier par défaut |
+| error_page | `error_page 404 /404.html;` | page d'erreur |
+| client_max_body_size | `10M` | taille max POST |
+| location | `location /images/ {}` | route spécifique |
+| allow_methods | `GET POST DELETE` | méthodes HTTP |
+| autoindex | `on` | listing dossier |
+| cgi_pass | `/usr/bin/php-cgi` | interpréteur CGI |
+
+
+plusieurs blocs :
+bloc server{} est l'unite centrale. Chaque bloc server represente un virtual host. 
+Donc plusieurs blocs serveurs peuvent exister
+
+POur notre webserv il faudra :
+# Premier serveur (site web principal)
+# Deuxième serveur (autre site sur un autre port)
+# Troisième serveur (même port, différent server_name = virtual host)
+# ... Autre chose ? A checker 
+
+Explications generale :
+
+DANS LE BLOC SERVEUR :
+
+* LISTEN -> defini le port sur lequel le serveur ecoute
+Plusieurs serveurs peuvent ecouter sur le meme port, c'est le server_name qui va departager
+Donc la il faudra parser le port, creer le socket, bind(), listen() ... ( voir socket process)
+
+* SERVER_NAME -> utilisé pour les virtual host : qd 2 serveur ecoutent sur le meme port, 
+nginx regarde le header http host pour choisir lequel repondre
+Si aucun server_name ne match alors le premier serveur défini sur ce port est utilisé comme défaut.
+Donc il faudra comparer le header host de la requete avec server_name configuration
+
+* ROOT -> dossier racine depuis lequel les fichiers sont srvis
+Une requête GET /index.html ira chercher /var/www/html/index.html.
+
+* INDEX -> qd une requete pointe vers un dossier, le server cherche les fichiers ds l'ordre
+Si aucun n'est trouvé et que autoindex est on, il liste le dossier. Sinon, 403.
+
+* ERROR_PAGE -> pour associé un code d'erreur http a une page personnalisé
+( plusieurs codes peuvent pointer vers la meme page)
+redirection interne ? checker la diff avec redirect http
+
+* CLIENT_MAX_BODY_SIZE -> limite la taille du body des requêtes POST/PUT.
+POST = (Création/Soumission) ( ex ; va creer un utilisateur )
+PUT = (Mise à jour/Remplacement) ( ex : va remplacer l'utilisateur par autres donnees)
+peut etre defini en octet, kilooctet ou mega octet 
+Donc on va parser K, M et G ? kilo, mega et giga 
+Si depasse, 413 Request Entity Too Large
+
+DANS LE BLOC LOCATION :
+
+Le bloc location est le coeur du routing. Ca va associe un URL a un comportement 
+recap des different types de matching :
+location = /exact { }        # 1. Match exact (priorité absolue)
+location ^~ /prefix/ { }     # 2. Préfixe prioritaire (pas de regex après)
+location ~ \.php$ { }        # 3. Regex sensible à la casse
+location ~* \.php$ { }       # 4. Regex insensible à la casse
+location /prefix/ { }        # 5. Préfixe simple (le plus long gagne)
+location / { }               # 6. Catch-all (fallback)
+
+Check ce qu'on doit implementer au minimum
+
+* ALLOW_METHODS -> les methodes autorisees, donc ici GET POST et DELETE selon le sujet 
+Si une méthode non listée est utilisée on fait 405 Method Not Allowed
+
+* AUTOINDEX -> va creer une page html qui liste les fichiers du repertoire
+( par ex pour les dossier de telehcargement) donc :
+autoindex on;   # liste le contenu du dossier
+autoindex off;  # 403 si pas de fichier index
+
+* RETURN -> redirection 
+pour redirect ke client avec un code http ( a check )
+
+On peut faire plusieurs blocs location en fonction du comportement qu'on veut pour des choses specifique ?
+
+POUR LE CGI 
+
+Common gateway interface 
+Le CGI permet d'exécuter des scripts (PHP, Python, etc.) et de renvoyer leur output au client.
+
+( explication sur le notion parce que c'est trop compliqué for now j'ai pas tout compris)
