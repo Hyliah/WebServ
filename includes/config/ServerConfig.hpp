@@ -19,14 +19,17 @@
 // struc server config ?
 class ServerConfig {
 public:
-    int                         port;
+    std::string                 port; 		// pour getadrinfo() pour eviter hton 
     std::string                 host;         // par ex par defaut "0.0.0.0"
-    std::string                 server_name;
-    size_t                      max_body_size;
-    std::map<int, std::string>  error_pages;  // Code (404) -> Chemin du fichier
+    std::string                 serverName;
+    size_t                      maxBodySize;
+    std::map<int, std::string>  errorPages;  // Code (404) -> Chemin du fichier
     std::vector<LocationConfig> locations;
+	int							nbLocations;
 
-    ServerConfig() : port(8080), max_body_size(1000000) {}
+    ServerConfig() : port("8080"), maxBodySize(1000000) {} // voir pour le truc par defaut
 };
 
 #endif
+
+// info en pointeur ou pas ? pour hitoire de socket 

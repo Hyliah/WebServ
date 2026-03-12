@@ -139,7 +139,7 @@ int bind(
     socklen_t addrlen →
 );
 
--1 on error ???? verif ca
+-1 on error / 0 on success
 end note
 
 

@@ -10,16 +10,31 @@
 /*                                                                           */
 /*****************************************************************************/
 
-#ifndef CONFIGFILE_HPP
-#define CONFIGFILE_HPP
+#ifndef SOCKETSERVER_HPP
+#define SOCKETSERVER_HPP
 
 #include "Webserv.hpp"
+#include "ASocket.hpp"
 
-// check si des autrres trucs a mettre
+class SocketServer : public ASocket{
 
-// sinon renommer en erreur config 
+	private:
+		std::string					_port;
+		std::vector<ServerConfig*>  _servers;
 
-// gstion des erreurs de parsing 
-// faire classe d'exception avec try catch throw
+	public:
+		SocketServer();
+		SocketServer(const SocketServer &other);
+		SocketServer& operator=(const SocketServer &other);
+		~SocketServer();
+
+		int	sockListen();
+		int	sockAccept();
+
+		ServerConfig*	getServeur() const;
+		std::string		getPort()const;
+		void			setPort(std::string &port);
+
+};
 
 #endif

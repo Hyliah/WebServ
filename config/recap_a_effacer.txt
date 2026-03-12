@@ -1,6 +1,6 @@
 RECAP DE COMMENT FONCTIONNE UN FICHIER DE CONFIG
 
-.config car usage general pour fichier de configuration 
+.conf car usage general pour fichier de configuration 
 
 c'est un fichier texte qui contient tous les paramètres du serveur web
 Va etre parsé au demarrage du serveur 
@@ -61,7 +61,12 @@ POST = (Création/Soumission) ( ex ; va creer un utilisateur )
 PUT = (Mise à jour/Remplacement) ( ex : va remplacer l'utilisateur par autres donnees)
 peut etre defini en octet, kilooctet ou mega octet 
 Donc on va parser K, M et G ? kilo, mega et giga 
+Logique suggérée :Récupère le dernier caractère de la string.
+Si c'est 'M', multiplie par 1024 x 1024
+Si c'est 'K', multiplie par 1024
+Sinon, traite-le comme un nombre d'octets pur.
 Si depasse, 413 Request Entity Too Large
+
 
 DANS LE BLOC LOCATION :
 
