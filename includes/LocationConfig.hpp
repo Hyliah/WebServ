@@ -10,16 +10,26 @@
 /*                                                                           */
 /*****************************************************************************/
 
-#ifndef CONFIGFILE_HPP
-#define CONFIGFILE_HPP
+#ifndef LOCATIONCONFIG_HPP
+#define LOCATIONCONFIG_HPP
 
 #include "Webserv.hpp"
 
-// check si des autrres trucs a mettre
+// struc location config ? 
+class LocationConfig {
+public:
+    std::string             path;          // le chemin Ex: "/something"
+    std::string             root;          // Dossier physique
+    std::vector<std::string> methods;       // GET, POST, DELETE
+    bool                    autoindex;     // si on ou off pour savoir sin on affiche le listing du dossier ou pas
+    std::string             index;         // Fichier par défaut (index.html)
+    std::string             return_url;    // Pour les redirections (301) - a checker 
+    std::string             upload_store;  // Dossier pour les uploads
 
-// sinon renommer en erreur config 
+	// ca c'est poru le CGI j'ai toujours pas capté mais apprently ca ressemble a ca :
+    std::map<std::string, std::string> cgi_info; // Extension -> Chemin de l'exécutable
 
-// gstion des erreurs de parsing 
-// faire classe d'exception avec try catch throw
+    LocationConfig() : autoindex(false) {}
+};
 
 #endif

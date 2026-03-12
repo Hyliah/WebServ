@@ -10,27 +10,5 @@
 /*                                                                           */
 /*****************************************************************************/
 
-#ifndef WEBSERV_HPP
-#define WEBSERV_HPP
-
-// trucs de base a ranger proprement par categories
-#include <iostream>
-#include <string>
-#include <vector>
-#include <map>
-#include <set>
-#include <algorithm>
-#include <fstream>
-#include <sstream>
-#include <stdexcept>
-#include <filesystem>
-
-// tt les hpp 
-#include "ConfigFile.hpp"
-#include "LocationConfig.hpp"
-#include "ParserConfig.hpp"
 #include "ServerConfig.hpp"
 
-// some other stuff probably 
-
-#endif

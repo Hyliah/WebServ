@@ -10,27 +10,15 @@
 /*                                                                           */
 /*****************************************************************************/
 
-#ifndef WEBSERV_HPP
-#define WEBSERV_HPP
+#ifndef PARSERCONFIG_HPP
+#define PARSERCONFIG_HPP
 
-// trucs de base a ranger proprement par categories
-#include <iostream>
-#include <string>
-#include <vector>
-#include <map>
-#include <set>
-#include <algorithm>
-#include <fstream>
-#include <sstream>
-#include <stdexcept>
-#include <filesystem>
+#include "Webserv.hpp"
 
-// tt les hpp 
-#include "ConfigFile.hpp"
-#include "LocationConfig.hpp"
-#include "ParserConfig.hpp"
-#include "ServerConfig.hpp"
+// Faire une classe config parser qui va:
+//  lire le fichier de config, 
+// le parser 
+// et stocker les infos dans des strucs ServerConfig et LocationConfig
 
-// some other stuff probably 
 
 #endif

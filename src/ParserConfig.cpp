@@ -10,7 +10,7 @@
 /*                                                                           */
 /*****************************************************************************/
 
-#include "ConfigParser.hpp"
+#include "ParserConfig.hpp"
 
 
 // clean:
