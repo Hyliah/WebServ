@@ -16,18 +16,18 @@
 #include "Webserv.hpp"
 #include "LocationConfig.hpp"
 
-// struc server config ?
 class ServerConfig {
 public:
     std::string                 port; 		// pour getadrinfo() pour eviter hton 
     std::string                 host;         // par ex par defaut "0.0.0.0"
     std::string                 serverName;
+
     size_t                      maxBodySize;
+    
     std::map<int, std::string>  errorPages;  // Code (404) -> Chemin du fichier
     std::vector<LocationConfig> locations;
-	int							nbLocations;
 
-    ServerConfig() : port("8080"), maxBodySize(1000000) {} // voir pour le truc par defaut
+    ServerConfig(); //: port("8080"), maxBodySize(1000000) {} // voir pour le truc par defaut
 };
 
 #endif

@@ -13,29 +13,36 @@
 #ifndef SOCKETCLIENT_HPP
 #define SOCKETCLIENT_HPP
 
-#include "Webserv.hpp"
-#include "ASocket.hpp"
+#include <string>
+#include <unistd.h>
 
-class SocketClient : public ASocket{
+class SocketClient {
 
-	private:
-		std::string		_buffer;
-		int				_port;
+private:
 
-	public:
-		SocketClient();
-		SocketClient(int sockFd);
-		SocketClient(const SocketClient &other);
-		SocketClient& operator=(const SocketClient &other);
-		~SocketClient();
+    int         _fd;
+    std::string _buffer;
+    int         _port;
 
-		int	sockListen();
-		int	sockAccept();
+public:
 
-		std::string		getBuffer() const;
-		int				getPort() const;
-		void			setPort(int port);
+    SocketClient();
+    SocketClient(int fd);
+	SocketClient(const SocketClient& other);
+	SocketClient& operator=(const SocketClient& other);
+    ~SocketClient();
 
+    int receiveData();
+    int sendData(const std::string& data);
+
+    void closeSocket();
+
+    int getFd() const;
+
+    const std::string& getBuffer() const;
+
+    int getPort() const;
+    void setPort(int port);
 };
 
 #endif

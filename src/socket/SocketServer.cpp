@@ -10,27 +10,27 @@
 /*                                                                           */
 /*****************************************************************************/
 
-#ifndef ASOCKET_HPP
-#define ASOCKET_HPP
 
-#include "Webserv.hpp"
-#include "ISocket.hpp"
 
-class ASocket : public ISocket{
+// bool SocketServer::bindSocket()
+// {
+//     struct addrinfo hints;
+//     struct addrinfo* res;
 
-	protected:
-		int	_sockFd;
-	
-	public:
-		ASocket();
-		ASocket(int sockFd);
-		ASocket(const ASocket &other);
-		ASocket& operator=(const ASocket &other);
-		~ASocket();
+//     memset(&hints, 0, sizeof(hints));
+//     hints.ai_family = AF_INET;
+//     hints.ai_socktype = SOCK_STREAM;
+//     hints.ai_flags = AI_PASSIVE;
 
-		int	sockConnect() = 0;
-		void disconnect();
+//     if (getaddrinfo(NULL, _port.c_str(), &hints, &res) != 0)
+//         return false;
 
-};
+//     if (bind(_fd, res->ai_addr, res->ai_addrlen) < 0)
+//     {
+//         freeaddrinfo(res);
+//         return false;
+//     }
 
-#endif
+//     freeaddrinfo(res);
+//     return true;
+// }
