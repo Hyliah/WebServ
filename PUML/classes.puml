@@ -3,72 +3,104 @@
 
 title Classes
 
-' Interface
-interface ISocket {
-    +close()
-    +bind()
-    +getFd()
-    +setFd(int fd)
-}
-
-' Classe abstraite
-abstract class ASocket {
-    -sockFd : int
-    
-
-    +ASocket()
-    +connect()
-    +disconnect()
-}
-
 ' Socket client
 class SocketClient {
-    -buffer : string - read()
-    -clientPort : int - ntohs()
+    -_fd : int
+    -_buffer : string - read
+    -clientPort : int - ntohs
 
+    +SocketClient();
+    +SocketClient(int fd);
+	+SocketClient(const SocketClient& other);
+	+SocketClient& operator=(const SocketClient& other);
+    +~SocketClient();
+    +int receiveData();
+    +int sendData(const std::string& data);
+    +void closeSocket();
+    +int getFd() const;
+    +const std::string& getBuffer() const;
+    +int getPort() const;
+    +void setPort(int port);
 }
 
 ' Socket serveur
 class SocketServer {
     -address : string - recup de htons ?
-    +listen()
-    +accept() : SocketClient
+    -_fd : int
+    -_port : string
+    -_servers : vector<ServerConfig*>
+    +SocketServer();
+	+SocketServer(const SocketServer& other);
+	+SocketServer& operator=(const SocketServer& other);
+    +~SocketServer();
+    +bool    createSocket();
+    +bool    bindSocket();
+    +bool    listenSocket(int backlog = 10);
+    +int     acceptClient();
+    +void    closeSocket();
+    +int     getFd() const;
+    +const std::string& getPort() const;
+    +void setPort(const std::string& port);
+    +void addServer(ServerConfig* server);
+    +const std::vector<ServerConfig*>& getServers() const;
 }
 
-' Relations
-ISocket <|.. ASocket
-ASocket <|-- SocketClient
-ASocket <|-- SocketServer
+' Socket ServerConfig
+class ServerConfig {
+	+port : string	
+	+host : string	
+	+serverName : string
+	+maxBodySize : size_t
+	+errorPages : map<int, std::string>
+	+std::vector : <LocationConfig>
 
-
-
-' Interface
-interface IAutre {
-    + pub()
+	+ServerConfig() 
 }
 
-' Abstraite
-abstract class AAutre {
-    - priv : int
-    + pub()
+SocketServer <|.. ServerConfig
+ConfigFile <|-- ServerConfig
+ServerConfig <|-- LocationConfig
+
+' Socket LocationConfig
+class LocationConfig {
+
 }
 
-' Classe 1
-class autre1 {
-    - priv : int
-    + pub()
+' Socket LocationConfig
+class ConfigFile {
+
 }
 
-' classe 2
-class autre2 {
-    - priv : int
-    + pub()
-}
 
-' Relations
-IAutre <|.. AAutre
-AAutre <|-- autre1
-AAutre <|-- autre2
+
+
+' ' Interface
+' interface IAutre {
+'     + pub()
+' }
+
+' ' Abstraite
+' abstract class AAutre {
+'     - priv : int
+'     + pub()
+' }
+
+' ' Classe 1
+' class autre1 {
+'     - priv : int
+'     + pub()
+' }
+
+' ' classe 2
+' class autre2 {
+'     - priv : int
+'     + pub()
+' }
+
+' ' Relations
+' IAutre <|.. AAutre
+' AAutre <|-- autre1
+' AAutre <|-- autre2
 
 
 struct addrinfo {
