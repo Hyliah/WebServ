@@ -39,6 +39,22 @@ public:
 	bool					cgiEnabled;
 
 	LocationConfig(); // : autoindex(false), cgiEnabled(false) {} // a voir si on creer deja par defaut ou pas 
+    LocationConfig(const LocationConfig& other);
+    LocationConfig& operator=(const LocationConfig& other);
+    ~LocationConfig();
+
 };
 
 #endif
+
+//mettre dans le cpp
+void initLocationConfig(LocationConfig& obj){
+    obj.path = "default";
+    obj.root = "default";
+    obj.index = "default";
+    obj.returnUrl = "default";
+    obj.uploadStore = "default";
+    
+    obj.autoindex = false; // ou true idk
+    obj.cgiEnabled = false; // ou true idk
+}
