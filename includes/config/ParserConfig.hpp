@@ -29,7 +29,7 @@ class ParserConfig {
 		// CLEAN ET TOKEN
 		std::string 				readFile(const std::string &path);
 		void 						removeComments(std::string &content);
-		std::vector<std::string> 	tokenize(const std::string &content);
+		void					 	tokenize(const std::string &content);
 
 		// PARSE SERVEUR ET LOCATION 
 		void 						parseServer(std::vector<std::string>::iterator &it);
@@ -51,13 +51,13 @@ class ParserConfig {
 		void						handleCgi(std::vector<std::string>::iterator &it, LocationConfig &location);
 		void						handleRoot(std::vector<std::string>::iterator &it, LocationConfig &location);
 
-		// check					
+		// CHECK					
 		void						checkSemicolon(std::vector<std::string>::iterator &it);
 		void						checkBracketsBalance(const std::string &content);
-		int							stringToInt(const std::string &str); // equivalent de stoi
+		int							stringToInt(const std::string &str); // equivalent de stoi, check si utile d'avoir version perso
 		size_t						parseSize(const std::string &str); // pour parser les tailles avec K, M, G
 
-		// verif
+		// VERIF
 		void 						verifyConfig(); // verifie que chaque serveur a au moins un port et une location, et qu'il n'y a pas de doublons de ports
 
 	public:

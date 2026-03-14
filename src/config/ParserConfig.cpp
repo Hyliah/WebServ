@@ -39,6 +39,14 @@ ParserConfig::~ParserConfig() {
 // a continuer 
 // et enlever les cout pour le test final
 void ParserConfig::parse(const std::string &configFilePath) {
+
+	// VERSION SANS TEST
+	// std::string content = readFile(configFilePath);
+	// ... ( if empty ) throw error ... 
+	// removeComments(content);
+	// tokenize(content);
+
+
 	// test readfile
 	std::string content = readFile(configFilePath);
 	if (content.empty()) {
@@ -52,9 +60,16 @@ void ParserConfig::parse(const std::string &configFilePath) {
 	removeComments(content);
 	std::cout << "Contenu après suppression des commentaires:" << std::endl;
 	std::cout << content << std::endl;
+	// test tokenize
+	// a afficher pour verif 
+	tokenize(content);
+	std::cout << "Tokens:" << std::endl;
+	for (size_t i = 0; i < _tokens.size(); i++) {
+		std::cout << "Token " << i << ": " << _tokens[i] << std::endl;
+	}
 }
 
-// CLEAN ET TOKEN
+// CLEAN
 
 // lire le fichier et retourner son contenu sous forme de string
 // doit verif ouverture
@@ -94,12 +109,40 @@ void ParserConfig::removeComments(std::string &content) {
 	}
 }
 
+// TOKENIZEEEERRR
 
-
-// token:
 // couper le fichier en token pour chaque mot
+// separer les token avec les whitespace
+// attention, separer aussi {} et ;
+// donc d'abord entourer les speciaux avec des space ?
+// et apres faire le decoupage normal avec les whitespace
+void ParserConfig::tokenize(const std::string &content) {
+	// gestion des spé
+	std::string result;
+	for (size_t i = 0; i < content.size(); i++) {
+		if (content[i] == '{' || content[i] == '}' || content[i] == ';') {
+			result += ' ';
+			result += content[i];
+			result += ' ';
+		}
+		else {
+			result += content[i];
+		}
+	}
+	// decoup des tokens 
+	std::stringstream buffer(result);
+	std::string singletoken;
+	while (buffer >> singletoken) {
+		_tokens.push_back(singletoken);
+	}
+}
 
 
+
+
+
+
+// ------------------------------ Prise de note vrac ------------------------------
 // recursion pour parser les blocs de config (server, location) 
 // et stocker les infos dans des struc serverConfig et locationConfig
 // donc si on croise server { on cree objet serverConfig et on parse jusqu'a la fin du bloc, pareil pour location
