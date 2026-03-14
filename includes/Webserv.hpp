@@ -31,7 +31,10 @@
 #include "LocationConfig.hpp"
 #include "ParserConfig.hpp"
 #include "ServerConfig.hpp"
+#include "SocketClient.hpp"
+#include "SocketServer.hpp"
 
 // some other stuff probably 
 
 #endif
+

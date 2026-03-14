@@ -10,7 +10,65 @@
 /*                                                                           */
 /*****************************************************************************/
 
+#include "ServerConfig.hpp"
 #include "ParserConfig.hpp"
+
+// CANONICAL FORM
+
+ParserConfig::ParserConfig() {
+}	
+
+ParserConfig::ParserConfig(const ParserConfig &other) {
+	_servers = other._servers;
+	_tokens = other._tokens;
+}
+
+ParserConfig &ParserConfig::operator=(const ParserConfig &other) {
+	if (this != &other) {
+		_servers = other._servers;
+		_tokens = other._tokens;
+	}
+	return *this;
+}
+
+ParserConfig::~ParserConfig() {
+}
+
+// FONCTION PARSE PRINCIPALE
+// debut pour test readfile only 
+// a continuer 
+void ParserConfig::parse(const std::string &configFilePath) {
+	std::string content = readFile(configFilePath);
+	if (content.empty()) {
+		throw ParseException("Error: Config file is empty: " + configFilePath);
+	}
+	else{
+		std::cout << "Contenu du fichier:" << std::endl;
+		std::cout << content << std::endl;
+	}
+}
+
+// CLEAN ET TOKEN
+
+// lire le fichier et retourner son contenu sous forme de string
+// doit verif ouverture
+// fichier et non dossier
+// et pas vide 
+std::string ParserConfig::readFile(const std::string &path) {
+	std::ifstream file(path.c_str());
+	if (!file.is_open()) {
+		throw ParseException("Error: Could not open config file: " + path);
+	}
+	std::stringstream buffer;
+	buffer << file.rdbuf();
+	file.close();
+	if (buffer.str().empty()) {
+		throw ParseException("Error: Config file is empty: " + path);
+	}
+	return buffer.str();
+}
+
+
 
 
 // clean:

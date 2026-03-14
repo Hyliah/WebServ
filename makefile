@@ -1,0 +1,31 @@
+# makefile temporaire 
+
+NAME = Webserv
+CC = c++
+INCLUDES = -I includes/ -I includes/config -I includes/socket
+CFLAGS = -Wall -Wextra -Werror -std=c++98 $(INCLUDES)
+SRCS = src/main.cpp \
+       src/config/ParserConfig.cpp \
+       src/config/ServerConfig.cpp \
+	   src/config/LocationConfig.cpp
+OBJDIR = obj
+OBJS = $(SRCS:src/%.cpp=$(OBJDIR)/%.o)
+
+all: $(NAME)
+
+$(NAME): $(OBJS)
+	$(CC) $(CFLAGS) -o $(NAME) $(OBJS)
+
+$(OBJDIR)/%.o: src/%.cpp
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+clean:
+	rm -rf $(OBJDIR)
+
+fclean: clean
+	rm -f $(NAME)
+
+re: fclean all
+
+.PHONY: all clean fclean re

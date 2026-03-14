@@ -40,12 +40,14 @@ public:
 
 
 //mettre dans le .cpp
-void initServerConfig(ServerConfig &obj){
-    obj.port = "default";
-    obj.host = "default";
-    obj.serverName = "default";
-    obj.maxBodySize = 100; //vraiment a voir si on met -1 si on estime que si y a pas y a pas (pas de palais, ... pas de palais)
+// void initServerConfig(ServerConfig &obj){
+//     obj.port = "default";
+//     obj.host = "default";
+//     obj.serverName = "default";
+//     obj.maxBodySize = 100; //vraiment a voir si on met -1 si on estime que si y a pas y a pas (pas de palais, ... pas de palais)
 
-    //mettre dans la verif un if (location.size() < 1) -> FALSE
+//     //mettre dans la verif un if (location.size() < 1) -> FALSE
 
-}
+// }
+
+// VOIR DANS LOCATION CONFIG MES COMMENTAIRES POUR INITILISATION DS LE CONSTRUCTEUR

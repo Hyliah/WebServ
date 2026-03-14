@@ -14,7 +14,9 @@
 #define PARSERCONFIG_HPP
 
 #include "Webserv.hpp"
-#include "ServerConfig.hpp"
+
+class ServerConfig; 
+class LocationConfig;
 
 class ParserConfig {
 
@@ -73,9 +75,15 @@ class ParserConfig {
 		class ParseException : public std::exception {
 			private:
 				std::string _msg;
+
 			public:
 				ParseException(const std::string &msg) : _msg(msg) {}
-				const char* what() const throw() { return _msg.c_str(); }
+
+				virtual ~ParseException() throw() {}
+
+				const char* what() const throw() {
+					return _msg.c_str();
+				}
 		};
 };
 
