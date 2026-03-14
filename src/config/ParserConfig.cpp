@@ -35,9 +35,11 @@ ParserConfig::~ParserConfig() {
 }
 
 // FONCTION PARSE PRINCIPALE
-// debut pour test readfile only 
+// debut pour test readfile only + comment
 // a continuer 
+// et enlever les cout pour le test final
 void ParserConfig::parse(const std::string &configFilePath) {
+	// test readfile
 	std::string content = readFile(configFilePath);
 	if (content.empty()) {
 		throw ParseException("Error: Config file is empty: " + configFilePath);
@@ -46,13 +48,17 @@ void ParserConfig::parse(const std::string &configFilePath) {
 		std::cout << "Contenu du fichier:" << std::endl;
 		std::cout << content << std::endl;
 	}
+	// test remove comments
+	removeComments(content);
+	std::cout << "Contenu après suppression des commentaires:" << std::endl;
+	std::cout << content << std::endl;
 }
 
 // CLEAN ET TOKEN
 
 // lire le fichier et retourner son contenu sous forme de string
 // doit verif ouverture
-// fichier et non dossier
+// fichier et non dossier ??? check si ok 
 // et pas vide 
 std::string ParserConfig::readFile(const std::string &path) {
 	std::ifstream file(path.c_str());
@@ -68,11 +74,27 @@ std::string ParserConfig::readFile(const std::string &path) {
 	return buffer.str();
 }
 
+ // pour retirer les commentaires 
+void ParserConfig::removeComments(std::string &content) {
+	size_t pos = content.find('#');
+	
+	while (pos != std::string::npos) {
+		size_t endOfLine = content.find('\n', pos); // en partant de la pos du #
+		
+		if (endOfLine == std::string::npos) { // si c'est kla toute derniere ligen du fichier 
+			content.erase(pos);
+			break; // Plus rien à chercher après la fin du fichier
+		} else {
+			// On efface du '#' jusqu'au '\n' (sans supprimer le '\n')
+			content.erase(pos, endOfLine - pos);
+		}
+		// On cherche le prochain '#' à partir de la position actuelle
+		// pour ne pas reparcourir tout le début de la string
+		pos = content.find('#', pos);
+	}
+}
 
 
-
-// clean:
-// retirer commentaire (#) et space inutiles
 
 // token:
 // couper le fichier en token pour chaque mot
