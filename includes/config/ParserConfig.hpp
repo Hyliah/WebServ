@@ -24,8 +24,6 @@ class ParserConfig {
 		std::vector<ServerConfig> 	_servers;
 		std::vector<std::string> 	_tokens;
 
-		// toutes les fonctions de parsing
-
 		// CLEAN ET TOKEN
 		std::string 				readFile(const std::string &path);
 		void 						removeComments(std::string &content);
@@ -66,7 +64,7 @@ class ParserConfig {
 		ParserConfig &operator=(const ParserConfig &other);
 		~ParserConfig();
 
-		void parse(const std::string &configFilePath); // fonction publique principqle
+		void parse(const std::string &configFilePath);
 
 		// Getters pour récupérer les serveurs après parsing
     	const std::vector<ServerConfig> &getServers() const { return _servers; }
@@ -90,16 +88,15 @@ class ParserConfig {
 
 #endif
 
-// Faire une classe config parser qui va:
-//  lire le fichier de config, 
-// le parser 
-// et stocker les infos dans des strucs ServerConfig et LocationConfig
 
-
-// ds obligatoire :
+// dc obligatoire pour serveur :
 // listen
 // root
 // location 
+
+// obligatoire pour location 
+// path
+// allow method
 
 // si y'a pas le minimum -> error 
 // et sinon on met en defaut le reste 
@@ -123,3 +120,5 @@ class ParserConfig {
 
 // a la fin du parsing verifier que chaque serveur a au moions un port et une location 
 // et verif les doublon, 2 srveurs qui ecoutent sur le meme port 
+
+// faire fonction de verif de validite des ports ? nombre max 65535 

@@ -14,9 +14,7 @@
 #include "ParserConfig.hpp"
 
 // CANONICAL FORM
-
-ParserConfig::ParserConfig() {
-}	
+ParserConfig::ParserConfig() {}
 
 ParserConfig::ParserConfig(const ParserConfig &other) {
 	_servers = other._servers;
@@ -31,13 +29,10 @@ ParserConfig &ParserConfig::operator=(const ParserConfig &other) {
 	return *this;
 }
 
-ParserConfig::~ParserConfig() {
-}
+ParserConfig::~ParserConfig() {}
 
 // FONCTION PARSE PRINCIPALE
-// debut pour test readfile only + comment
-// a continuer 
-// et enlever les cout pour le test final
+// enlever les cout pour le test final
 void ParserConfig::parse(const std::string &configFilePath) {
 
 	// VERSION SANS TEST
@@ -56,25 +51,39 @@ void ParserConfig::parse(const std::string &configFilePath) {
 		std::cout << "Contenu du fichier:" << std::endl;
 		std::cout << content << std::endl;
 	}
+
 	// test remove comments
 	removeComments(content);
 	std::cout << "Contenu après suppression des commentaires:" << std::endl;
 	std::cout << content << std::endl;
+
 	// test tokenize
-	// a afficher pour verif 
 	tokenize(content);
+	// verif avec print pour debug 
 	std::cout << "Tokens:" << std::endl;
 	for (size_t i = 0; i < _tokens.size(); i++) {
 		std::cout << "Token " << i << ": " << _tokens[i] << std::endl;
+	}
+
+	// Parse server
+	// boucle pour trouver "server", et appelle parseServeur
+	// init de l'iterateur 
+	std::vector<std::string>::iterator it = _tokens.begin();
+	// parcourir les tokens
+	while (it != _tokens.end()){
+		if (*it == "server"){
+			parseServer(it);
+		}
+		else{
+			throw ParseException("Est ce qu'il y a une erreur ici ou pas ?? rajouter + *it ou pas ? ");
+		}
 	}
 }
 
 // CLEAN
 
 // lire le fichier et retourner son contenu sous forme de string
-// doit verif ouverture
 // fichier et non dossier ??? check si ok 
-// et pas vide 
 std::string ParserConfig::readFile(const std::string &path) {
 	std::ifstream file(path.c_str());
 	if (!file.is_open()) {
@@ -92,10 +101,8 @@ std::string ParserConfig::readFile(const std::string &path) {
  // pour retirer les commentaires 
 void ParserConfig::removeComments(std::string &content) {
 	size_t pos = content.find('#');
-	
 	while (pos != std::string::npos) {
 		size_t endOfLine = content.find('\n', pos); // en partant de la pos du #
-		
 		if (endOfLine == std::string::npos) { // si c'est kla toute derniere ligen du fichier 
 			content.erase(pos);
 			break; // Plus rien à chercher après la fin du fichier
@@ -110,12 +117,6 @@ void ParserConfig::removeComments(std::string &content) {
 }
 
 // TOKENIZEEEERRR
-
-// couper le fichier en token pour chaque mot
-// separer les token avec les whitespace
-// attention, separer aussi {} et ;
-// donc d'abord entourer les speciaux avec des space ?
-// et apres faire le decoupage normal avec les whitespace
 void ParserConfig::tokenize(const std::string &content) {
 	// gestion des spé
 	std::string result;
@@ -137,14 +138,107 @@ void ParserConfig::tokenize(const std::string &content) {
 	}
 }
 
+// PARSE SERVEUR ET LOCATION 
+void	ParserConfig::parseServer(std::vector<std::string>::iterator &it){
+	// - Boucle : tant que je ne vois pas `}`, je lis les clés (`listen`, `root`, etc.).
+	// - Si je vois "location", j'appelle `parseLocation()`.
+}
 
+void	ParserConfig::parseLocation(std::vector<std::string>::iterator &it, ServerConfig &server){
+	// - Remplit les infos spécifiques à la route.
+	// - Ajoute la `LocationConfig` au serveur en cours.
 
+	// attention pour les locations, garder le match le plus long 
+	// par ex :
+	/*
+		/
+		/images
+		/images/icons
+	*/
+	// On va garder la 3eme option
+	// donc parser en gardant ca en tete 
+}
 
+// HANDLERS serveur
+void	ParserConfig::handleListen(std::vector<std::string>::iterator &it, ServerConfig &server){
+	// 1. Convertir *it en int (le port)
+    // 2. it++;
+    // 3. Vérifier si *it == ";"
+    // if (*it != ";") throw std::runtime_error("';' manquant après le port");
+	// utiliser la fontiond e fin de directive ?? 
+}
+
+void	ParserConfig::handleServerName(std::vector<std::string>::iterator &it, ServerConfig &server){
+
+}
+
+void	ParserConfig::handleErrorPage(std::vector<std::string>::iterator &it, ServerConfig &server){
+
+}
+
+void	ParserConfig::handleMaxBodySize(std::vector<std::string>::iterator &it, ServerConfig &server){
+
+}
+
+void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, ServerConfig &server){
+
+}
+
+// HANDLERS location
+void	ParserConfig::handleMethods(std::vector<std::string>::iterator &it, LocationConfig &location){
+
+}
+
+void	ParserConfig::handleAutoindex(std::vector<std::string>::iterator &it, LocationConfig &location){
+
+}
+
+void	ParserConfig::handleIndex(std::vector<std::string>::iterator &it, LocationConfig &location){
+
+}
+
+void	ParserConfig::handleReturn(std::vector<std::string>::iterator &it, LocationConfig &location){
+
+}
+
+void	ParserConfig::handleUploadStore(std::vector<std::string>::iterator &it, LocationConfig &location){
+
+}
+
+void	ParserConfig::handleCgi(std::vector<std::string>::iterator &it, LocationConfig &location){
+
+}
+
+void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, LocationConfig &location){
+
+}
+
+// CHECK
+void	ParserConfig::checkSemicolon(std::vector<std::string>::iterator &it){
+
+}
+
+void	ParserConfig::checkBracketsBalance(const std::string &content){
+
+}
+
+int		ParserConfig::stringToInt(const std::string &str){
+
+}
+
+size_t	ParserConfig::parseSize(const std::string &str){
+
+}
+
+// VERIF
+void	ParserConfig::verifyConfig(){
+
+}
 
 
 // ------------------------------ Prise de note vrac ------------------------------
-// recursion pour parser les blocs de config (server, location) 
-// et stocker les infos dans des struc serverConfig et locationConfig
+// parser les blocs de config (server, location) 
+// et stocker les infos dans des classes serverConfig et locationConfig
 // donc si on croise server { on cree objet serverConfig et on parse jusqu'a la fin du bloc, pareil pour location
 // tant qu'on croise pas } on continue de parser et stocker les infos dans la struc correspondante
 
@@ -163,3 +257,11 @@ void ParserConfig::tokenize(const std::string &content) {
 // quitter de maniere clean avec mess d'erreur clair si fichier pas bien formaté ou directives invaldies
 // -> ne pas lancer le serveur si la config est pourrie, obviously
 
+// PAR DEFAUT ??
+// Si non spécifié dans le config :
+// - `port` : 80
+// - `host` : 0.0.0.0
+// - `client_max_body_size` : 1M
+// - `index` : index.html
+// - `autoindex` : off
+// - `methods` : GET

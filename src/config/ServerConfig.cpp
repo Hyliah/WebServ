@@ -13,12 +13,9 @@
 #include "ServerConfig.hpp"
 #include "ParserConfig.hpp"
 
-//below popur test agauin 
-
-// CANONICAL FORM
-
 ServerConfig::ServerConfig() : port("8080"), maxBodySize(1000000) {
 	// voir pour le truc par defaut
+	// tout mettre dans le constructeur, recheck les valeurs par defaut 
 }
 ServerConfig::ServerConfig(const ServerConfig &other) {
 	port = other.port;
@@ -39,6 +36,5 @@ ServerConfig& ServerConfig::operator=(const ServerConfig &other) {
 	}
 	return *this;
 }
-ServerConfig::~ServerConfig() {
-}
+ServerConfig::~ServerConfig() {}
 

@@ -31,7 +31,6 @@ public:
 
 	std::string				uploadStore;  // Dossier pour les uploads
 
-	// ca c'est poru le CGI j'ai toujours pas capté mais apprently ca ressemble a ca :
 	std::map<std::string, std::string> cgiInfo; // Extension -> Chemin de l'exécutable
 
 	// check si on fait juste 2 string 
@@ -40,7 +39,7 @@ public:
 
 	bool					cgiEnabled;
 
-	LocationConfig(); // : autoindex(false), cgiEnabled(false) {} // a voir si on creer deja par defaut ou pas 
+	LocationConfig();
     LocationConfig(const LocationConfig& other);
     LocationConfig& operator=(const LocationConfig& other);
     ~LocationConfig();
@@ -49,17 +48,6 @@ public:
 
 #endif
 
-//mettre dans le cpp
-// void initLocationConfig(LocationConfig& obj){
-//     obj.path = "default";
-//     obj.root = "default";
-//     obj.index = "default";
-//     obj.returnUrl = "default";
-//     obj.uploadStore = "default";
-    
-//     obj.autoindex = false; // ou true idk
-//     obj.cgiEnabled = false; // ou true idk
-// }
 
 // Pourquoi a la place de faire une fonction init, au moment de la creation de l'objet on rempli pas toute la classe dans le constructeur ? 
 // Par ex :

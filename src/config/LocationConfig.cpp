@@ -18,6 +18,7 @@
 LocationConfig::LocationConfig() : autoindex(false), cgiEnabled(false) {
 	// voir si on met des trucs par defaut ou pas
 	// chack ca later c'est juste pour faire des tests
+	// oui tout mettre dans le constructeur, recheck les valeurs par defaut 
 }
 LocationConfig::LocationConfig(const LocationConfig &other) {
 	path = other.path;
@@ -44,6 +45,5 @@ LocationConfig& LocationConfig::operator=(const LocationConfig &other) {
 	}
 	return *this;
 }
-LocationConfig::~LocationConfig() {
-}
+LocationConfig::~LocationConfig() {}
 
