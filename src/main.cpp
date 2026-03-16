@@ -50,7 +50,8 @@ void	testPrint()
 		std::cout << "  Port: " << servers[i].port << std::endl
 				  << "  Host: " << servers[i].host << std::endl
 				  << "  Server Name: " << servers[i].serverName << std::endl
-				  << "  Max Body Size: " << servers[i].maxBodySize << std::endl;
+				  << "  Max Body Size: " << servers[i].maxBodySize << std::endl
+				  << "  Root: " << servers[i].root << std::endl;
 		std::cout << "  Error Pages:" << std::endl;
 		// contuinuer avec location apres 
 	}

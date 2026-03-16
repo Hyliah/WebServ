@@ -37,6 +37,7 @@ ParserConfig::~ParserConfig() {}
 void ParserConfig::parse(const std::string &configFilePath){
 	std::string content = readFile(configFilePath);
 	removeComments(content);
+	checkBracketsBalance(content);
 	tokenize(content);
 	std::vector<std::string>::iterator it = _tokens.begin();
 	while (it != _tokens.end()){
@@ -128,7 +129,6 @@ void ParserConfig::removeComments(std::string &content) {
 
 // TOKENIZEEEERRR
 void ParserConfig::tokenize(const std::string &content) {
-	// gestion des spé
 	std::string result;
 	for (size_t i = 0; i < content.size(); i++) {
 		if (content[i] == '{' || content[i] == '}' || content[i] == ';') {
@@ -140,7 +140,6 @@ void ParserConfig::tokenize(const std::string &content) {
 			result += content[i];
 		}
 	}
-	// decoup des tokens 
 	std::stringstream buffer(result);
 	std::string singletoken;
 	while (buffer >> singletoken) {
@@ -169,8 +168,8 @@ void	ParserConfig::parseServer(std::vector<std::string>::iterator &it){
 		// 	handleErrorPage(it, newServer);
 		// else if (*it == "client_max_body_size")
 		// 	handleMaxBodySize(it, newServer);
-		// else if (*it == "root")
-		// 	handleRoot(it, newServer);
+		else if (*it == "root")
+			handleRoot(it, newServer);
 		// else if (*it == "location")
 		// 	parseLocation(it, newServer);
 		else
@@ -224,12 +223,45 @@ void	ParserConfig::parseServer(std::vector<std::string>::iterator &it){
 /* *************************************************** */ 
 void	ParserConfig::handleListen(std::vector<std::string>::iterator &it, ServerConfig &server){
 	it++;
-	if ( it == _tokens.end())
-		throw ParseException("Listen needs a value");
+	if (!validateValue(it)) {	
+        throw ParseException("Error: 'listen' directive needs a value (e.g., 80 or 127.0.0.1:80)");
+    }
+	// ajouter plein de truc ici en fait c'est pas du tout suffisant 
+	// check 
 	server.port = *it;
 	it++;
 	checkSemicolon(it);
 }
+
+// // pour verif un truc :
+// void ParserConfig::handleListen(std::vector<std::string>::iterator &it, ServerConfig &server) {
+//     it++;
+    
+//     // On utilise ta nouvelle logique de validation
+//     if (!validateValue(it)) {
+//         throw ParseException("Error: 'listen' directive needs a value (e.g., 80 ou 127.0.0.1:80)");
+//     }
+
+//     std::string val = *it;
+//     size_t colonPos = val.find(':');
+
+//     if (colonPos != std::string::npos) {
+//         // Cas "host:port" -> ex: "127.0.0.1:8080"
+//         server.host = val.substr(0, colonPos);
+//         server.port = val.substr(colonPos + 1);
+        
+//         if (server.host.empty() || server.port.empty()) {
+//             throw ParseException("Error: Invalid 'listen' format. Expected host:port");
+//         }
+//     } else {
+//         // Cas "port" uniquement -> ex: "8080"
+//         // On laisse l'hôte par défaut (souvent "0.0.0.0" défini dans le constructeur)
+//         server.port = val;
+//     }
+
+//     it++;
+//     checkSemicolon(it);
+// }
 
 // void	ParserConfig::handleServerName(std::vector<std::string>::iterator &it, ServerConfig &server){
 
@@ -243,9 +275,14 @@ void	ParserConfig::handleListen(std::vector<std::string>::iterator &it, ServerCo
 
 // }
 
-// void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, ServerConfig &server){
-
-// }
+void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, ServerConfig &server){
+	it++;
+	if (!validateValue(it))
+		throw ParseException("Root needs a value");
+	server.root = *it;
+	it++;
+	checkSemicolon(it);
+}
 
 
 /* *************************************************** */
@@ -253,7 +290,7 @@ void	ParserConfig::handleListen(std::vector<std::string>::iterator &it, ServerCo
 /* *************************************************** */ 
 void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, LocationConfig &location){
 	it++;
-	if ( it == _tokens.end())
+	if (!validateValue(it))
 		throw ParseException("Root needs a value");
 	location.root = *it;
 	it++;
@@ -288,15 +325,38 @@ void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, LocationCo
 /* *************************************************** */
 /*  CHECKS AND UTILS                                   */
 /* *************************************************** */ 
+
+// finalement on fait une petite verif structurelle pour pas que la classe soit remplie avec de la daube
+// mais on check les trucs plus speficique ds la fonction finale de verif config 
+bool	ParserConfig::validateValue(std::vector<std::string>::iterator &it){
+	if (it == _tokens.end() || *it == ";" || *it == "{" || *it == "}") {
+		throw ParseException("Unexpected token or missing value");
+	}
+	return true;
+}
+
 void	ParserConfig::checkSemicolon(std::vector<std::string>::iterator &it){
 	if (it == _tokens.end() || *it != ";")
 		throw ParseException("Need ';' at the end of directives");
 	it++;
 }
 
-// void	ParserConfig::checkBracketsBalance(const std::string &content){
-
-// }
+// ca aussi, petite verif structurelle aussi, meme si ds les fonctions on verifie les brracket pour voir leur contenu 
+void	ParserConfig::checkBracketsBalance(const std::string &content){
+	int balance = 0;
+	for (size_t i = 0; i < content.size(); ++i) {
+		if (content[i] == '{')
+			balance++;
+		else if (content[i] == '}')
+			balance--;
+		if (balance < 0) {
+			throw ParseException("Unexpected '}' found");
+		}
+	}
+	if (balance != 0) {
+		throw ParseException("Brackets are not balanced");
+	}
+}
 
 // int		ParserConfig::stringToInt(const std::string &str){
 
@@ -310,7 +370,9 @@ void	ParserConfig::checkSemicolon(std::vector<std::string>::iterator &it){
 /*  FINAL VERIF'                                       */
 /* *************************************************** */ 
 // void	ParserConfig::verifyConfig(){
-
+// 	// verifie que chaque serveur a au moins un port et une location, et qu'il n'y a pas de doublons de ports
+// 	// faire ici toutes les verif specifiques par ex verifi specifique au port ( 0 - 65535) ...
+//	// etc ... 
 // }
 
 

@@ -21,6 +21,7 @@ public:
 	std::string					port; 		// str pour getadrinfo() pour eviter hton 
 	std::string					host;         // par ex par defaut "0.0.0.0"
 	std::string					serverName;
+	std::string					root;
 
 	size_t						maxBodySize;
 	
@@ -28,9 +29,9 @@ public:
 	std::vector<LocationConfig> locations;
 
 	ServerConfig();
-    ServerConfig(const ServerConfig& other);
-    ServerConfig& operator=(const ServerConfig& other);
-    ~ServerConfig();
+	ServerConfig(const ServerConfig& other);
+	ServerConfig& operator=(const ServerConfig& other);
+	~ServerConfig();
 };
 
 #endif

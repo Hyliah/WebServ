@@ -15,10 +15,19 @@
 /* *************************************************** */
 /*  Constructors, destructor, and assignment operator  */
 /* *************************************************** */ 
-LocationConfig::LocationConfig() : autoindex(false), cgiEnabled(false) {
+LocationConfig::LocationConfig(){
 	// voir si on met des trucs par defaut ou pas
 	// chack ca later c'est juste pour faire des tests
 	// oui tout mettre dans le constructeur, recheck les valeurs par defaut 
+	path = "/";
+	root = ""; // si location.root est vide, utilise server.root par defaut ?? a checker 
+	autoindex = false;
+	index = "index.html";
+	returnUrl = "";
+	uploadStore = "";
+	cgiEnabled = false;
+
+	methods.push_back("GET"); // par defaut on autorise que GET
 }
 LocationConfig::LocationConfig(const LocationConfig &other) {
 	path = other.path;

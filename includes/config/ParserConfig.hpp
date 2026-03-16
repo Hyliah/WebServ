@@ -51,6 +51,7 @@ class ParserConfig {
 		void						handleRoot(std::vector<std::string>::iterator &it, LocationConfig &location);
 
 		// CHECK					
+		bool						validateValue(std::vector<std::string>::iterator &it);
 		void						checkSemicolon(std::vector<std::string>::iterator &it);
 		void						checkBracketsBalance(const std::string &content);
 		int							stringToInt(const std::string &str); // equivalent de stoi, check si utile d'avoir version perso
