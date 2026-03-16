@@ -13,6 +13,9 @@
 #include "ServerConfig.hpp"
 #include "ParserConfig.hpp"
 
+/* *************************************************** */
+/*  Constructors, destructor, and assignment operator  */
+/* *************************************************** */ 
 ServerConfig::ServerConfig() : port("8080"), maxBodySize(1000000) {
 	// voir pour le truc par defaut
 	// tout mettre dans le constructeur, recheck les valeurs par defaut 

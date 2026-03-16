@@ -10,17 +10,6 @@
 /*                                                                           */
 /*****************************************************************************/
 
-#include "Webserv.hpp"
-#include "Exceptions.hpp"
+// Ici on peut faire comme avant et stocker toutes les fonctions de test
+// qu'on utilise plus mais pour les avoir en back up si jamais 
 
-int main (int ac, char **av)
-{
-	if (ac != 2) {
-		std::cerr << "Usage: ./webserv [config_file]" << std::endl;
-		return 1;
-	}
-	// test si fonction read file fonctionne
-	ParserConfig parser;
-	parser.parse(av[1]);
-	return 0;
-}

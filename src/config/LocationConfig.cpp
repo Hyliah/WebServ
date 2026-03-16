@@ -12,9 +12,9 @@
 
 #include "LocationConfig.hpp"
 
-// below pour test, a verif et modif 
-
-// CANONICAL FORM
+/* *************************************************** */
+/*  Constructors, destructor, and assignment operator  */
+/* *************************************************** */ 
 LocationConfig::LocationConfig() : autoindex(false), cgiEnabled(false) {
 	// voir si on met des trucs par defaut ou pas
 	// chack ca later c'est juste pour faire des tests

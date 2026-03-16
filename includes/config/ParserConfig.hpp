@@ -14,6 +14,7 @@
 #define PARSERCONFIG_HPP
 
 #include "Webserv.hpp"
+#include "Exceptions.hpp"
 
 class ServerConfig; 
 class LocationConfig;
@@ -69,20 +70,21 @@ class ParserConfig {
 		// Getters pour récupérer les serveurs après parsing
     	const std::vector<ServerConfig> &getServers() const { return _servers; }
 
-		// classe erreur pour les erreurs de parsing
-		class ParseException : public std::exception {
-			private:
-				std::string _msg;
+		// modif ds un fichier spé, check si tt marche avant de supp
+		// // classe erreur pour les erreurs de parsing
+		// class ParseException : public std::exception {
+		// 	private:
+		// 		std::string _msg;
 
-			public:
-				ParseException(const std::string &msg) : _msg(msg) {}
+		// 	public:
+		// 		ParseException(const std::string &msg) : _msg(msg) {}
 
-				virtual ~ParseException() throw() {}
+		// 		virtual ~ParseException() throw() {}
 
-				const char* what() const throw() {
-					return _msg.c_str();
-				}
-		};
+		// 		const char* what() const throw() {
+		// 			return _msg.c_str();
+		// 		}
+		// };
 };
 
 

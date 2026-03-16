@@ -37,15 +37,19 @@ void ParserConfig::parse(const std::string &configFilePath) {
 
 	// VERSION SANS TEST
 	// std::string content = readFile(configFilePath);
-	// ... ( if empty ) throw error ... 
+	// if (content.empty()) {
+	// 	throw ParseException("Error: Config file is empty: " + configFilePath);
+	// }
 	// removeComments(content);
 	// tokenize(content);
+	// std::vector<std::string>::iterator it = _tokens.begin();
+	// ... boucle 
 
 
 	// test readfile
 	std::string content = readFile(configFilePath);
 	if (content.empty()) {
-		throw ParseException("Error: Config file is empty: " + configFilePath);
+		throw ParseException("Config file is empty: " + configFilePath);
 	}
 	else{
 		std::cout << "Contenu du fichier:" << std::endl;
@@ -89,13 +93,13 @@ void ParserConfig::parse(const std::string &configFilePath) {
 std::string ParserConfig::readFile(const std::string &path) {
 	std::ifstream file(path.c_str());
 	if (!file.is_open()) {
-		throw ParseException("Error: Could not open config file: " + path);
+		throw ParseException("Could not open config file: " + path);
 	}
 	std::stringstream buffer;
 	buffer << file.rdbuf();
 	file.close();
 	if (buffer.str().empty()) {
-		throw ParseException("Error: Config file is empty: " + path);
+		throw ParseException("Config file is empty: " + path);
 	}
 	return buffer.str();
 }
@@ -150,7 +154,7 @@ void	ParserConfig::parseServer(std::vector<std::string>::iterator &it){
 
 	it++; // pour skip le mot serveur
 	if ( it == _tokens.end() || *it != "{")
-		throw ParseException("Error : expected '{' after 'server'");
+		throw ParseException("expected '{' after 'server'");
 	it++; // skip accoldae
 
 	ServerConfig newServer;
@@ -169,10 +173,10 @@ void	ParserConfig::parseServer(std::vector<std::string>::iterator &it){
 		else if (*it == "location")
 			parseLocation(it, newServer);
 		else
-			throw ParseException("Error : Unknown directive: " + *it);
+			throw ParseException("Unknown directive: " + *it);
 	}
 	if (it == _tokens.end())
-		throw ParseException("Error : Missing '}' at the end of the block");
+		throw ParseException("Missing '}' at the end of the block");
 	it++; // skip accoldate fermenante
 	_servers.push_back(newServer);
 }
@@ -187,7 +191,7 @@ void	ParserConfig::parseLocation(std::vector<std::string>::iterator &it, ServerC
 	it++;
 
 	if (it == _tokens.end() || *it != "{")
-		throw ParseException("Error : need '{' after location path ");
+		throw ParseException("need '{' after location path ");
 	it++;
 
 	while (it != _tokens.end() && *it != "}"){
@@ -206,10 +210,10 @@ void	ParserConfig::parseLocation(std::vector<std::string>::iterator &it, ServerC
 		else if (*it == "cgi_info")
 			handleCgi(it, newLocation);
 		else	
-			throw ParseException("Error : Unknown directive: " + *it);
+			throw ParseException("Unknown directive: " + *it);
 	}
 	if (it == _tokens.end())
-		throw ParseException("Error : Missing '}' at the end of the block");
+		throw ParseException("Missing '}' at the end of the block");
 	it++;
 	server.locations.push_back(newLocation);
 }
@@ -248,7 +252,7 @@ void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, ServerConf
 void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, LocationConfig &location){
 	it++;
 	if ( it == _tokens.end())
-		throw ParseException("Error : Root needs a value");
+		throw ParseException("Root needs a value");
 	location.root = *it;
 	it++;
 	checkSemicolon(it);
@@ -284,7 +288,7 @@ void	ParserConfig::handleCgi(std::vector<std::string>::iterator &it, LocationCon
 /* *************************************************** */ 
 void	ParserConfig::checkSemicolon(std::vector<std::string>::iterator &it){
 	if (it == _tokens.end() || *it != ";")
-		throw ParseException("Error : Need ';' at the end of directives");
+		throw ParseException("Need ';' at the end of directives");
 	it++;
 }
 

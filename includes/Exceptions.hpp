@@ -10,17 +10,37 @@
 /*                                                                           */
 /*****************************************************************************/
 
-#include "Webserv.hpp"
-#include "Exceptions.hpp"
+#ifndef EXCEPTIONS_HPP
+#define EXCEPTIONS_HPP
 
-int main (int ac, char **av)
-{
-	if (ac != 2) {
-		std::cerr << "Usage: ./webserv [config_file]" << std::endl;
-		return 1;
-	}
-	// test si fonction read file fonctionne
-	ParserConfig parser;
-	parser.parse(av[1]);
-	return 0;
-}
+#include <stdexcept>
+#include <string>
+
+// ici on fait une classe de base , et apres classes plus specifiques qui heritent
+class WebservException : public std::exception {
+	protected:
+		std::string _message;
+
+	public:
+		WebservException(const std::string& msg) : _message(msg) {}
+		virtual ~WebservException() throw() {}
+		virtual const char* what() const throw() {
+			return _message.c_str();
+		}
+};
+
+// erreurs de parsing
+class ParseException : public WebservException {
+	public:
+		ParseException(const std::string& msg) : WebservException("Parsing Error: " + msg) {}
+};
+
+// erreur de socket
+
+// erreur de CGI ?
+
+// erreur de http ? 
+
+// others ?? 
+
+#endif
