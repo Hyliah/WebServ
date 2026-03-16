@@ -54,7 +54,8 @@ class ParserConfig {
 		bool						validateValue(std::vector<std::string>::iterator &it);
 		void						checkSemicolon(std::vector<std::string>::iterator &it);
 		void						checkBracketsBalance(const std::string &content);
-		int							stringToInt(const std::string &str); // equivalent de stoi, check si utile d'avoir version perso
+		long						stringToLong(const std::string &str);
+		//int						stringToInt(const std::string &str); peut etre utile pour port, erreur http ?? check plus tard 
 		size_t						parseSize(const std::string &str); // pour parser les tailles avec K, M, G
 
 		// VERIF

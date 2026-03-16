@@ -166,8 +166,8 @@ void	ParserConfig::parseServer(std::vector<std::string>::iterator &it){
 		// 	handleServerName(it, newServer);
 		// else if (*it == "error_page")
 		// 	handleErrorPage(it, newServer);
-		// else if (*it == "client_max_body_size")
-		// 	handleMaxBodySize(it, newServer);
+		else if (*it == "client_max_body_size")
+			handleMaxBodySize(it, newServer);
 		else if (*it == "root")
 			handleRoot(it, newServer);
 		// else if (*it == "location")
@@ -224,44 +224,17 @@ void	ParserConfig::parseServer(std::vector<std::string>::iterator &it){
 void	ParserConfig::handleListen(std::vector<std::string>::iterator &it, ServerConfig &server){
 	it++;
 	if (!validateValue(it)) {	
-        throw ParseException("Error: 'listen' directive needs a value (e.g., 80 or 127.0.0.1:80)");
-    }
+		throw ParseException("'listen' directive needs a value (e.g., 80 or 127.0.0.1:80)");
+	}
 	// ajouter plein de truc ici en fait c'est pas du tout suffisant 
-	// check 
+	// check avec host:port  ex: "127.0.0.1:8080"
+	// check si empty ? ou alors apres avec :
+	// check si port est un nombre et dans la plage 0-65535 ( verifyconfig ? )
+	// check port only 
 	server.port = *it;
 	it++;
 	checkSemicolon(it);
 }
-
-// // pour verif un truc :
-// void ParserConfig::handleListen(std::vector<std::string>::iterator &it, ServerConfig &server) {
-//     it++;
-    
-//     // On utilise ta nouvelle logique de validation
-//     if (!validateValue(it)) {
-//         throw ParseException("Error: 'listen' directive needs a value (e.g., 80 ou 127.0.0.1:80)");
-//     }
-
-//     std::string val = *it;
-//     size_t colonPos = val.find(':');
-
-//     if (colonPos != std::string::npos) {
-//         // Cas "host:port" -> ex: "127.0.0.1:8080"
-//         server.host = val.substr(0, colonPos);
-//         server.port = val.substr(colonPos + 1);
-        
-//         if (server.host.empty() || server.port.empty()) {
-//             throw ParseException("Error: Invalid 'listen' format. Expected host:port");
-//         }
-//     } else {
-//         // Cas "port" uniquement -> ex: "8080"
-//         // On laisse l'hôte par défaut (souvent "0.0.0.0" défini dans le constructeur)
-//         server.port = val;
-//     }
-
-//     it++;
-//     checkSemicolon(it);
-// }
 
 // void	ParserConfig::handleServerName(std::vector<std::string>::iterator &it, ServerConfig &server){
 
@@ -271,9 +244,14 @@ void	ParserConfig::handleListen(std::vector<std::string>::iterator &it, ServerCo
 
 // }
 
-// void	ParserConfig::handleMaxBodySize(std::vector<std::string>::iterator &it, ServerConfig &server){
-
-// }
+void	ParserConfig::handleMaxBodySize(std::vector<std::string>::iterator &it, ServerConfig &server){
+	it++;
+	if (!validateValue(it))
+		throw ParseException("client_max_body_size needs a value");
+	server.maxBodySize = parseSize(*it);
+	it++;
+	checkSemicolon(it);
+}
 
 void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, ServerConfig &server){
 	it++;
@@ -358,13 +336,36 @@ void	ParserConfig::checkBracketsBalance(const std::string &content){
 	}
 }
 
-// int		ParserConfig::stringToInt(const std::string &str){
+long	ParserConfig::stringToLong(const std::string &str){
+	long result = 0;
+	for (size_t i = 0; i < str.size(); i++)
+	{
+		if (!isdigit(str[i]))
+			throw ParseException("Invalid number: " + str);
+		result = result * 10 + (str[i] - '0');
+	}
+	return result;
+}
 
-// }
-
-// size_t	ParserConfig::parseSize(const std::string &str){
-
-// }
+size_t	ParserConfig::parseSize(const std::string &str){
+	if (str.empty()) return 0;
+	char unit = str[str.size() - 1]; // pour acceder au dernier caractere si c'est une lettre 
+	std::string valueStr = str; // on va faire un copie de ka str
+	size_t multiplier = 1;
+	// donc si le dernier char est pas un digit ( donc k, m ou g )
+	if (!isdigit(unit)) {
+		valueStr = str.substr(0, str.size() - 1); // on stock les number en enlevant le dernier char 
+		if (unit == 'K' || unit == 'k') multiplier = 1024;
+		else if (unit == 'M' || unit == 'm') multiplier = 1024 * 1024;
+		else if (unit == 'G' || unit == 'g') multiplier = 1024 * 1024 * 1024;
+		else throw ParseException("Invalid size unit: " + str);
+	}
+	// Conversion de la partie numérique 
+	long val = stringToLong(valueStr);
+	if (val < 0) 
+		throw ParseException("Size cannot be negative: " + str);
+	return static_cast<size_t>(val * multiplier);
+}
 
 /* *************************************************** */
 /*  FINAL VERIF'                                       */
