@@ -139,9 +139,38 @@ void ParserConfig::tokenize(const std::string &content) {
 }
 
 // PARSE SERVEUR ET LOCATION 
+// a changer pour eviter foret de if ? pointeur sur fonction ? check deja si tt marche ... 
 void	ParserConfig::parseServer(std::vector<std::string>::iterator &it){
 	// - Boucle : tant que je ne vois pas `}`, je lis les clés (`listen`, `root`, etc.).
 	// - Si je vois "location", j'appelle `parseLocation()`.
+	
+	it++; // pour skip le mot serveur
+	if ( it == _tokens.end() || *it != "{")
+		throw ParseException("Error : expected '{' after 'server'");
+	it++; // skip accoldae
+
+	ServerConfig newServer;
+
+	while (it != _tokens.end() && *it != "}"){
+		if (*it == "listen")
+			handleListen(it, newServer);
+		else if (*it == "server_name")
+			handleServerName(it, newServer);
+		else if (*it == "error_page")
+			handleErrorPage(it, newServer);
+		else if (*it == "client_max_body_size")
+			handleMaxBodySize(it, newServer);
+		else if (*it == "root")
+			handleRoot(it, newServer);
+		else if (*it == "location")
+			parseLocation(it, newServer);
+		else
+			throw ParseException("Error : Unknown directive: " + *it);
+	}
+	if (it == _tokens.end())
+		throw ParseException("Error : Missing '}' at the end of the block");
+	it++; // skip accoldate fermenante
+	_servers.push_back(newServer);
 }
 
 void	ParserConfig::parseLocation(std::vector<std::string>::iterator &it, ServerConfig &server){
