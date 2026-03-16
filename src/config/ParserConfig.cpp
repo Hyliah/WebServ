@@ -33,56 +33,60 @@ ParserConfig::~ParserConfig() {}
 /* *************************************************** */
 /*  Fonction parse principale                          */
 /* *************************************************** */ 
-void ParserConfig::parse(const std::string &configFilePath) {
-
-	// VERSION SANS TEST
-	// std::string content = readFile(configFilePath);
-	// if (content.empty()) {
-	// 	throw ParseException("Error: Config file is empty: " + configFilePath);
-	// }
-	// removeComments(content);
-	// tokenize(content);
-	// std::vector<std::string>::iterator it = _tokens.begin();
-	// ... boucle 
-
-
-	// test readfile
+// VERSION CLEAN :
+void ParserConfig::parse(const std::string &configFilePath){
 	std::string content = readFile(configFilePath);
-	if (content.empty()) {
-		throw ParseException("Config file is empty: " + configFilePath);
-	}
-	else{
-		std::cout << "Contenu du fichier:" << std::endl;
-		std::cout << content << std::endl;
-	}
-
-	// test remove comments
 	removeComments(content);
-	std::cout << "Contenu après suppression des commentaires:" << std::endl;
-	std::cout << content << std::endl;
-
-	// test tokenize
 	tokenize(content);
-	// verif avec print pour debug 
-	std::cout << "Tokens:" << std::endl;
-	for (size_t i = 0; i < _tokens.size(); i++) {
-		std::cout << "Token " << i << ": " << _tokens[i] << std::endl;
-	}
-
-	// Parse server
-	// boucle pour trouver "server", et appelle parseServeur
-	// init de l'iterateur 
 	std::vector<std::string>::iterator it = _tokens.begin();
-	// parcourir les tokens
 	while (it != _tokens.end()){
 		if (*it == "server"){
 			parseServer(it);
 		}
 		else{
-			throw ParseException("Est ce qu'il y a une erreur ici ou pas ?? rajouter + *it ou pas ? ");
+			throw ParseException("Unexpected token: " + *it);
 		}
 	}
 }
+// VERSION TEST BELOW
+// void ParserConfig::parse(const std::string &configFilePath) {
+// 	// test readfile
+// 	std::string content = readFile(configFilePath);
+// 	if (content.empty()) {
+// 		throw ParseException("Config file is empty: " + configFilePath);
+// 	}
+// 	else{
+// 		std::cout << "Contenu du fichier:" << std::endl;
+// 		std::cout << content << std::endl;
+// 	}
+
+// 	// test remove comments
+// 	removeComments(content);
+// 	std::cout << "Contenu après suppression des commentaires:" << std::endl;
+// 	std::cout << content << std::endl;
+
+// 	// test tokenize
+// 	tokenize(content);
+// 	// verif avec print pour debug 
+// 	std::cout << "Tokens:" << std::endl;
+// 	for (size_t i = 0; i < _tokens.size(); i++) {
+// 		std::cout << "Token " << i << ": " << _tokens[i] << std::endl;
+// 	}
+
+// 	// Parse server
+// 	// boucle pour trouver "server", et appelle parseServeur
+// 	// init de l'iterateur 
+// 	std::vector<std::string>::iterator it = _tokens.begin();
+// 	// parcourir les tokens
+// 	while (it != _tokens.end()){
+// 		if (*it == "server"){
+// 			parseServer(it);
+// 		}
+// 		else{
+// 			throw ParseException("Est ce qu'il y a une erreur ici ou pas ?? rajouter + *it ou pas ? ");
+// 		}
+// 	}
+// }
 
 /* *************************************************** */
 /*  Read, clean file + tokenize                        */
@@ -149,101 +153,99 @@ void ParserConfig::tokenize(const std::string &content) {
 /* *************************************************** */ 
 // a changer pour eviter foret de if ? pointeur sur fonction ? check deja si tt marche ... 
 void	ParserConfig::parseServer(std::vector<std::string>::iterator &it){
-	// - Boucle : tant que je ne vois pas `}`, je lis les clés (`listen`, `root`, etc.).
-	// - Si je vois "location", j'appelle `parseLocation()`.
-
-	it++; // pour skip le mot serveur
+	it++;
 	if ( it == _tokens.end() || *it != "{")
 		throw ParseException("expected '{' after 'server'");
-	it++; // skip accoldae
+	it++;
 
 	ServerConfig newServer;
 
 	while (it != _tokens.end() && *it != "}"){
 		if (*it == "listen")
 			handleListen(it, newServer);
-		else if (*it == "server_name")
-			handleServerName(it, newServer);
-		else if (*it == "error_page")
-			handleErrorPage(it, newServer);
-		else if (*it == "client_max_body_size")
-			handleMaxBodySize(it, newServer);
-		else if (*it == "root")
-			handleRoot(it, newServer);
-		else if (*it == "location")
-			parseLocation(it, newServer);
+		// else if (*it == "server_name")
+		// 	handleServerName(it, newServer);
+		// else if (*it == "error_page")
+		// 	handleErrorPage(it, newServer);
+		// else if (*it == "client_max_body_size")
+		// 	handleMaxBodySize(it, newServer);
+		// else if (*it == "root")
+		// 	handleRoot(it, newServer);
+		// else if (*it == "location")
+		// 	parseLocation(it, newServer);
 		else
 			throw ParseException("Unknown directive: " + *it);
 	}
 	if (it == _tokens.end())
 		throw ParseException("Missing '}' at the end of the block");
-	it++; // skip accoldate fermenante
+	it++;
 	_servers.push_back(newServer);
 }
 
-void	ParserConfig::parseLocation(std::vector<std::string>::iterator &it, ServerConfig &server){
-	it++;
-	if ( it == _tokens.end())
-		throw ParseException("Location needs a path");
+// void	ParserConfig::parseLocation(std::vector<std::string>::iterator &it, ServerConfig &server){
+// 	it++;
+// 	if ( it == _tokens.end())
+// 		throw ParseException("Location needs a path");
 
-	LocationConfig newLocation;
-	newLocation.path = *it;
-	it++;
+// 	LocationConfig newLocation;
+// 	newLocation.path = *it;
+// 	it++;
 
-	if (it == _tokens.end() || *it != "{")
-		throw ParseException("need '{' after location path ");
-	it++;
+// 	if (it == _tokens.end() || *it != "{")
+// 		throw ParseException("need '{' after location path ");
+// 	it++;
 
-	while (it != _tokens.end() && *it != "}"){
-		if (*it == "root")
-			handleRoot(it, newLocation);
-		else if (*it == "allow_methods")
-			handleMethods(it, newLocation);
-		else if (*it == "autoindex")
-			handleAutoindex(it, newLocation);
-		else if (*it == "index")
-			handleIndex(it, newLocation);
-		else if (*it == "return")
-			handleReturn(it, newLocation);
-		else if (*it == "upload_store")
-			handleUploadStore(it, newLocation);
-		else if (*it == "cgi_info")
-			handleCgi(it, newLocation);
-		else	
-			throw ParseException("Unknown directive: " + *it);
-	}
-	if (it == _tokens.end())
-		throw ParseException("Missing '}' at the end of the block");
-	it++;
-	server.locations.push_back(newLocation);
-}
+// 	while (it != _tokens.end() && *it != "}"){
+// 		if (*it == "root")
+// 			handleRoot(it, newLocation);
+// 		else if (*it == "allow_methods")
+// 			handleMethods(it, newLocation);
+// 		else if (*it == "autoindex")
+// 			handleAutoindex(it, newLocation);
+// 		else if (*it == "index")
+// 			handleIndex(it, newLocation);
+// 		else if (*it == "return")
+// 			handleReturn(it, newLocation);
+// 		else if (*it == "upload_store")
+// 			handleUploadStore(it, newLocation);
+// 		else if (*it == "cgi_info")
+// 			handleCgi(it, newLocation);
+// 		else	
+// 			throw ParseException("Unknown directive: " + *it);
+// 	}
+// 	if (it == _tokens.end())
+// 		throw ParseException("Missing '}' at the end of the block");
+// 	it++;
+// 	server.locations.push_back(newLocation);
+// }
 
 /* *************************************************** */
 /*  HANDLERS SERVER                                    */
 /* *************************************************** */ 
 void	ParserConfig::handleListen(std::vector<std::string>::iterator &it, ServerConfig &server){
-	// 1. Convertir *it en int (le port)
-	// 2. it++;
-	// 3. Vérifier si *it == ";"
-	// if (*it != ";") throw std::runtime_error("';' manquant après le port");
-	// utiliser la fontiond e fin de directive ?? 
+	it++;
+	if ( it == _tokens.end())
+		throw ParseException("Listen needs a value");
+	server.port = *it;
+	it++;
+	checkSemicolon(it);
 }
 
-void	ParserConfig::handleServerName(std::vector<std::string>::iterator &it, ServerConfig &server){
+// void	ParserConfig::handleServerName(std::vector<std::string>::iterator &it, ServerConfig &server){
 
-}
+// }
 
-void	ParserConfig::handleErrorPage(std::vector<std::string>::iterator &it, ServerConfig &server){
+// void	ParserConfig::handleErrorPage(std::vector<std::string>::iterator &it, ServerConfig &server){
 
-}
+// }
 
-void	ParserConfig::handleMaxBodySize(std::vector<std::string>::iterator &it, ServerConfig &server){
+// void	ParserConfig::handleMaxBodySize(std::vector<std::string>::iterator &it, ServerConfig &server){
 
-}
+// }
 
-void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, ServerConfig &server){
+// void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, ServerConfig &server){
 
-}
+// }
 
 
 /* *************************************************** */
@@ -258,29 +260,29 @@ void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, LocationCo
 	checkSemicolon(it);
 }
 
-void	ParserConfig::handleMethods(std::vector<std::string>::iterator &it, LocationConfig &location){
+// void	ParserConfig::handleMethods(std::vector<std::string>::iterator &it, LocationConfig &location){
 
-}
+// }
 
-void	ParserConfig::handleAutoindex(std::vector<std::string>::iterator &it, LocationConfig &location){
+// void	ParserConfig::handleAutoindex(std::vector<std::string>::iterator &it, LocationConfig &location){
 
-}
+// }
 
-void	ParserConfig::handleIndex(std::vector<std::string>::iterator &it, LocationConfig &location){
+// void	ParserConfig::handleIndex(std::vector<std::string>::iterator &it, LocationConfig &location){
 
-}
+// }
 
-void	ParserConfig::handleReturn(std::vector<std::string>::iterator &it, LocationConfig &location){
+// void	ParserConfig::handleReturn(std::vector<std::string>::iterator &it, LocationConfig &location){
 
-}
+// }
 
-void	ParserConfig::handleUploadStore(std::vector<std::string>::iterator &it, LocationConfig &location){
+// void	ParserConfig::handleUploadStore(std::vector<std::string>::iterator &it, LocationConfig &location){
 
-}
+// }
 
-void	ParserConfig::handleCgi(std::vector<std::string>::iterator &it, LocationConfig &location){
+// void	ParserConfig::handleCgi(std::vector<std::string>::iterator &it, LocationConfig &location){
 
-}
+// }
 
 
 /* *************************************************** */
@@ -292,24 +294,24 @@ void	ParserConfig::checkSemicolon(std::vector<std::string>::iterator &it){
 	it++;
 }
 
-void	ParserConfig::checkBracketsBalance(const std::string &content){
+// void	ParserConfig::checkBracketsBalance(const std::string &content){
 
-}
+// }
 
-int		ParserConfig::stringToInt(const std::string &str){
+// int		ParserConfig::stringToInt(const std::string &str){
 
-}
+// }
 
-size_t	ParserConfig::parseSize(const std::string &str){
+// size_t	ParserConfig::parseSize(const std::string &str){
 
-}
+// }
 
 /* *************************************************** */
 /*  FINAL VERIF'                                       */
 /* *************************************************** */ 
-void	ParserConfig::verifyConfig(){
+// void	ParserConfig::verifyConfig(){
 
-}
+// }
 
 
 // ------------------------------ Prise de note vrac ------------------------------
