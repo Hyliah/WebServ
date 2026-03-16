@@ -13,14 +13,14 @@
 #include "ServerConfig.hpp"
 #include "ParserConfig.hpp"
 
-// CANONICAL FORM
+/* *************************************************** */
+/*  Constructors, destructor, and assignment operator  */
+/* *************************************************** */ 
 ParserConfig::ParserConfig() {}
-
 ParserConfig::ParserConfig(const ParserConfig &other) {
 	_servers = other._servers;
 	_tokens = other._tokens;
 }
-
 ParserConfig &ParserConfig::operator=(const ParserConfig &other) {
 	if (this != &other) {
 		_servers = other._servers;
@@ -28,11 +28,11 @@ ParserConfig &ParserConfig::operator=(const ParserConfig &other) {
 	}
 	return *this;
 }
-
 ParserConfig::~ParserConfig() {}
 
-// FONCTION PARSE PRINCIPALE
-// enlever les cout pour le test final
+/* *************************************************** */
+/*  Fonction parse principale                          */
+/* *************************************************** */ 
 void ParserConfig::parse(const std::string &configFilePath) {
 
 	// VERSION SANS TEST
@@ -80,7 +80,9 @@ void ParserConfig::parse(const std::string &configFilePath) {
 	}
 }
 
-// CLEAN
+/* *************************************************** */
+/*  Read, clean file + tokenize                        */
+/* *************************************************** */ 
 
 // lire le fichier et retourner son contenu sous forme de string
 // fichier et non dossier ??? check si ok 
@@ -138,12 +140,14 @@ void ParserConfig::tokenize(const std::string &content) {
 	}
 }
 
-// PARSE SERVEUR ET LOCATION 
+/* *************************************************** */
+/*  PARSE SERVEUR ET LOCATION                          */
+/* *************************************************** */ 
 // a changer pour eviter foret de if ? pointeur sur fonction ? check deja si tt marche ... 
 void	ParserConfig::parseServer(std::vector<std::string>::iterator &it){
 	// - Boucle : tant que je ne vois pas `}`, je lis les clés (`listen`, `root`, etc.).
 	// - Si je vois "location", j'appelle `parseLocation()`.
-	
+
 	it++; // pour skip le mot serveur
 	if ( it == _tokens.end() || *it != "{")
 		throw ParseException("Error : expected '{' after 'server'");
@@ -174,26 +178,50 @@ void	ParserConfig::parseServer(std::vector<std::string>::iterator &it){
 }
 
 void	ParserConfig::parseLocation(std::vector<std::string>::iterator &it, ServerConfig &server){
-	// - Remplit les infos spécifiques à la route.
-	// - Ajoute la `LocationConfig` au serveur en cours.
+	it++;
+	if ( it == _tokens.end())
+		throw ParseException("Location needs a path");
 
-	// attention pour les locations, garder le match le plus long 
-	// par ex :
-	/*
-		/
-		/images
-		/images/icons
-	*/
-	// On va garder la 3eme option
-	// donc parser en gardant ca en tete 
+	LocationConfig newLocation;
+	newLocation.path = *it;
+	it++;
+
+	if (it == _tokens.end() || *it != "{")
+		throw ParseException("Error : need '{' after location path ");
+	it++;
+
+	while (it != _tokens.end() && *it != "}"){
+		if (*it == "root")
+			handleRoot(it, newLocation);
+		else if (*it == "allow_methods")
+			handleMethods(it, newLocation);
+		else if (*it == "autoindex")
+			handleAutoindex(it, newLocation);
+		else if (*it == "index")
+			handleIndex(it, newLocation);
+		else if (*it == "return")
+			handleReturn(it, newLocation);
+		else if (*it == "upload_store")
+			handleUploadStore(it, newLocation);
+		else if (*it == "cgi_info")
+			handleCgi(it, newLocation);
+		else	
+			throw ParseException("Error : Unknown directive: " + *it);
+	}
+	if (it == _tokens.end())
+		throw ParseException("Error : Missing '}' at the end of the block");
+	it++;
+	server.locations.push_back(newLocation);
 }
 
-// HANDLERS serveur
+/* *************************************************** */
+/*  HANDLERS SERVER                                    */
+/* *************************************************** */ 
 void	ParserConfig::handleListen(std::vector<std::string>::iterator &it, ServerConfig &server){
 	// 1. Convertir *it en int (le port)
-    // 2. it++;
-    // 3. Vérifier si *it == ";"
-    // if (*it != ";") throw std::runtime_error("';' manquant après le port");
+	// 2. it++;
+	// 3. Vérifier si *it == ";"
+	// if (*it != ";") throw std::runtime_error("';' manquant après le port");
 	// utiliser la fontiond e fin de directive ?? 
 }
 
@@ -213,7 +241,19 @@ void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, ServerConf
 
 }
 
-// HANDLERS location
+
+/* *************************************************** */
+/*  HANDLERS LOCATION                                  */
+/* *************************************************** */ 
+void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, LocationConfig &location){
+	it++;
+	if ( it == _tokens.end())
+		throw ParseException("Error : Root needs a value");
+	location.root = *it;
+	it++;
+	checkSemicolon(it);
+}
+
 void	ParserConfig::handleMethods(std::vector<std::string>::iterator &it, LocationConfig &location){
 
 }
@@ -238,13 +278,14 @@ void	ParserConfig::handleCgi(std::vector<std::string>::iterator &it, LocationCon
 
 }
 
-void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, LocationConfig &location){
 
-}
-
-// CHECK
+/* *************************************************** */
+/*  CHECKS AND UTILS                                   */
+/* *************************************************** */ 
 void	ParserConfig::checkSemicolon(std::vector<std::string>::iterator &it){
-
+	if (it == _tokens.end() || *it != ";")
+		throw ParseException("Error : Need ';' at the end of directives");
+	it++;
 }
 
 void	ParserConfig::checkBracketsBalance(const std::string &content){
@@ -259,7 +300,9 @@ size_t	ParserConfig::parseSize(const std::string &str){
 
 }
 
-// VERIF
+/* *************************************************** */
+/*  FINAL VERIF'                                       */
+/* *************************************************** */ 
 void	ParserConfig::verifyConfig(){
 
 }
@@ -294,3 +337,17 @@ void	ParserConfig::verifyConfig(){
 // - `index` : index.html
 // - `autoindex` : off
 // - `methods` : GET
+
+// POUR LOCATION ???
+// - Remplit les infos spécifiques à la route.
+// - Ajoute la `LocationConfig` au serveur en cours.
+
+// attention pour les locations, garder le match le plus long 
+// par ex :
+/*
+	/
+	/images
+	/images/icons
+*/
+// On va garder la 3eme option
+// donc parser en gardant ca en tete 
