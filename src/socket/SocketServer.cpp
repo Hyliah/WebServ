@@ -12,8 +12,10 @@
 
 	#include "SocketServer.hpp"
 	
-	
-// construtor & destructors
+/* ************************************************** */
+/* construtor & destructors                           */
+/* ************************************************** */
+
 SocketServer::SocketServer() : _sockFd(-1), _port("default"), _servers(NULL), _res(NULL){}
 SocketServer::SocketServer(int fd) : _sockFd(fd), _port("default"), _servers(NULL), _res(NULL){}
 SocketServer::~SocketServer(){
@@ -23,7 +25,10 @@ SocketServer::~SocketServer(){
 		freeaddrinfo(_res);
 }
 
-// getters and setters
+/* ************************************************** */
+/* getters & setters.                                 */
+/* ************************************************** */
+
 int									SocketServer::getFd() const{ return (_sockFd); }
 const std::string&					SocketServer::getPort() const{ return (_port); }
 const std::vector<ServerConfig*>&	SocketServer::getServers() const{ return (_servers); }
@@ -33,10 +38,15 @@ void 								SocketServer::setPort(const std::string& port){ _port = port; }
 void 								SocketServer::addServer(ServerConfig* server){ _servers.push_back(server); }
 
 
+/* ************************************************** */
+/* socket handling functions                          */
+/* ************************************************** */
 
-// socket handling functions
+//statics
 static int initStructGetaddrinfo(struct addrinfo& hints, struct addrinfo** res);
 static bool setSocket(int sockFd);
+
+//fucntions
 void    SocketServer::createSocket(){
 	struct addrinfo hints;
 
@@ -80,7 +90,10 @@ void    SocketServer::createSocket(){
 	}
 
 
-//je les ferai quand on y sera
+/* ************************************************** */
+/* je ferai qu on y sera.                             */
+/* ************************************************** */
+
 void    SocketServer::listenSocket(int backlog){
 	
 	//listen(fd, SOMAXCONN);

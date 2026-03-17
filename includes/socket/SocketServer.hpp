@@ -20,8 +20,6 @@
 #include <fcntl.h>
 #include "ServerConfig.hpp"
 
-class SocketClient;
-
 class SocketServer {
 
 private:

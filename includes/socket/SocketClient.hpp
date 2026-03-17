@@ -16,33 +16,47 @@
 #include <string>
 #include <unistd.h>
 
+#include "HttpRequest.hpp"
+
 class SocketClient {
 
 private:
 
     int         _fd;
     std::string _buffer;
-    int         _port;
 
-public:
+    HttpRequest _request;
 
+    bool        _headerParsed;
+    bool        _requestCompleted;
+
+    
+    public:
+    
     SocketClient();
     SocketClient(int fd);
-	SocketClient(const SocketClient& other);
-	SocketClient& operator=(const SocketClient& other);
+	SocketClient(const SocketClient& other) = delete;
+	SocketClient& operator=(const SocketClient& other) = delete;
     ~SocketClient();
-
-    int receiveData();
-    int sendData(const std::string& data);
-
+    
+    
     void closeSocket();
-
+    
     int getFd() const;
-
+    HttpRequest& getRequest();
+    
     const std::string& getBuffer() const;
+    
+    void appendBuffer(std::string);
+    
+    bool parseRequest();
+    void parseFirstLine(std::string &buffer, size_t &position);
+    void parseHeaders(std::string &buffer, size_t &position);
+    void parseBody(std::string &buffer, size_t &position);
 
-    int getPort() const;
-    void setPort(int port);
+    // int receiveData();
+    // int sendData(const std::string& data);
+
 };
 
 #endif
