@@ -13,12 +13,18 @@
 #include "utilsParsing.hpp"
 #include "Exceptions.hpp"
 
+
+
+/*
+CHANGER POUR LE ENUM !!!!!!!!!!!!!!!!!
+*/
+
 long	stringToLong(const std::string &str){
 	long result = 0;
 	for (size_t i = 0; i < str.size(); i++)
 	{
 		if (!isdigit(str[i]))
-			throw ParseException("Invalid number: " + str);
+			throw ParseException(CONF, "Invalid number: " + str);
 		result = result * 10 + (str[i] - '0');
 	}
 	return result;
@@ -31,13 +37,14 @@ int	stringToInt(const std::string &str){
 	for (size_t i = 0; i < str.size(); i++)
 	{
 		if (!isdigit(str[i]))
-			throw ParseException("Invalid number: " + str);
+			throw ParseException(CONF, "Invalid number: " + str);
 		if (result > (INT_MAX - (str[i] - '0')) / 10) // Verifie que le prochain chiffre n'entraînera pas un overflow
-			throw ParseException("Number too large: " + str);
+			throw ParseException(CONF, "Number too large: " + str);
 		result = result * 10 + (str[i] - '0');
 	}
 	return result;
 }
+
 
 size_t	parseSize(const std::string &str){
 	if (str.empty()) return 0;
@@ -50,11 +57,11 @@ size_t	parseSize(const std::string &str){
 		if (unit == 'K' || unit == 'k') multiplier = 1024;
 		else if (unit == 'M' || unit == 'm') multiplier = 1024 * 1024;
 		else if (unit == 'G' || unit == 'g') multiplier = 1024 * 1024 * 1024;
-		else throw ParseException("Invalid size unit: " + str);
+		else throw ParseException(CONF, "Invalid size unit: " + str);
 	}
 	// Conversion de la partie numérique 
 	long val = stringToLong(valueStr);
 	if (val < 0) 
-		throw ParseException("Size cannot be negative: " + str);
+		throw ParseException(CONF, "Size cannot be negative: " + str);
 	return static_cast<size_t>(val * multiplier);
 }

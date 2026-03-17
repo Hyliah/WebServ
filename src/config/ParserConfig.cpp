@@ -51,7 +51,7 @@ void ParserConfig::parse(const std::string &configFilePath){
 			parseServer(it);
 		}
 		else{
-			throw ParseException("Unexpected token: " + *it);
+			throw ParseException(CONF, "Unexpected token: " + *it);
 		}
 	}
 }
@@ -64,13 +64,13 @@ void ParserConfig::parse(const std::string &configFilePath){
 std::string ParserConfig::readFile(const std::string &path) {
 	std::ifstream file(path.c_str());
 	if (!file.is_open()) {
-		throw ParseException("Could not open config file: " + path);
+		throw ParseException(CONF, "Could not open config file: " + path);
 	}
 	std::stringstream buffer;
 	buffer << file.rdbuf();
 	file.close();
 	if (buffer.str().empty()) {
-		throw ParseException("Config file is empty: " + path);
+		throw ParseException(CONF, "Config file is empty: " + path);
 	}
 	return buffer.str();
 }
@@ -116,7 +116,7 @@ void ParserConfig::tokenize(const std::string &content) {
 void	ParserConfig::parseServer(std::vector<std::string>::iterator &it){
 	it++;
 	if ( it == _tokens.end() || *it != "{")
-		throw ParseException("expected '{' after 'server'");
+		throw ParseException(CONF, "expected '{' after 'server'");
 	it++;
 
 	ServerConfig newServer;
@@ -137,10 +137,10 @@ void	ParserConfig::parseServer(std::vector<std::string>::iterator &it){
 		else if (*it == "location")
 			parseLocation(it, newServer);
 		else
-			throw ParseException("Unknown directive: " + *it);
+			throw ParseException(CONF, "Unknown directive: " + *it);
 	}
 	if (it == _tokens.end())
-		throw ParseException("Missing '}' at the end of the block");
+		throw ParseException(CONF, "Missing '}' at the end of the block");
 	it++;
 	_servers.push_back(newServer);
 }
@@ -148,14 +148,14 @@ void	ParserConfig::parseServer(std::vector<std::string>::iterator &it){
 void	ParserConfig::parseLocation(std::vector<std::string>::iterator &it, ServerConfig &server){
 	it++;
 	if ( it == _tokens.end())
-		throw ParseException("Location needs a path");
+		throw ParseException(CONF, "Location needs a path");
 
 	LocationConfig newLocation;
 	newLocation.path = *it;
 	it++;
 
 	if (it == _tokens.end() || *it != "{")
-		throw ParseException("need '{' after location path ");
+		throw ParseException(CONF, "need '{' after location path ");
 	it++;
 
 	while (it != _tokens.end() && *it != "}"){
@@ -176,10 +176,10 @@ void	ParserConfig::parseLocation(std::vector<std::string>::iterator &it, ServerC
 		else if (*it == "cgi_info")
 			handleCgi(it, newLocation);
 		else	
-			throw ParseException("Unknown directive: " + *it);
+			throw ParseException(CONF, "Unknown directive: " + *it);
 	}
 	if (it == _tokens.end())
-		throw ParseException("Missing '}' at the end of the block");
+		throw ParseException(CONF, "Missing '}' at the end of the block");
 	it++;
 	server.locations.push_back(newLocation);
 }
@@ -190,7 +190,7 @@ void	ParserConfig::parseLocation(std::vector<std::string>::iterator &it, ServerC
 void	ParserConfig::handleListen(std::vector<std::string>::iterator &it, ServerConfig &server){
 	it++;
 	if (!validateValue(it)) {	
-		throw ParseException("'listen' directive needs a value (e.g., 80 or 127.0.0.1:80)");
+		throw ParseException(CONF, "'listen' directive needs a value (e.g., 80 or 127.0.0.1:80)");
 	}
 	// ajouter plein de truc ici en fait c'est pas du tout suffisant 
 	// check avec host:port  ex: "127.0.0.1:8080"
@@ -205,7 +205,7 @@ void	ParserConfig::handleListen(std::vector<std::string>::iterator &it, ServerCo
 void	ParserConfig::handleServerName(std::vector<std::string>::iterator &it, ServerConfig &server){
 	it++;
 	if (!validateValue(it))
-		throw ParseException("server_name needs a value");
+		throw ParseException(CONF, "server_name needs a value");
 	server.serverName = *it;
 	it++;
 	checkSemicolon(it);
@@ -221,9 +221,9 @@ void	ParserConfig::handleErrorPage(std::vector<std::string>::iterator &it, Serve
 	}
 	// verif qu'on a au moins un code et qu'il reste un token (le chemin)
 	if (codes.empty())
-		throw ParseException("error_page needs at least one error code");
+		throw ParseException(CONF, "error_page needs at least one error code");
 	if (!validateValue(it))
-		throw ParseException("error_page directive needs a file path after the codes");
+		throw ParseException(CONF, "error_page directive needs a file path after the codes");
 	std::string errorPath = *it; // Le token actuel est le chemin (ex: /404.html)
 	it++;
 	// remplit la map pour chaque code trouvé
@@ -236,7 +236,7 @@ void	ParserConfig::handleErrorPage(std::vector<std::string>::iterator &it, Serve
 void	ParserConfig::handleMaxBodySize(std::vector<std::string>::iterator &it, ServerConfig &server){
 	it++;
 	if (!validateValue(it))
-		throw ParseException("client_max_body_size needs a value");
+		throw ParseException(CONF, "client_max_body_size needs a value");
 	server.maxBodySize = parseSize(*it);
 	it++;
 	checkSemicolon(it);
@@ -245,7 +245,7 @@ void	ParserConfig::handleMaxBodySize(std::vector<std::string>::iterator &it, Ser
 void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, ServerConfig &server){
 	it++;
 	if (!validateValue(it))
-		throw ParseException("Root needs a value");
+		throw ParseException(CONF, "Root needs a value");
 	server.root = *it;
 	it++;
 	checkSemicolon(it);
@@ -255,7 +255,7 @@ void	ParserConfig::handleIndex(std::vector<std::string>::iterator &it, ServerCon
 	it++;
 	server.index.clear();
 	if (!validateValue(it))
-		throw ParseException("Index needs at least one value");
+		throw ParseException(CONF, "Index needs at least one value");
 	while ( it != _tokens.end() && *it != ";"){
 		server.index.push_back(*it);
 		it++;
@@ -270,7 +270,7 @@ void	ParserConfig::handleIndex(std::vector<std::string>::iterator &it, ServerCon
 void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, LocationConfig &location){
 	it++;
 	if (!validateValue(it))
-		throw ParseException("Root needs a value");
+		throw ParseException(CONF, "Root needs a value");
 	location.root = *it;
 	it++;
 	checkSemicolon(it);
@@ -283,7 +283,7 @@ void	ParserConfig::handleMethods(std::vector<std::string>::iterator &it, Locatio
 	location.hasPost = false;
 	location.hasDelete = false;
 	if (!validateValue(it))
-		throw ParseException("Need at least one methode : GET, POST, DELETE");
+		throw ParseException(CONF, "Need at least one methode : GET, POST, DELETE");
 	while (it != _tokens.end() && *it != ";"){
 		if (*it == "GET")
 			location.hasGet = true;
@@ -292,7 +292,7 @@ void	ParserConfig::handleMethods(std::vector<std::string>::iterator &it, Locatio
 		else if (*it == "DELETE")
 			location.hasDelete = true;
 		else
-			throw ParseException("Invalid HTTP method: " + *it);
+			throw ParseException(CONF, "Invalid HTTP method: " + *it);
 		location.methods.push_back(*it);
 		it++;
 	}
@@ -302,13 +302,13 @@ void	ParserConfig::handleMethods(std::vector<std::string>::iterator &it, Locatio
 void	ParserConfig::handleAutoindex(std::vector<std::string>::iterator &it, LocationConfig &location){
 	it++;
 	if (!validateValue(it))
-		throw ParseException("Autoindex needs a value (on/off)");
+		throw ParseException(CONF, "Autoindex needs a value (on/off)");
 	if (*it == "on")
 		location.autoindex = true;
 	else if (*it == "off")
 		location.autoindex = false;
 	else
-		throw ParseException("Invalid value for autoindex: " + *it);
+		throw ParseException(CONF, "Invalid value for autoindex: " + *it);
 	it++;
 	checkSemicolon(it);
 }
@@ -317,7 +317,7 @@ void	ParserConfig::handleIndex(std::vector<std::string>::iterator &it, LocationC
 	it++;
 	location.index.clear();
 	if (!validateValue(it))
-		throw ParseException("Index needs at least one value");
+		throw ParseException(CONF, "Index needs at least one value");
 	while ( it != _tokens.end() && *it != ";"){
 		location.index.push_back(*it);
 		it++;
@@ -328,7 +328,7 @@ void	ParserConfig::handleIndex(std::vector<std::string>::iterator &it, LocationC
 void	ParserConfig::handleMaxBodySize(std::vector<std::string>::iterator &it, LocationConfig &location){
 	it++;
 	if (!validateValue(it))
-		throw ParseException("client_max_body_size needs a value");
+		throw ParseException(CONF, "client_max_body_size needs a value");
 	location.maxBodySize = parseSize(*it);
 	it++;
 	checkSemicolon(it);
@@ -337,7 +337,7 @@ void	ParserConfig::handleMaxBodySize(std::vector<std::string>::iterator &it, Loc
 void	ParserConfig::handleReturn(std::vector<std::string>::iterator &it, LocationConfig &location){
 	it++;
 	if (!validateValue(it))
-		throw ParseException("Return needs a value");
+		throw ParseException(CONF, "Return needs a value");
 	location.returnUrl = *it;
 	it++;
 	checkSemicolon(it);
@@ -346,7 +346,7 @@ void	ParserConfig::handleReturn(std::vector<std::string>::iterator &it, Location
 void	ParserConfig::handleUploadStore(std::vector<std::string>::iterator &it, LocationConfig &location){
 	it++;
 	if (!validateValue(it))
-		throw ParseException("upload_store needs a value");
+		throw ParseException(CONF, "upload_store needs a value");
 	location.uploadStore = *it;
 	it++;
 	checkSemicolon(it);
@@ -356,12 +356,12 @@ void	ParserConfig::handleCgi(std::vector<std::string>::iterator &it, LocationCon
 	it++; 
 	// recup l'extension (ex: .py)
 	if (!validateValue(it))
-		throw ParseException("CGI directive needs an extension (e.g., .py)");
+		throw ParseException(CONF, "CGI directive needs an extension (e.g., .py)");
 	std::string ext = *it;
 	it++;
 	// récupère le chemin ex: /usr/bin/python3)
 	if (!validateValue(it))
-		throw ParseException("CGI directive needs a path ");
+		throw ParseException(CONF, "CGI directive needs a path ");
 	std::string path = *it;
 	it++;
 	location.cgiInfo[ext] = path;
@@ -378,14 +378,14 @@ void	ParserConfig::handleCgi(std::vector<std::string>::iterator &it, LocationCon
 // mais on check les trucs plus speficique ds la fonction finale de verif config 
 bool	ParserConfig::validateValue(std::vector<std::string>::iterator &it){
 	if (it == _tokens.end() || *it == ";" || *it == "{" || *it == "}") {
-		throw ParseException("Unexpected token or missing value");
+		throw ParseException(CONF, "Unexpected token or missing value");
 	}
 	return true;
 }
 
 void	ParserConfig::checkSemicolon(std::vector<std::string>::iterator &it){
 	if (it == _tokens.end() || *it != ";")
-		throw ParseException("Need ';' at the end of directives");
+		throw ParseException(CONF, "Need ';' at the end of directives");
 	it++;
 }
 
@@ -398,11 +398,11 @@ void	ParserConfig::checkBracketsBalance(const std::string &content){
 		else if (content[i] == '}')
 			balance--;
 		if (balance < 0) {
-			throw ParseException("Unexpected '}' found");
+			throw ParseException(CONF, "Unexpected '}' found");
 		}
 	}
 	if (balance != 0) {
-		throw ParseException("Brackets are not balanced");
+		throw ParseException(CONF, "Brackets are not balanced");
 	}
 }
 
