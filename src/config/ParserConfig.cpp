@@ -156,12 +156,14 @@ void	ParserConfig::parseLocation(std::vector<std::string>::iterator &it, ServerC
 	while (it != _tokens.end() && *it != "}"){
 		if (*it == "root")
 			handleRoot(it, newLocation);
-		// else if (*it == "allow_methods")
-		// 	handleMethods(it, newLocation);
+		else if (*it == "allow_methods")
+			handleMethods(it, newLocation);
 		else if (*it == "autoindex")
 			handleAutoindex(it, newLocation);
 		else if (*it == "index")
 			handleIndex(it, newLocation);
+		else if (*it == "client_max_body_size")
+			handleMaxBodySize(it, newLocation);
 		else if (*it == "return")
 			handleReturn(it, newLocation);
 		else if (*it == "upload_store")
@@ -248,9 +250,29 @@ void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, LocationCo
 	checkSemicolon(it);
 }
 
-// void	ParserConfig::handleMethods(std::vector<std::string>::iterator &it, LocationConfig &location){
+void	ParserConfig::handleMethods(std::vector<std::string>::iterator &it, LocationConfig &location){
 	// faire 3 bool pour savoir si hasGet hasPost ... 
-// }
+	it++;
+	location.methods.clear(); // car on efface ce qui a ete mis par defaut 
+	location.hasGet = false;
+    location.hasPost = false;
+    location.hasDelete = false;
+	if (!validateValue(it))
+		throw ParseException("Need at least one methode : GET, POST, DELETE");
+	while (it != _tokens.end() && *it != ";"){
+		if (*it == "GET")
+			location.hasGet = true;
+		else if (*it == "POST")
+			location.hasPost = true;
+		else if (*it == "DELETE")
+			location.hasDelete = true;
+		else
+            throw ParseException("Invalid HTTP method: " + *it);
+		location.methods.push_back(*it);
+		it++;
+	}
+	checkSemicolon(it);
+}
 
 void	ParserConfig::handleAutoindex(std::vector<std::string>::iterator &it, LocationConfig &location){
 	it++;
@@ -271,6 +293,15 @@ void	ParserConfig::handleIndex(std::vector<std::string>::iterator &it, LocationC
 	if (!validateValue(it))
 		throw ParseException("Index needs a value");
 	location.index = *it;
+	it++;
+	checkSemicolon(it);
+}
+
+void	ParserConfig::handleMaxBodySize(std::vector<std::string>::iterator &it, LocationConfig &location){
+	it++;
+	if (!validateValue(it))
+		throw ParseException("client_max_body_size needs a value");
+	location.maxBodySize = parseSize(*it);
 	it++;
 	checkSemicolon(it);
 }

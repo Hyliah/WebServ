@@ -45,11 +45,12 @@ class ParserConfig {
 		// HANDLERS location
 		void						handleMethods(std::vector<std::string>::iterator &it, LocationConfig &location);
 		void						handleAutoindex(std::vector<std::string>::iterator &it, LocationConfig &location);
+		void						handleMaxBodySize(std::vector<std::string>::iterator &it, LocationConfig &location);
+		void						handleRoot(std::vector<std::string>::iterator &it, LocationConfig &location);
 		void						handleIndex(std::vector<std::string>::iterator &it, LocationConfig &location);
 		void						handleReturn(std::vector<std::string>::iterator &it, LocationConfig &location);
 		void						handleUploadStore(std::vector<std::string>::iterator &it, LocationConfig &location);
 		void						handleCgi(std::vector<std::string>::iterator &it, LocationConfig &location);
-		void						handleRoot(std::vector<std::string>::iterator &it, LocationConfig &location);
 
 		// CHECK					
 		bool						validateValue(std::vector<std::string>::iterator &it);

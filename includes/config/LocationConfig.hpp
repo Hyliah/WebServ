@@ -31,6 +31,8 @@ public:
 
 	std::string				uploadStore;  // Dossier pour les uploads
 
+	size_t					maxBodySize;
+
 	std::map<std::string, std::string> cgiInfo; // Extension -> Chemin de l'exécutable
 
 	// check si on fait juste 2 string 
@@ -38,6 +40,10 @@ public:
 	// std::string                 cgi_extension;
 
 	bool					cgiEnabled;
+
+	bool					hasGet;
+	bool					hasPost;
+	bool					hasDelete;
 
 	LocationConfig();
     LocationConfig(const LocationConfig& other);

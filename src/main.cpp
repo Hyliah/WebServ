@@ -51,18 +51,25 @@ void	testPrint()
 				  << "  Host: " << servers[i].host << std::endl
 				  << "  Server Name: " << servers[i].serverName << std::endl
 				  << "  Max Body Size: " << servers[i].maxBodySize << std::endl
-				  << "  Root: " << servers[i].root << std::endl;
+				  << "  Root: " << servers[i].root << std::endl
+				  << "  Index: " << servers[i].index << std::endl;
 		std::cout << "  Error Pages:" << std::endl;
 		// contuinuer avec location apres 
 		std::cout << "  Locations:" << std::endl;
 		for (size_t j = 0; j < servers[i].locations.size(); j++) {
 			std::cout << " Location " << j << ":" << std::endl;
 			std::cout << "   Path: " << servers[i].locations[j].path << std::endl
-					  << "   oot: " << servers[i].locations[j].root << std::endl
+					  << "   Root: " << servers[i].locations[j].root << std::endl
 					  << "   Autoindex: " << (servers[i].locations[j].autoindex ? "on" : "off") << std::endl
 					  << "   Index: " << servers[i].locations[j].index << std::endl
+					  << "   Max Body Size: " << servers[i].locations[j].maxBodySize << std::endl
 					  << "   Return URL: " << servers[i].locations[j].returnUrl << std::endl
 					  << "   Upload Store: " << servers[i].locations[j].uploadStore << std::endl
+					  << "   Methods: ";
+			for (size_t k = 0; k < servers[i].locations[j].methods.size(); k++) {
+				std::cout << servers[i].locations[j].methods[k] << " ";
+			}
+			std::cout << std::endl
 					  << "   CGI Enabled: " << (servers[i].locations[j].cgiEnabled ? "yes" : "no") << std::endl;
 
 			std::cout << std::endl;
