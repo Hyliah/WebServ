@@ -10,8 +10,11 @@
 /*                                                                           */
 /*****************************************************************************/
 
-#include "Webserv.hpp"
 #include "Exceptions.hpp"
+#include "LocationConfig.hpp"
+#include "ParserConfig.hpp"
+#include "ServerConfig.hpp"
+#include <iostream>
 
 void	testPrint();
 
@@ -57,6 +60,10 @@ void	testPrint()
             std::cout << servers[i].index[idx] << " ";
         std::cout << std::endl;
 		std::cout << "  Error Pages:" << std::endl;
+		std::map<int, std::string>::const_iterator itErr;
+		for (itErr = servers[i].errorPages.begin(); itErr != servers[i].errorPages.end(); ++itErr) {
+			std::cout << "    Code " << itErr->first << " -> " << itErr->second << std::endl;
+		}
 		// contuinuer avec location apres 
 		std::cout << "  Locations:" << std::endl;
 		for (size_t j = 0; j < servers[i].locations.size(); j++) {

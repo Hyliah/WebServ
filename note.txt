@@ -1,14 +1,5 @@
 PETITES NOTES POUR L'AVANCEE DU PROJET 
 
-J'ai fait un fichier hpp special pour les erreurs. 
-On peut y mettre toutes nos classe d'exceptions 
-( check le fichier, ta classe d'erreur pour socket heritera de la classe d'erreur general)
-( meme model que ma classe ParseException)
-
-On va supprimer le header general Webserv.hpp comme on en a parlé
-flemme de le faire now, je m'en occupe later 
-( toute facon ta partie sera pas impactee comme tu l'utilisais pas je crois )
-
 Voir si je decide de mofifier le tokeniser pour avoir les numero de ligen
 Ca serait super cool pour le debug et les ajouter das les mess d'erreur
 par ex : Parsing Error: Line 12: Unexpected token 'blabla'
@@ -21,9 +12,3 @@ a faire plus tard si tout marche bien
 
 
 // a faire 
-
-faire un hpp utils pour tous les parsing avec les fonctions utilitaires 
-surtout stringlong et int 
-
-check pour index ds le serveur car il peut y avoir plusieurs trucs ? a la suite ?
-ex:     index index.html index.htm;

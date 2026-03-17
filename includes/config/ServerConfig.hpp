@@ -13,7 +13,6 @@
 #ifndef SERVERCONFIG_HPP
 #define SERVERCONFIG_HPP
 
-#include "Webserv.hpp"
 #include "LocationConfig.hpp"
 
 class ServerConfig {

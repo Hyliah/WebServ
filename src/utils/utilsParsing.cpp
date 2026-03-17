@@ -24,6 +24,21 @@ long	stringToLong(const std::string &str){
 	return result;
 }
 
+int	stringToInt(const std::string &str){
+	// On peut faire la meme chose que pour stringToLong mais en utilisant un int 
+	// verif les limites de l'int pour eviter les overflow
+	int result = 0;
+	for (size_t i = 0; i < str.size(); i++)
+	{
+		if (!isdigit(str[i]))
+			throw ParseException("Invalid number: " + str);
+		if (result > (INT_MAX - (str[i] - '0')) / 10) // Verifie que le prochain chiffre n'entraînera pas un overflow
+			throw ParseException("Number too large: " + str);
+		result = result * 10 + (str[i] - '0');
+	}
+	return result;
+}
+
 size_t	parseSize(const std::string &str){
 	if (str.empty()) return 0;
 	char unit = str[str.size() - 1]; // pour acceder au dernier caractere si c'est une lettre 

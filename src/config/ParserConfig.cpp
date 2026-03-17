@@ -13,6 +13,11 @@
 #include "ServerConfig.hpp"
 #include "ParserConfig.hpp"
 #include "utilsParsing.hpp"
+#include "Exceptions.hpp"
+#include <iostream>
+#include <sstream>
+#include <fstream>
+
 
 /* *************************************************** */
 /*  Constructors, destructor, and assignment operator  */
@@ -121,8 +126,8 @@ void	ParserConfig::parseServer(std::vector<std::string>::iterator &it){
 			handleListen(it, newServer);
 		else if (*it == "server_name")
 			handleServerName(it, newServer);
-		// else if (*it == "error_page")
-		// 	handleErrorPage(it, newServer);
+		else if (*it == "error_page")
+			handleErrorPage(it, newServer);
 		else if (*it == "client_max_body_size")
 			handleMaxBodySize(it, newServer);
 		else if (*it == "root")
@@ -206,9 +211,27 @@ void	ParserConfig::handleServerName(std::vector<std::string>::iterator &it, Serv
 	checkSemicolon(it);
 }
 
-// void	ParserConfig::handleErrorPage(std::vector<std::string>::iterator &it, ServerConfig &server){
-
-// }
+void	ParserConfig::handleErrorPage(std::vector<std::string>::iterator &it, ServerConfig &server){
+	it++;
+    std::vector<int> codes;
+    // On récupère tous les nombres (les codes d'erreur)
+    while (it != _tokens.end() && isdigit((*it)[0])) {
+        codes.push_back(stringToInt(*it));
+        it++;
+    }
+    // verif qu'on a au moins un code et qu'il reste un token (le chemin)
+    if (codes.empty())
+        throw ParseException("error_page needs at least one error code");
+    if (!validateValue(it))
+        throw ParseException("error_page directive needs a file path after the codes");
+    std::string errorPath = *it; // Le token actuel est le chemin (ex: /404.html)
+    it++;
+    // remplit la map pour chaque code trouvé
+    for (size_t i = 0; i < codes.size(); i++) {
+        server.errorPages[codes[i]] = errorPath;
+    }
+    checkSemicolon(it);
+}
 
 void	ParserConfig::handleMaxBodySize(std::vector<std::string>::iterator &it, ServerConfig &server){
 	it++;

@@ -13,7 +13,6 @@
 #ifndef PARSERCONFIG_HPP
 #define PARSERCONFIG_HPP
 
-#include "Webserv.hpp"
 #include "Exceptions.hpp"
 
 class ServerConfig; 
