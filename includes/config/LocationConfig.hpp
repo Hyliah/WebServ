@@ -35,10 +35,6 @@ public:
 
 	std::map<std::string, std::string> cgiInfo; // Extension -> Chemin de l'exécutable
 
-	// check si on fait juste 2 string 
-	// std::string                 cgi_path;
-	// std::string                 cgi_extension;
-
 	bool					cgiEnabled;
 
 	bool					hasGet;
@@ -53,41 +49,3 @@ public:
 };
 
 #endif
-
-
-// Pourquoi a la place de faire une fonction init, au moment de la creation de l'objet on rempli pas toute la classe dans le constructeur ? 
-// Par ex :
-// LocationConfig() : path("default"), root("default"), index("default"), returnUrl("default"), uploadStore("default"),
-//  autoindex(false), cgiEnabled(false) {}
-// ou une presentation un peu mieux comme 
-/*
- * LocationConfig::LocationConfig()
-{
-	path = "default";
-	root = "default";
-	index = "default";
-	returnUrl = "default";
-	uploadStore = "default";
-	autoindex = false;
-	cgiEnabled = false;
-}
- * 
- */
-
- // update j'ai demandé a Chatty :
- /*
-  * si creation d'objet et init apres :
-  L’objet peut exister dans un état invalide
-  Entre la création et l’appel de initLocationConfig, l’objet n’est pas initialisé.
-  bug potentiel
-  fonction supplmentaire inutile
-  * 
-  * si init dans le constructeur :
-  * objet toujorus valdie
-  * moins de code
-  * meilleure performances 
-  * 
-  * globalement il faut:
-  * creer l'objet avec valeur par defaut ds le constructeur
-  * ensuite elle sont modifiee par le parser comme convenu
-  */

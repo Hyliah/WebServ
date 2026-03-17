@@ -173,8 +173,8 @@ void	ParserConfig::parseLocation(std::vector<std::string>::iterator &it, ServerC
 			handleReturn(it, newLocation);
 		else if (*it == "upload_store")
 			handleUploadStore(it, newLocation);
-		// else if (*it == "cgi_info")
-		// 	handleCgi(it, newLocation);
+		else if (*it == "cgi_info")
+			handleCgi(it, newLocation);
 		else	
 			throw ParseException("Unknown directive: " + *it);
 	}
@@ -213,24 +213,24 @@ void	ParserConfig::handleServerName(std::vector<std::string>::iterator &it, Serv
 
 void	ParserConfig::handleErrorPage(std::vector<std::string>::iterator &it, ServerConfig &server){
 	it++;
-    std::vector<int> codes;
-    // On récupère tous les nombres (les codes d'erreur)
-    while (it != _tokens.end() && isdigit((*it)[0])) {
-        codes.push_back(stringToInt(*it));
-        it++;
-    }
-    // verif qu'on a au moins un code et qu'il reste un token (le chemin)
-    if (codes.empty())
-        throw ParseException("error_page needs at least one error code");
-    if (!validateValue(it))
-        throw ParseException("error_page directive needs a file path after the codes");
-    std::string errorPath = *it; // Le token actuel est le chemin (ex: /404.html)
-    it++;
-    // remplit la map pour chaque code trouvé
-    for (size_t i = 0; i < codes.size(); i++) {
-        server.errorPages[codes[i]] = errorPath;
-    }
-    checkSemicolon(it);
+	std::vector<int> codes;
+	// On récupère tous les nombres (les codes d'erreur)
+	while (it != _tokens.end() && isdigit((*it)[0])) {
+		codes.push_back(stringToInt(*it));
+		it++;
+	}
+	// verif qu'on a au moins un code et qu'il reste un token (le chemin)
+	if (codes.empty())
+		throw ParseException("error_page needs at least one error code");
+	if (!validateValue(it))
+		throw ParseException("error_page directive needs a file path after the codes");
+	std::string errorPath = *it; // Le token actuel est le chemin (ex: /404.html)
+	it++;
+	// remplit la map pour chaque code trouvé
+	for (size_t i = 0; i < codes.size(); i++) {
+		server.errorPages[codes[i]] = errorPath;
+	}
+	checkSemicolon(it);
 }
 
 void	ParserConfig::handleMaxBodySize(std::vector<std::string>::iterator &it, ServerConfig &server){
@@ -280,8 +280,8 @@ void	ParserConfig::handleMethods(std::vector<std::string>::iterator &it, Locatio
 	it++;
 	location.methods.clear();
 	location.hasGet = false;
-    location.hasPost = false;
-    location.hasDelete = false;
+	location.hasPost = false;
+	location.hasDelete = false;
 	if (!validateValue(it))
 		throw ParseException("Need at least one methode : GET, POST, DELETE");
 	while (it != _tokens.end() && *it != ";"){
@@ -292,7 +292,7 @@ void	ParserConfig::handleMethods(std::vector<std::string>::iterator &it, Locatio
 		else if (*it == "DELETE")
 			location.hasDelete = true;
 		else
-            throw ParseException("Invalid HTTP method: " + *it);
+			throw ParseException("Invalid HTTP method: " + *it);
 		location.methods.push_back(*it);
 		it++;
 	}
@@ -352,9 +352,22 @@ void	ParserConfig::handleUploadStore(std::vector<std::string>::iterator &it, Loc
 	checkSemicolon(it);
 }
 
-// void	ParserConfig::handleCgi(std::vector<std::string>::iterator &it, LocationConfig &location){
-
-// }
+void	ParserConfig::handleCgi(std::vector<std::string>::iterator &it, LocationConfig &location){
+	it++; 
+	// recup l'extension (ex: .py)
+	if (!validateValue(it))
+		throw ParseException("CGI directive needs an extension (e.g., .py)");
+	std::string ext = *it;
+	it++;
+	// récupère le chemin ex: /usr/bin/python3)
+	if (!validateValue(it))
+		throw ParseException("CGI directive needs a path ");
+	std::string path = *it;
+	it++;
+	location.cgiInfo[ext] = path;
+	location.cgiEnabled = true;
+	checkSemicolon(it);
+}
 
 
 /* *************************************************** */

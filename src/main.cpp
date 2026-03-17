@@ -84,7 +84,13 @@ void	testPrint()
 			}
 			std::cout << std::endl
 					  << "   CGI Enabled: " << (servers[i].locations[j].cgiEnabled ? "yes" : "no") << std::endl;
-
+			if (servers[i].locations[j].cgiEnabled) {
+				std::cout << "      CGI Handlers:" << std::endl;
+				std::map<std::string, std::string>::const_iterator itCgi;
+				for (itCgi = servers[i].locations[j].cgiInfo.begin(); itCgi != servers[i].locations[j].cgiInfo.end(); ++itCgi) {
+					std::cout << "        Extension: " << itCgi->first << " -> Path: " << itCgi->second << std::endl;
+				}
+			}
 			std::cout << std::endl;
 		}
 	}
