@@ -54,20 +54,6 @@ public:
 
     void addServer(ServerConfig* server);
     const std::vector<ServerConfig*>& getServers() const;
-
-	// classe erreur pour les erreurs de socket
-	class SocketException : public std::exception {
-		private:
-			std::string _msg;
-
-		public:
-			SocketException(const std::string &msg) : _msg(msg) {}
-
-			virtual ~SocketException() throw() {}
-			const char* what() const throw() {
-				return _msg.c_str();
-			}
-	};
 };
 
 #endif

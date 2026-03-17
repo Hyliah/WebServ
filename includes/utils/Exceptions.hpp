@@ -16,26 +16,81 @@
 #include <stdexcept>
 #include <string>
 
-// ici on fait une classe de base , et apres classes plus specifiques qui heritent
+#include <exception>
+#include <string>
+#include <sstream>
+
+// Classe de base
 class WebservException : public std::exception {
-	protected:
-		std::string _message;
+protected:
+    std::string _message;
 
-	public:
-		WebservException(const std::string& msg) : _message(msg) {}
-		virtual ~WebservException() throw() {}
-		virtual const char* what() const throw() {
-			return _message.c_str();
-		}
+public:
+    WebservException(const std::string& msg) : _message(msg) {}
+    virtual ~WebservException() throw() {}
+    virtual const char* what() const throw() {
+        return _message.c_str();
+    }
 };
 
-// erreurs de parsing config + http ( donc personnalisé avec soit config ou http ... )
+// Enum classique compatible C++98
+enum ParseType {
+    CONF,
+    HTTP,
+    CGI
+};
+
+// Fonction utilitaire pour convertir l'enum en string
+inline const char* parseTypeToString(ParseType type) {
+    switch (type) {
+        case CONF: return "CONF";
+        case HTTP: return "HTTP";
+        case CGI:  return "CGI";
+        default:   return "UNKNOWN";
+    }
+}
+
+// Exception de parsing
 class ParseException : public WebservException {
-	public:
-		ParseException(const std::string& msg) : WebservException("Parsing Error: " + msg) {}
+public:
+    ParseException(ParseType type, const std::string& msg)
+        : WebservException(buildMessage(type, msg)) {}
+
+private:
+    static std::string buildMessage(ParseType type, const std::string& msg) {
+        std::ostringstream oss;
+        oss << "Parsing " << parseTypeToString(type) << " Error: " << msg;
+        return oss.str();
+    }
 };
 
+
+/*
+
+int main() {
+    try {
+        throw ParseException(HTTP, "Invalid HTTP header");
+    } catch (const WebservException& e) {
+        std::cout << e.what() << std::endl;
+    }
+    return 0;
+}
+
+*/
 // erreur de socket
+
+class SocketException : public WebservException {
+public:
+    SocketException(const std::string& msg)
+        : WebservException(buildMessage(msg)) {}
+
+private:
+    static std::string buildMessage(const std::string& msg) {
+        std::ostringstream oss;
+        oss << "Socket Error: " << msg;
+        return oss.str();
+    }
+};
 
 // erreur de CGI ?
 
