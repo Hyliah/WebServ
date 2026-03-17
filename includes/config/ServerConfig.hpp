@@ -22,7 +22,7 @@ public:
 	std::string					host;         // par ex par defaut "0.0.0.0"
 	std::string					serverName;
 	std::string					root;
-	std::string					index;
+	std::vector<std::string>	index;
 
 	size_t						maxBodySize;
 	

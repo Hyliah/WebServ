@@ -19,10 +19,10 @@ LocationConfig::LocationConfig(){
 	path = "/";
 	root = ""; // si location.root est vide, utilise server.root par defaut ?? a checker 
 	autoindex = false;
-	index = "index.html";
+	index.push_back("index.html");
 	returnUrl = "";
 	uploadStore = "";
-	maxBodySize = 0;
+	maxBodySize = 100000; // 100ko par defaut
 	cgiEnabled = false;
 
 	methods.push_back("GET"); // par defaut on autorise que GET

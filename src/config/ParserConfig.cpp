@@ -230,10 +230,13 @@ void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, ServerConf
 
 void	ParserConfig::handleIndex(std::vector<std::string>::iterator &it, ServerConfig &server){
 	it++;
+	server.index.clear();
 	if (!validateValue(it))
-		throw ParseException("Index needs a value");
-	server.index = *it;
-	it++;
+		throw ParseException("Index needs at least one value");
+	while ( it != _tokens.end() && *it != ";"){
+		server.index.push_back(*it);
+		it++;
+	}
 	checkSemicolon(it);
 }
 
@@ -251,9 +254,8 @@ void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, LocationCo
 }
 
 void	ParserConfig::handleMethods(std::vector<std::string>::iterator &it, LocationConfig &location){
-	// faire 3 bool pour savoir si hasGet hasPost ... 
 	it++;
-	location.methods.clear(); // car on efface ce qui a ete mis par defaut 
+	location.methods.clear();
 	location.hasGet = false;
     location.hasPost = false;
     location.hasDelete = false;
@@ -290,10 +292,13 @@ void	ParserConfig::handleAutoindex(std::vector<std::string>::iterator &it, Locat
 
 void	ParserConfig::handleIndex(std::vector<std::string>::iterator &it, LocationConfig &location){
 	it++;
+	location.index.clear();
 	if (!validateValue(it))
-		throw ParseException("Index needs a value");
-	location.index = *it;
-	it++;
+		throw ParseException("Index needs at least one value");
+	while ( it != _tokens.end() && *it != ";"){
+		location.index.push_back(*it);
+		it++;
+	}
 	checkSemicolon(it);
 }
 

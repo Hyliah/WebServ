@@ -25,7 +25,7 @@ public:
 	std::vector<std::string> methods;       // GET, POST, DELETE ( maybe bool pour savoir si c'est la ou pas ?)
 
 	bool					autoindex;     // si on ou off pour savoir sin on affiche le listing du dossier ou pas
-	std::string				index;         // Fichier par défaut (index.html)
+	std::vector<std::string> index;         // Fichier par défaut (index.html)
 
 	std::string				returnUrl;    // Pour les redirections (301) - a checker 
 

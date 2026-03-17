@@ -21,8 +21,8 @@ ServerConfig::ServerConfig(){
 	host = "0.0.0.0"; // ecoute sur toutes les interfaces 
 	serverName = "default_server";
 	root = "./www";
-	index = "index.html";
-	maxBodySize = 0;
+	index.push_back("index.html");
+	maxBodySize = 100000; // 100ko par defaut
 	// les conteneur sont init vide pas defaut donc ok
 }
 ServerConfig::ServerConfig(const ServerConfig &other) {
