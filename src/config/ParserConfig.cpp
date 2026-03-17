@@ -236,9 +236,14 @@ void	ParserConfig::handleListen(std::vector<std::string>::iterator &it, ServerCo
 	checkSemicolon(it);
 }
 
-// void	ParserConfig::handleServerName(std::vector<std::string>::iterator &it, ServerConfig &server){
-
-// }
+void	ParserConfig::handleServerName(std::vector<std::string>::iterator &it, ServerConfig &server){
+	it++;
+	if (!validateValue(it))
+		throw ParseException("server_name needs a value");
+	server.serverName = *it;
+	it++;
+	checkSemicolon(it);
+}
 
 // void	ParserConfig::handleErrorPage(std::vector<std::string>::iterator &it, ServerConfig &server){
 
@@ -279,21 +284,46 @@ void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, LocationCo
 
 // }
 
-// void	ParserConfig::handleAutoindex(std::vector<std::string>::iterator &it, LocationConfig &location){
+void	ParserConfig::handleAutoindex(std::vector<std::string>::iterator &it, LocationConfig &location){
+	it++;
+	if (!validateValue(it))
+		throw ParseException("Autoindex needs a value (on/off)");
+	if (*it == "on")
+		location.autoindex = true;
+	else if (*it == "off")
+		location.autoindex = false;
+	else
+		throw ParseException("Invalid value for autoindex: " + *it);
+	it++;
+	checkSemicolon(it);
+}
 
-// }
+void	ParserConfig::handleIndex(std::vector<std::string>::iterator &it, LocationConfig &location){
+	it++;
+	if (!validateValue(it))
+		throw ParseException("Index needs a value");
+	location.index = *it;
+	it++;
+	checkSemicolon(it);
+}
 
-// void	ParserConfig::handleIndex(std::vector<std::string>::iterator &it, LocationConfig &location){
+void	ParserConfig::handleReturn(std::vector<std::string>::iterator &it, LocationConfig &location){
+	it++;
+	if (!validateValue(it))
+		throw ParseException("Return needs a value");
+	location.returnUrl = *it;
+	it++;
+	checkSemicolon(it);
+}
 
-// }
-
-// void	ParserConfig::handleReturn(std::vector<std::string>::iterator &it, LocationConfig &location){
-
-// }
-
-// void	ParserConfig::handleUploadStore(std::vector<std::string>::iterator &it, LocationConfig &location){
-
-// }
+void	ParserConfig::handleUploadStore(std::vector<std::string>::iterator &it, LocationConfig &location){
+	it++;
+	if (!validateValue(it))
+		throw ParseException("upload_store needs a value");
+	location.uploadStore = *it;
+	it++;
+	checkSemicolon(it);
+}
 
 // void	ParserConfig::handleCgi(std::vector<std::string>::iterator &it, LocationConfig &location){
 
