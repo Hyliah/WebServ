@@ -17,28 +17,28 @@
 #include <vector>
 #include <netdb.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include "ServerConfig.hpp"
-
-class SocketClient;
 
 class SocketServer {
 
 private:
 
-    int                             _fd;
+    int                             _sockFd;
+	struct addrinfo					*_res;
     std::string                     _port;
     std::vector<ServerConfig*>      _servers;
 
 public:
 
     SocketServer();
-	SocketServer(const SocketServer& other);
-	SocketServer& operator=(const SocketServer& other);
+	SocketServer(int fd);
+	SocketServer(const SocketServer& other) = delete;
+	SocketServer& operator=(const SocketServer& other) = delete;
     ~SocketServer();
 
-    bool    createSocket();
-    bool    bindSocket();
-    bool    listenSocket(int backlog = 10);
+    void    createSocket();
+    void    listenSocket(int backlog = 10);
 
     int     acceptClient();
 
@@ -46,11 +46,28 @@ public:
 
     int     getFd() const;
 
+
+	struct addrinfo* getAddrinfo() const;
+
     const std::string& getPort() const;
     void setPort(const std::string& port);
 
     void addServer(ServerConfig* server);
     const std::vector<ServerConfig*>& getServers() const;
+
+	// classe erreur pour les erreurs de socket
+	class SocketException : public std::exception {
+		private:
+			std::string _msg;
+
+		public:
+			SocketException(const std::string &msg) : _msg(msg) {}
+
+			virtual ~SocketException() throw() {}
+			const char* what() const throw() {
+				return _msg.c_str();
+			}
+	};
 };
 
 #endif
