@@ -12,17 +12,21 @@
 
 #include "ServerConfig.hpp"
 #include "ParserConfig.hpp"
+#include "utilsParsing.hpp"
+#include "Exceptions.hpp"
+#include <iostream>
+#include <sstream>
+#include <fstream>
 
-// CANONICAL FORM
 
-ParserConfig::ParserConfig() {
-}	
-
+/* *************************************************** */
+/*  Constructors, destructor, and assignment operator  */
+/* *************************************************** */ 
+ParserConfig::ParserConfig() {}
 ParserConfig::ParserConfig(const ParserConfig &other) {
 	_servers = other._servers;
 	_tokens = other._tokens;
 }
-
 ParserConfig &ParserConfig::operator=(const ParserConfig &other) {
 	if (this != &other) {
 		_servers = other._servers;
@@ -30,94 +34,63 @@ ParserConfig &ParserConfig::operator=(const ParserConfig &other) {
 	}
 	return *this;
 }
+ParserConfig::~ParserConfig() {}
 
-ParserConfig::~ParserConfig() {
-}
-
-// FONCTION PARSE PRINCIPALE
-// debut pour test readfile only + comment
-// a continuer 
-// et enlever les cout pour le test final
-void ParserConfig::parse(const std::string &configFilePath) {
-
-	// VERSION SANS TEST
-	// std::string content = readFile(configFilePath);
-	// ... ( if empty ) throw error ... 
-	// removeComments(content);
-	// tokenize(content);
-
-
-	// test readfile
+/* *************************************************** */
+/*  Fonction parse principale                          */
+/* *************************************************** */ 
+// VERSION CLEAN :
+void ParserConfig::parse(const std::string &configFilePath){
 	std::string content = readFile(configFilePath);
-	if (content.empty()) {
-		throw ParseException("Error: Config file is empty: " + configFilePath);
-	}
-	else{
-		std::cout << "Contenu du fichier:" << std::endl;
-		std::cout << content << std::endl;
-	}
-	// test remove comments
 	removeComments(content);
-	std::cout << "Contenu après suppression des commentaires:" << std::endl;
-	std::cout << content << std::endl;
-	// test tokenize
-	// a afficher pour verif 
+	checkBracketsBalance(content);
 	tokenize(content);
-	std::cout << "Tokens:" << std::endl;
-	for (size_t i = 0; i < _tokens.size(); i++) {
-		std::cout << "Token " << i << ": " << _tokens[i] << std::endl;
+	std::vector<std::string>::iterator it = _tokens.begin();
+	while (it != _tokens.end()){
+		if (*it == "server"){
+			parseServer(it);
+		}
+		else{
+			throw ParseException("Unexpected token: " + *it);
+		}
 	}
 }
 
-// CLEAN
-
+/* *************************************************** */
+/*  Read, clean file + tokenize                        */
+/* *************************************************** */ 
 // lire le fichier et retourner son contenu sous forme de string
-// doit verif ouverture
 // fichier et non dossier ??? check si ok 
-// et pas vide 
 std::string ParserConfig::readFile(const std::string &path) {
 	std::ifstream file(path.c_str());
 	if (!file.is_open()) {
-		throw ParseException("Error: Could not open config file: " + path);
+		throw ParseException("Could not open config file: " + path);
 	}
 	std::stringstream buffer;
 	buffer << file.rdbuf();
 	file.close();
 	if (buffer.str().empty()) {
-		throw ParseException("Error: Config file is empty: " + path);
+		throw ParseException("Config file is empty: " + path);
 	}
 	return buffer.str();
 }
 
- // pour retirer les commentaires 
 void ParserConfig::removeComments(std::string &content) {
 	size_t pos = content.find('#');
-	
 	while (pos != std::string::npos) {
-		size_t endOfLine = content.find('\n', pos); // en partant de la pos du #
-		
-		if (endOfLine == std::string::npos) { // si c'est kla toute derniere ligen du fichier 
+		size_t endOfLine = content.find('\n', pos);
+		if (endOfLine == std::string::npos) {
 			content.erase(pos);
-			break; // Plus rien à chercher après la fin du fichier
+			break;
 		} else {
-			// On efface du '#' jusqu'au '\n' (sans supprimer le '\n')
 			content.erase(pos, endOfLine - pos);
 		}
-		// On cherche le prochain '#' à partir de la position actuelle
-		// pour ne pas reparcourir tout le début de la string
 		pos = content.find('#', pos);
 	}
 }
 
 // TOKENIZEEEERRR
-
-// couper le fichier en token pour chaque mot
-// separer les token avec les whitespace
-// attention, separer aussi {} et ;
-// donc d'abord entourer les speciaux avec des space ?
-// et apres faire le decoupage normal avec les whitespace
 void ParserConfig::tokenize(const std::string &content) {
-	// gestion des spé
 	std::string result;
 	for (size_t i = 0; i < content.size(); i++) {
 		if (content[i] == '{' || content[i] == '}' || content[i] == ';') {
@@ -129,7 +102,6 @@ void ParserConfig::tokenize(const std::string &content) {
 			result += content[i];
 		}
 	}
-	// decoup des tokens 
 	std::stringstream buffer(result);
 	std::string singletoken;
 	while (buffer >> singletoken) {
@@ -137,14 +109,317 @@ void ParserConfig::tokenize(const std::string &content) {
 	}
 }
 
+/* *************************************************** */
+/*  PARSE SERVEUR ET LOCATION                          */
+/* *************************************************** */ 
+// a changer pour eviter foret de if ? pointeur sur fonction ? check deja si tt marche ... 
+void	ParserConfig::parseServer(std::vector<std::string>::iterator &it){
+	it++;
+	if ( it == _tokens.end() || *it != "{")
+		throw ParseException("expected '{' after 'server'");
+	it++;
+
+	ServerConfig newServer;
+
+	while (it != _tokens.end() && *it != "}"){
+		if (*it == "listen")
+			handleListen(it, newServer);
+		else if (*it == "server_name")
+			handleServerName(it, newServer);
+		else if (*it == "error_page")
+			handleErrorPage(it, newServer);
+		else if (*it == "client_max_body_size")
+			handleMaxBodySize(it, newServer);
+		else if (*it == "root")
+			handleRoot(it, newServer);
+		else if (*it == "index")
+			handleIndex(it, newServer);
+		else if (*it == "location")
+			parseLocation(it, newServer);
+		else
+			throw ParseException("Unknown directive: " + *it);
+	}
+	if (it == _tokens.end())
+		throw ParseException("Missing '}' at the end of the block");
+	it++;
+	_servers.push_back(newServer);
+}
+
+void	ParserConfig::parseLocation(std::vector<std::string>::iterator &it, ServerConfig &server){
+	it++;
+	if ( it == _tokens.end())
+		throw ParseException("Location needs a path");
+
+	LocationConfig newLocation;
+	newLocation.path = *it;
+	it++;
+
+	if (it == _tokens.end() || *it != "{")
+		throw ParseException("need '{' after location path ");
+	it++;
+
+	while (it != _tokens.end() && *it != "}"){
+		if (*it == "root")
+			handleRoot(it, newLocation);
+		else if (*it == "allow_methods")
+			handleMethods(it, newLocation);
+		else if (*it == "autoindex")
+			handleAutoindex(it, newLocation);
+		else if (*it == "index")
+			handleIndex(it, newLocation);
+		else if (*it == "client_max_body_size")
+			handleMaxBodySize(it, newLocation);
+		else if (*it == "return")
+			handleReturn(it, newLocation);
+		else if (*it == "upload_store")
+			handleUploadStore(it, newLocation);
+		else if (*it == "cgi_info")
+			handleCgi(it, newLocation);
+		else	
+			throw ParseException("Unknown directive: " + *it);
+	}
+	if (it == _tokens.end())
+		throw ParseException("Missing '}' at the end of the block");
+	it++;
+	server.locations.push_back(newLocation);
+}
+
+/* *************************************************** */
+/*  HANDLERS SERVER                                    */
+/* *************************************************** */ 
+void	ParserConfig::handleListen(std::vector<std::string>::iterator &it, ServerConfig &server){
+	it++;
+	if (!validateValue(it)) {	
+		throw ParseException("'listen' directive needs a value (e.g., 80 or 127.0.0.1:80)");
+	}
+	// ajouter plein de truc ici en fait c'est pas du tout suffisant 
+	// check avec host:port  ex: "127.0.0.1:8080"
+	// check si empty ? ou alors apres avec :
+	// check si port est un nombre et dans la plage 0-65535 ( verifyconfig ? )
+	// check port only 
+	server.port = *it;
+	it++;
+	checkSemicolon(it);
+}
+
+void	ParserConfig::handleServerName(std::vector<std::string>::iterator &it, ServerConfig &server){
+	it++;
+	if (!validateValue(it))
+		throw ParseException("server_name needs a value");
+	server.serverName = *it;
+	it++;
+	checkSemicolon(it);
+}
+
+void	ParserConfig::handleErrorPage(std::vector<std::string>::iterator &it, ServerConfig &server){
+	it++;
+	std::vector<int> codes;
+	// On récupère tous les nombres (les codes d'erreur)
+	while (it != _tokens.end() && isdigit((*it)[0])) {
+		codes.push_back(stringToInt(*it));
+		it++;
+	}
+	// verif qu'on a au moins un code et qu'il reste un token (le chemin)
+	if (codes.empty())
+		throw ParseException("error_page needs at least one error code");
+	if (!validateValue(it))
+		throw ParseException("error_page directive needs a file path after the codes");
+	std::string errorPath = *it; // Le token actuel est le chemin (ex: /404.html)
+	it++;
+	// remplit la map pour chaque code trouvé
+	for (size_t i = 0; i < codes.size(); i++) {
+		server.errorPages[codes[i]] = errorPath;
+	}
+	checkSemicolon(it);
+}
+
+void	ParserConfig::handleMaxBodySize(std::vector<std::string>::iterator &it, ServerConfig &server){
+	it++;
+	if (!validateValue(it))
+		throw ParseException("client_max_body_size needs a value");
+	server.maxBodySize = parseSize(*it);
+	it++;
+	checkSemicolon(it);
+}
+
+void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, ServerConfig &server){
+	it++;
+	if (!validateValue(it))
+		throw ParseException("Root needs a value");
+	server.root = *it;
+	it++;
+	checkSemicolon(it);
+}
+
+void	ParserConfig::handleIndex(std::vector<std::string>::iterator &it, ServerConfig &server){
+	it++;
+	server.index.clear();
+	if (!validateValue(it))
+		throw ParseException("Index needs at least one value");
+	while ( it != _tokens.end() && *it != ";"){
+		server.index.push_back(*it);
+		it++;
+	}
+	checkSemicolon(it);
+}
 
 
+/* *************************************************** */
+/*  HANDLERS LOCATION                                  */
+/* *************************************************** */ 
+void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, LocationConfig &location){
+	it++;
+	if (!validateValue(it))
+		throw ParseException("Root needs a value");
+	location.root = *it;
+	it++;
+	checkSemicolon(it);
+}
 
+void	ParserConfig::handleMethods(std::vector<std::string>::iterator &it, LocationConfig &location){
+	it++;
+	location.methods.clear();
+	location.hasGet = false;
+	location.hasPost = false;
+	location.hasDelete = false;
+	if (!validateValue(it))
+		throw ParseException("Need at least one methode : GET, POST, DELETE");
+	while (it != _tokens.end() && *it != ";"){
+		if (*it == "GET")
+			location.hasGet = true;
+		else if (*it == "POST")
+			location.hasPost = true;
+		else if (*it == "DELETE")
+			location.hasDelete = true;
+		else
+			throw ParseException("Invalid HTTP method: " + *it);
+		location.methods.push_back(*it);
+		it++;
+	}
+	checkSemicolon(it);
+}
+
+void	ParserConfig::handleAutoindex(std::vector<std::string>::iterator &it, LocationConfig &location){
+	it++;
+	if (!validateValue(it))
+		throw ParseException("Autoindex needs a value (on/off)");
+	if (*it == "on")
+		location.autoindex = true;
+	else if (*it == "off")
+		location.autoindex = false;
+	else
+		throw ParseException("Invalid value for autoindex: " + *it);
+	it++;
+	checkSemicolon(it);
+}
+
+void	ParserConfig::handleIndex(std::vector<std::string>::iterator &it, LocationConfig &location){
+	it++;
+	location.index.clear();
+	if (!validateValue(it))
+		throw ParseException("Index needs at least one value");
+	while ( it != _tokens.end() && *it != ";"){
+		location.index.push_back(*it);
+		it++;
+	}
+	checkSemicolon(it);
+}
+
+void	ParserConfig::handleMaxBodySize(std::vector<std::string>::iterator &it, LocationConfig &location){
+	it++;
+	if (!validateValue(it))
+		throw ParseException("client_max_body_size needs a value");
+	location.maxBodySize = parseSize(*it);
+	it++;
+	checkSemicolon(it);
+}
+
+void	ParserConfig::handleReturn(std::vector<std::string>::iterator &it, LocationConfig &location){
+	it++;
+	if (!validateValue(it))
+		throw ParseException("Return needs a value");
+	location.returnUrl = *it;
+	it++;
+	checkSemicolon(it);
+}
+
+void	ParserConfig::handleUploadStore(std::vector<std::string>::iterator &it, LocationConfig &location){
+	it++;
+	if (!validateValue(it))
+		throw ParseException("upload_store needs a value");
+	location.uploadStore = *it;
+	it++;
+	checkSemicolon(it);
+}
+
+void	ParserConfig::handleCgi(std::vector<std::string>::iterator &it, LocationConfig &location){
+	it++; 
+	// recup l'extension (ex: .py)
+	if (!validateValue(it))
+		throw ParseException("CGI directive needs an extension (e.g., .py)");
+	std::string ext = *it;
+	it++;
+	// récupère le chemin ex: /usr/bin/python3)
+	if (!validateValue(it))
+		throw ParseException("CGI directive needs a path ");
+	std::string path = *it;
+	it++;
+	location.cgiInfo[ext] = path;
+	location.cgiEnabled = true;
+	checkSemicolon(it);
+}
+
+
+/* *************************************************** */
+/*  CHECKS AND UTILS                                   */
+/* *************************************************** */ 
+
+// finalement on fait une petite verif structurelle pour pas que la classe soit remplie avec de la daube
+// mais on check les trucs plus speficique ds la fonction finale de verif config 
+bool	ParserConfig::validateValue(std::vector<std::string>::iterator &it){
+	if (it == _tokens.end() || *it == ";" || *it == "{" || *it == "}") {
+		throw ParseException("Unexpected token or missing value");
+	}
+	return true;
+}
+
+void	ParserConfig::checkSemicolon(std::vector<std::string>::iterator &it){
+	if (it == _tokens.end() || *it != ";")
+		throw ParseException("Need ';' at the end of directives");
+	it++;
+}
+
+// ca aussi, petite verif structurelle aussi, meme si ds les fonctions on verifie les brracket pour voir leur contenu 
+void	ParserConfig::checkBracketsBalance(const std::string &content){
+	int balance = 0;
+	for (size_t i = 0; i < content.size(); ++i) {
+		if (content[i] == '{')
+			balance++;
+		else if (content[i] == '}')
+			balance--;
+		if (balance < 0) {
+			throw ParseException("Unexpected '}' found");
+		}
+	}
+	if (balance != 0) {
+		throw ParseException("Brackets are not balanced");
+	}
+}
+
+
+/* *************************************************** */
+/*  FINAL VERIF'                                       */
+/* *************************************************** */ 
+// void	ParserConfig::verifyConfig(){
+// 	// verifie que chaque serveur a au moins un port et une location, et qu'il n'y a pas de doublons de ports
+// 	// faire ici toutes les verif specifiques par ex verifi specifique au port ( 0 - 65535) ...
+//	// etc ... 
+// }
 
 
 // ------------------------------ Prise de note vrac ------------------------------
-// recursion pour parser les blocs de config (server, location) 
-// et stocker les infos dans des struc serverConfig et locationConfig
+// parser les blocs de config (server, location) 
+// et stocker les infos dans des classes serverConfig et locationConfig
 // donc si on croise server { on cree objet serverConfig et on parse jusqu'a la fin du bloc, pareil pour location
 // tant qu'on croise pas } on continue de parser et stocker les infos dans la struc correspondante
 
@@ -163,3 +438,25 @@ void ParserConfig::tokenize(const std::string &content) {
 // quitter de maniere clean avec mess d'erreur clair si fichier pas bien formaté ou directives invaldies
 // -> ne pas lancer le serveur si la config est pourrie, obviously
 
+// PAR DEFAUT ??
+// Si non spécifié dans le config :
+// - `port` : 80
+// - `host` : 0.0.0.0
+// - `client_max_body_size` : 1M
+// - `index` : index.html
+// - `autoindex` : off
+// - `methods` : GET
+
+// POUR LOCATION ???
+// - Remplit les infos spécifiques à la route.
+// - Ajoute la `LocationConfig` au serveur en cours.
+
+// attention pour les locations, garder le match le plus long 
+// par ex :
+/*
+	/
+	/images
+	/images/icons
+*/
+// On va garder la 3eme option
+// donc parser en gardant ca en tete 

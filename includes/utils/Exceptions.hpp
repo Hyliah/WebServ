@@ -10,29 +10,37 @@
 /*                                                                           */
 /*****************************************************************************/
 
-#ifndef SERVERCONFIG_HPP
-#define SERVERCONFIG_HPP
+#ifndef EXCEPTIONS_HPP
+#define EXCEPTIONS_HPP
 
-#include "LocationConfig.hpp"
+#include <stdexcept>
+#include <string>
 
-class ServerConfig {
-public:
-	std::string					port; 		// str pour getadrinfo() pour eviter hton 
-	std::string					host;         // par ex par defaut "0.0.0.0"
-	std::string					serverName;
-	std::string					root;
-	std::vector<std::string>	index;
+// ici on fait une classe de base , et apres classes plus specifiques qui heritent
+class WebservException : public std::exception {
+	protected:
+		std::string _message;
 
-	size_t						maxBodySize;
-	
-	std::map<int, std::string>  errorPages;  // Code (404) -> Chemin du fichier
-	std::vector<LocationConfig> locations;
-
-	ServerConfig();
-	ServerConfig(const ServerConfig& other);
-	ServerConfig& operator=(const ServerConfig& other);
-	~ServerConfig();
+	public:
+		WebservException(const std::string& msg) : _message(msg) {}
+		virtual ~WebservException() throw() {}
+		virtual const char* what() const throw() {
+			return _message.c_str();
+		}
 };
 
-#endif
+// erreurs de parsing config + http ( donc personnalisé avec soit config ou http ... )
+class ParseException : public WebservException {
+	public:
+		ParseException(const std::string& msg) : WebservException("Parsing Error: " + msg) {}
+};
 
+// erreur de socket
+
+// erreur de CGI ?
+
+// erreur de http ? 
+
+// others ?? 
+
+#endif

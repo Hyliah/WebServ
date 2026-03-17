@@ -13,7 +13,7 @@
 #ifndef PARSERCONFIG_HPP
 #define PARSERCONFIG_HPP
 
-#include "Webserv.hpp"
+#include "Exceptions.hpp"
 
 class ServerConfig; 
 class LocationConfig;
@@ -23,8 +23,6 @@ class ParserConfig {
 	private:
 		std::vector<ServerConfig> 	_servers;
 		std::vector<std::string> 	_tokens;
-
-		// toutes les fonctions de parsing
 
 		// CLEAN ET TOKEN
 		std::string 				readFile(const std::string &path);
@@ -41,21 +39,22 @@ class ParserConfig {
 		void						handleErrorPage(std::vector<std::string>::iterator &it, ServerConfig &server);
 		void						handleMaxBodySize(std::vector<std::string>::iterator &it, ServerConfig &server);
 		void						handleRoot(std::vector<std::string>::iterator &it, ServerConfig &server);
+		void						handleIndex(std::vector<std::string>::iterator &it, ServerConfig &server);
 
 		// HANDLERS location
 		void						handleMethods(std::vector<std::string>::iterator &it, LocationConfig &location);
 		void						handleAutoindex(std::vector<std::string>::iterator &it, LocationConfig &location);
+		void						handleMaxBodySize(std::vector<std::string>::iterator &it, LocationConfig &location);
+		void						handleRoot(std::vector<std::string>::iterator &it, LocationConfig &location);
 		void						handleIndex(std::vector<std::string>::iterator &it, LocationConfig &location);
 		void						handleReturn(std::vector<std::string>::iterator &it, LocationConfig &location);
 		void						handleUploadStore(std::vector<std::string>::iterator &it, LocationConfig &location);
 		void						handleCgi(std::vector<std::string>::iterator &it, LocationConfig &location);
-		void						handleRoot(std::vector<std::string>::iterator &it, LocationConfig &location);
 
 		// CHECK					
+		bool						validateValue(std::vector<std::string>::iterator &it);
 		void						checkSemicolon(std::vector<std::string>::iterator &it);
 		void						checkBracketsBalance(const std::string &content);
-		int							stringToInt(const std::string &str); // equivalent de stoi, check si utile d'avoir version perso
-		size_t						parseSize(const std::string &str); // pour parser les tailles avec K, M, G
 
 		// VERIF
 		void 						verifyConfig(); // verifie que chaque serveur a au moins un port et une location, et qu'il n'y a pas de doublons de ports
@@ -66,40 +65,40 @@ class ParserConfig {
 		ParserConfig &operator=(const ParserConfig &other);
 		~ParserConfig();
 
-		void parse(const std::string &configFilePath); // fonction publique principqle
+		void parse(const std::string &configFilePath);
 
 		// Getters pour récupérer les serveurs après parsing
     	const std::vector<ServerConfig> &getServers() const { return _servers; }
 
-		// classe erreur pour les erreurs de parsing
-		class ParseException : public std::exception {
-			private:
-				std::string _msg;
+		// modif ds un fichier spé, check si tt marche avant de supp
+		// // classe erreur pour les erreurs de parsing
+		// class ParseException : public std::exception {
+		// 	private:
+		// 		std::string _msg;
 
-			public:
-				ParseException(const std::string &msg) : _msg(msg) {}
+		// 	public:
+		// 		ParseException(const std::string &msg) : _msg(msg) {}
 
-				virtual ~ParseException() throw() {}
+		// 		virtual ~ParseException() throw() {}
 
-				const char* what() const throw() {
-					return _msg.c_str();
-				}
-		};
+		// 		const char* what() const throw() {
+		// 			return _msg.c_str();
+		// 		}
+		// };
 };
 
 
 #endif
 
-// Faire une classe config parser qui va:
-//  lire le fichier de config, 
-// le parser 
-// et stocker les infos dans des strucs ServerConfig et LocationConfig
 
-
-// ds obligatoire :
+// dc obligatoire pour serveur :
 // listen
 // root
 // location 
+
+// obligatoire pour location 
+// path
+// allow method
 
 // si y'a pas le minimum -> error 
 // et sinon on met en defaut le reste 
@@ -123,3 +122,5 @@ class ParserConfig {
 
 // a la fin du parsing verifier que chaque serveur a au moions un port et une location 
 // et verif les doublon, 2 srveurs qui ecoutent sur le meme port 
+
+// faire fonction de verif de validite des ports ? nombre max 65535 

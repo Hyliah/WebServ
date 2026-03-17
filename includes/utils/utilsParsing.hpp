@@ -10,31 +10,13 @@
 /*                                                                           */
 /*****************************************************************************/
 
-#ifndef WEBSERV_HPP
-#define WEBSERV_HPP
+#ifndef UTILSPARSING_HPP
+#define UTILSPARSING_HPP
 
-// trucs de base a ranger proprement par categories
-#include <iostream>
 #include <string>
-#include <vector>
-#include <map>
-#include <set>
-#include <algorithm>
-#include <fstream>
-#include <sstream>
-#include <stdexcept>
-#include <filesystem>
-#include <unistd.h> //?
 
-// tt les hpp 
-#include "ConfigFile.hpp"
-#include "LocationConfig.hpp"
-#include "ParserConfig.hpp"
-#include "ServerConfig.hpp"
-#include "SocketClient.hpp"
-#include "SocketServer.hpp"
-
-// some other stuff probably 
+long	stringToLong(const std::string &str);
+int		stringToInt(const std::string &str); // peut etre utile pour port, erreur http ?? check plus tard 
+size_t	parseSize(const std::string &str); // pour parser les tailles avec K, M, G
 
 #endif
-

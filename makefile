@@ -2,12 +2,13 @@
 
 NAME = Webserv
 CC = c++
-INCLUDES = -I includes/ -I includes/config -I includes/socket
+INCLUDES = -I includes/ -I includes/config -I includes/socket -I includes/utils
 CFLAGS = -Wall -Wextra -Werror -std=c++98 $(INCLUDES)
 SRCS = src/main.cpp \
        src/config/ParserConfig.cpp \
        src/config/ServerConfig.cpp \
-	   src/config/LocationConfig.cpp
+	   src/config/LocationConfig.cpp \
+	   src/utils/utilsParsing.cpp
 OBJDIR = obj
 OBJS = $(SRCS:src/%.cpp=$(OBJDIR)/%.o)
 

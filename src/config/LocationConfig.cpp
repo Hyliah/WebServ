@@ -12,12 +12,24 @@
 
 #include "LocationConfig.hpp"
 
-// below pour test, a verif et modif 
+/* *************************************************** */
+/*  Constructors, destructor, and assignment operator  */
+/* *************************************************** */ 
+LocationConfig::LocationConfig(){
+	path = "/";
+	root = ""; // si location.root est vide, utilise server.root par defaut ?? a checker 
+	autoindex = false;
+	index.push_back("index.html");
+	returnUrl = "";
+	uploadStore = "";
+	maxBodySize = 100000; // 100ko par defaut
+	cgiEnabled = false;
 
-// CANONICAL FORM
-LocationConfig::LocationConfig() : autoindex(false), cgiEnabled(false) {
-	// voir si on met des trucs par defaut ou pas
-	// chack ca later c'est juste pour faire des tests
+	methods.push_back("GET"); // par defaut on autorise que GET
+
+	hasGet = true;
+	hasPost = false;
+	hasDelete = false;
 }
 LocationConfig::LocationConfig(const LocationConfig &other) {
 	path = other.path;
@@ -28,6 +40,7 @@ LocationConfig::LocationConfig(const LocationConfig &other) {
 	returnUrl = other.returnUrl;
 	uploadStore = other.uploadStore;
 	cgiInfo = other.cgiInfo;
+	maxBodySize = other.maxBodySize;
 	cgiEnabled = other.cgiEnabled;
 }
 LocationConfig& LocationConfig::operator=(const LocationConfig &other) {
@@ -40,10 +53,10 @@ LocationConfig& LocationConfig::operator=(const LocationConfig &other) {
 		returnUrl = other.returnUrl;
 		uploadStore = other.uploadStore;
 		cgiInfo = other.cgiInfo;
+		maxBodySize = other.maxBodySize;
 		cgiEnabled = other.cgiEnabled;
 	}
 	return *this;
 }
-LocationConfig::~LocationConfig() {
-}
+LocationConfig::~LocationConfig() {}
 

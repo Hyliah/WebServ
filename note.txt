@@ -1,0 +1,14 @@
+PETITES NOTES POUR L'AVANCEE DU PROJET 
+
+Voir si je decide de mofifier le tokeniser pour avoir les numero de ligen
+Ca serait super cool pour le debug et les ajouter das les mess d'erreur
+par ex : Parsing Error: Line 12: Unexpected token 'blabla'
+Vu que le tokeniser marche nickel j'ai la flemme today de modifier ca
+mais peut etre je me motiv si je vois que ca aide de ouf pour le debug en general 
+
+Pour l'instant j'ai laisse la foret de if / else parce que c'etait plus imtuitif a coder pour moi 
+Mais on va probablement changer pour un tableau de pointeurs sur fonction 
+a faire plus tard si tout marche bien 
+
+
+// a faire 

@@ -13,17 +13,24 @@
 #include "ServerConfig.hpp"
 #include "ParserConfig.hpp"
 
-//below popur test agauin 
-
-// CANONICAL FORM
-
-ServerConfig::ServerConfig() : port("8080"), maxBodySize(1000000) {
-	// voir pour le truc par defaut
+/* *************************************************** */
+/*  Constructors, destructor, and assignment operator  */
+/* *************************************************** */ 
+ServerConfig::ServerConfig(){
+	port = "8080"; // standard pour test 
+	host = "0.0.0.0"; // ecoute sur toutes les interfaces 
+	serverName = "default_server";
+	root = "./www";
+	index.push_back("index.html");
+	maxBodySize = 100000; // 100ko par defaut
+	// les conteneur sont init vide pas defaut donc ok
 }
 ServerConfig::ServerConfig(const ServerConfig &other) {
 	port = other.port;
 	host = other.host;
 	serverName = other.serverName;
+	root = other.root;
+	index = other.index;
 	maxBodySize = other.maxBodySize;
 	errorPages = other.errorPages;
 	locations = other.locations;
@@ -33,12 +40,13 @@ ServerConfig& ServerConfig::operator=(const ServerConfig &other) {
 		port = other.port;
 		host = other.host;
 		serverName = other.serverName;
+		root = other.root;
+		index = other.index;
 		maxBodySize = other.maxBodySize;
 		errorPages = other.errorPages;
 		locations = other.locations;
 	}
 	return *this;
 }
-ServerConfig::~ServerConfig() {
-}
+ServerConfig::~ServerConfig() {}
 
