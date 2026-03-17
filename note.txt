@@ -18,3 +18,12 @@ mais peut etre je me motiv si je vois que ca aide de ouf pour le debug en genera
 Pour l'instant j'ai laisse la foret de if / else parce que c'etait plus imtuitif a coder pour moi 
 Mais on va probablement changer pour un tableau de pointeurs sur fonction 
 a faire plus tard si tout marche bien 
+
+
+// a faire 
+
+faire un hpp utils pour tous les parsing avec les fonctions utilitaires 
+surtout stringlong et int 
+
+check pour index ds le serveur car il peut y avoir plusieurs trucs ? a la suite ?
+ex:     index index.html index.htm;

@@ -12,6 +12,7 @@
 
 #include "ServerConfig.hpp"
 #include "ParserConfig.hpp"
+#include "utilsParsing.hpp"
 
 /* *************************************************** */
 /*  Constructors, destructor, and assignment operator  */
@@ -49,50 +50,10 @@ void ParserConfig::parse(const std::string &configFilePath){
 		}
 	}
 }
-// VERSION TEST BELOW
-// void ParserConfig::parse(const std::string &configFilePath) {
-// 	// test readfile
-// 	std::string content = readFile(configFilePath);
-// 	if (content.empty()) {
-// 		throw ParseException("Config file is empty: " + configFilePath);
-// 	}
-// 	else{
-// 		std::cout << "Contenu du fichier:" << std::endl;
-// 		std::cout << content << std::endl;
-// 	}
-
-// 	// test remove comments
-// 	removeComments(content);
-// 	std::cout << "Contenu après suppression des commentaires:" << std::endl;
-// 	std::cout << content << std::endl;
-
-// 	// test tokenize
-// 	tokenize(content);
-// 	// verif avec print pour debug 
-// 	std::cout << "Tokens:" << std::endl;
-// 	for (size_t i = 0; i < _tokens.size(); i++) {
-// 		std::cout << "Token " << i << ": " << _tokens[i] << std::endl;
-// 	}
-
-// 	// Parse server
-// 	// boucle pour trouver "server", et appelle parseServeur
-// 	// init de l'iterateur 
-// 	std::vector<std::string>::iterator it = _tokens.begin();
-// 	// parcourir les tokens
-// 	while (it != _tokens.end()){
-// 		if (*it == "server"){
-// 			parseServer(it);
-// 		}
-// 		else{
-// 			throw ParseException("Est ce qu'il y a une erreur ici ou pas ?? rajouter + *it ou pas ? ");
-// 		}
-// 	}
-// }
 
 /* *************************************************** */
 /*  Read, clean file + tokenize                        */
 /* *************************************************** */ 
-
 // lire le fichier et retourner son contenu sous forme de string
 // fichier et non dossier ??? check si ok 
 std::string ParserConfig::readFile(const std::string &path) {
@@ -109,20 +70,16 @@ std::string ParserConfig::readFile(const std::string &path) {
 	return buffer.str();
 }
 
- // pour retirer les commentaires 
 void ParserConfig::removeComments(std::string &content) {
 	size_t pos = content.find('#');
 	while (pos != std::string::npos) {
-		size_t endOfLine = content.find('\n', pos); // en partant de la pos du #
-		if (endOfLine == std::string::npos) { // si c'est kla toute derniere ligen du fichier 
+		size_t endOfLine = content.find('\n', pos);
+		if (endOfLine == std::string::npos) {
 			content.erase(pos);
-			break; // Plus rien à chercher après la fin du fichier
+			break;
 		} else {
-			// On efface du '#' jusqu'au '\n' (sans supprimer le '\n')
 			content.erase(pos, endOfLine - pos);
 		}
-		// On cherche le prochain '#' à partir de la position actuelle
-		// pour ne pas reparcourir tout le début de la string
 		pos = content.find('#', pos);
 	}
 }
@@ -162,16 +119,18 @@ void	ParserConfig::parseServer(std::vector<std::string>::iterator &it){
 	while (it != _tokens.end() && *it != "}"){
 		if (*it == "listen")
 			handleListen(it, newServer);
-		// else if (*it == "server_name")
-		// 	handleServerName(it, newServer);
+		else if (*it == "server_name")
+			handleServerName(it, newServer);
 		// else if (*it == "error_page")
 		// 	handleErrorPage(it, newServer);
 		else if (*it == "client_max_body_size")
 			handleMaxBodySize(it, newServer);
 		else if (*it == "root")
 			handleRoot(it, newServer);
-		// else if (*it == "location")
-		// 	parseLocation(it, newServer);
+		else if (*it == "index")
+			handleIndex(it, newServer);
+		else if (*it == "location")
+			parseLocation(it, newServer);
 		else
 			throw ParseException("Unknown directive: " + *it);
 	}
@@ -181,42 +140,42 @@ void	ParserConfig::parseServer(std::vector<std::string>::iterator &it){
 	_servers.push_back(newServer);
 }
 
-// void	ParserConfig::parseLocation(std::vector<std::string>::iterator &it, ServerConfig &server){
-// 	it++;
-// 	if ( it == _tokens.end())
-// 		throw ParseException("Location needs a path");
+void	ParserConfig::parseLocation(std::vector<std::string>::iterator &it, ServerConfig &server){
+	it++;
+	if ( it == _tokens.end())
+		throw ParseException("Location needs a path");
 
-// 	LocationConfig newLocation;
-// 	newLocation.path = *it;
-// 	it++;
+	LocationConfig newLocation;
+	newLocation.path = *it;
+	it++;
 
-// 	if (it == _tokens.end() || *it != "{")
-// 		throw ParseException("need '{' after location path ");
-// 	it++;
+	if (it == _tokens.end() || *it != "{")
+		throw ParseException("need '{' after location path ");
+	it++;
 
-// 	while (it != _tokens.end() && *it != "}"){
-// 		if (*it == "root")
-// 			handleRoot(it, newLocation);
-// 		else if (*it == "allow_methods")
-// 			handleMethods(it, newLocation);
-// 		else if (*it == "autoindex")
-// 			handleAutoindex(it, newLocation);
-// 		else if (*it == "index")
-// 			handleIndex(it, newLocation);
-// 		else if (*it == "return")
-// 			handleReturn(it, newLocation);
-// 		else if (*it == "upload_store")
-// 			handleUploadStore(it, newLocation);
-// 		else if (*it == "cgi_info")
-// 			handleCgi(it, newLocation);
-// 		else	
-// 			throw ParseException("Unknown directive: " + *it);
-// 	}
-// 	if (it == _tokens.end())
-// 		throw ParseException("Missing '}' at the end of the block");
-// 	it++;
-// 	server.locations.push_back(newLocation);
-// }
+	while (it != _tokens.end() && *it != "}"){
+		if (*it == "root")
+			handleRoot(it, newLocation);
+		// else if (*it == "allow_methods")
+		// 	handleMethods(it, newLocation);
+		else if (*it == "autoindex")
+			handleAutoindex(it, newLocation);
+		else if (*it == "index")
+			handleIndex(it, newLocation);
+		else if (*it == "return")
+			handleReturn(it, newLocation);
+		else if (*it == "upload_store")
+			handleUploadStore(it, newLocation);
+		// else if (*it == "cgi_info")
+		// 	handleCgi(it, newLocation);
+		else	
+			throw ParseException("Unknown directive: " + *it);
+	}
+	if (it == _tokens.end())
+		throw ParseException("Missing '}' at the end of the block");
+	it++;
+	server.locations.push_back(newLocation);
+}
 
 /* *************************************************** */
 /*  HANDLERS SERVER                                    */
@@ -267,6 +226,15 @@ void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, ServerConf
 	checkSemicolon(it);
 }
 
+void	ParserConfig::handleIndex(std::vector<std::string>::iterator &it, ServerConfig &server){
+	it++;
+	if (!validateValue(it))
+		throw ParseException("Index needs a value");
+	server.index = *it;
+	it++;
+	checkSemicolon(it);
+}
+
 
 /* *************************************************** */
 /*  HANDLERS LOCATION                                  */
@@ -281,7 +249,7 @@ void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, LocationCo
 }
 
 // void	ParserConfig::handleMethods(std::vector<std::string>::iterator &it, LocationConfig &location){
-
+	// faire 3 bool pour savoir si hasGet hasPost ... 
 // }
 
 void	ParserConfig::handleAutoindex(std::vector<std::string>::iterator &it, LocationConfig &location){
@@ -366,36 +334,6 @@ void	ParserConfig::checkBracketsBalance(const std::string &content){
 	}
 }
 
-long	ParserConfig::stringToLong(const std::string &str){
-	long result = 0;
-	for (size_t i = 0; i < str.size(); i++)
-	{
-		if (!isdigit(str[i]))
-			throw ParseException("Invalid number: " + str);
-		result = result * 10 + (str[i] - '0');
-	}
-	return result;
-}
-
-size_t	ParserConfig::parseSize(const std::string &str){
-	if (str.empty()) return 0;
-	char unit = str[str.size() - 1]; // pour acceder au dernier caractere si c'est une lettre 
-	std::string valueStr = str; // on va faire un copie de ka str
-	size_t multiplier = 1;
-	// donc si le dernier char est pas un digit ( donc k, m ou g )
-	if (!isdigit(unit)) {
-		valueStr = str.substr(0, str.size() - 1); // on stock les number en enlevant le dernier char 
-		if (unit == 'K' || unit == 'k') multiplier = 1024;
-		else if (unit == 'M' || unit == 'm') multiplier = 1024 * 1024;
-		else if (unit == 'G' || unit == 'g') multiplier = 1024 * 1024 * 1024;
-		else throw ParseException("Invalid size unit: " + str);
-	}
-	// Conversion de la partie numérique 
-	long val = stringToLong(valueStr);
-	if (val < 0) 
-		throw ParseException("Size cannot be negative: " + str);
-	return static_cast<size_t>(val * multiplier);
-}
 
 /* *************************************************** */
 /*  FINAL VERIF'                                       */

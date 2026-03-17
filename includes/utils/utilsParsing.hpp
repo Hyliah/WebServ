@@ -10,30 +10,13 @@
 /*                                                                           */
 /*****************************************************************************/
 
-#ifndef SERVERCONFIG_HPP
-#define SERVERCONFIG_HPP
+#ifndef UTILSPARSING_HPP
+#define UTILSPARSING_HPP
 
-#include "Webserv.hpp"
-#include "LocationConfig.hpp"
+#include <string>
 
-class ServerConfig {
-public:
-	std::string					port; 		// str pour getadrinfo() pour eviter hton 
-	std::string					host;         // par ex par defaut "0.0.0.0"
-	std::string					serverName;
-	std::string					root;
-	std::string					index;
-
-	size_t						maxBodySize;
-	
-	std::map<int, std::string>  errorPages;  // Code (404) -> Chemin du fichier
-	std::vector<LocationConfig> locations;
-
-	ServerConfig();
-	ServerConfig(const ServerConfig& other);
-	ServerConfig& operator=(const ServerConfig& other);
-	~ServerConfig();
-};
+long	stringToLong(const std::string &str);
+// int		stringToInt(const std::string &str); // peut etre utile pour port, erreur http ?? check plus tard 
+size_t	parseSize(const std::string &str); // pour parser les tailles avec K, M, G
 
 #endif
-

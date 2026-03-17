@@ -29,7 +29,7 @@ class WebservException : public std::exception {
 		}
 };
 
-// erreurs de parsing
+// erreurs de parsing config + http ( donc personnalisé avec soit config ou http ... )
 class ParseException : public WebservException {
 	public:
 		ParseException(const std::string& msg) : WebservException("Parsing Error: " + msg) {}

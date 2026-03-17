@@ -54,5 +54,18 @@ void	testPrint()
 				  << "  Root: " << servers[i].root << std::endl;
 		std::cout << "  Error Pages:" << std::endl;
 		// contuinuer avec location apres 
+		std::cout << "  Locations:" << std::endl;
+		for (size_t j = 0; j < servers[i].locations.size(); j++) {
+			std::cout << " Location " << j << ":" << std::endl;
+			std::cout << "   Path: " << servers[i].locations[j].path << std::endl
+					  << "   oot: " << servers[i].locations[j].root << std::endl
+					  << "   Autoindex: " << (servers[i].locations[j].autoindex ? "on" : "off") << std::endl
+					  << "   Index: " << servers[i].locations[j].index << std::endl
+					  << "   Return URL: " << servers[i].locations[j].returnUrl << std::endl
+					  << "   Upload Store: " << servers[i].locations[j].uploadStore << std::endl
+					  << "   CGI Enabled: " << (servers[i].locations[j].cgiEnabled ? "yes" : "no") << std::endl;
+
+			std::cout << std::endl;
+		}
 	}
 }

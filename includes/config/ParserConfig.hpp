@@ -40,6 +40,7 @@ class ParserConfig {
 		void						handleErrorPage(std::vector<std::string>::iterator &it, ServerConfig &server);
 		void						handleMaxBodySize(std::vector<std::string>::iterator &it, ServerConfig &server);
 		void						handleRoot(std::vector<std::string>::iterator &it, ServerConfig &server);
+		void						handleIndex(std::vector<std::string>::iterator &it, ServerConfig &server);
 
 		// HANDLERS location
 		void						handleMethods(std::vector<std::string>::iterator &it, LocationConfig &location);
@@ -54,9 +55,6 @@ class ParserConfig {
 		bool						validateValue(std::vector<std::string>::iterator &it);
 		void						checkSemicolon(std::vector<std::string>::iterator &it);
 		void						checkBracketsBalance(const std::string &content);
-		long						stringToLong(const std::string &str);
-		//int						stringToInt(const std::string &str); peut etre utile pour port, erreur http ?? check plus tard 
-		size_t						parseSize(const std::string &str); // pour parser les tailles avec K, M, G
 
 		// VERIF
 		void 						verifyConfig(); // verifie que chaque serveur a au moins un port et une location, et qu'il n'y a pas de doublons de ports
