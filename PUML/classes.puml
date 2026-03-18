@@ -1,121 +1,155 @@
 @startuml
+
 !theme blueprint
 
-title Classes
+' Orientation horizontale
+left to right direction
 
-' Socket client
-class SocketClient {
-    -_fd : int
-    -_buffer : string - read
-    -clientPort : int - ntohs
-
-    +SocketClient();
-    +SocketClient(int fd);
-	+SocketClient(const SocketClient& other);
-	+SocketClient& operator=(const SocketClient& other);
-    +~SocketClient();
-    +int receiveData();
-    +int sendData(const std::string& data);
-    +void closeSocket();
-    +int getFd() const;
-    +const std::string& getBuffer() const;
-    +int getPort() const;
-    +void setPort(int port);
+class WebServer {
+    - std::vector<SocketServer> _socketServers
+    - std::map<int, SocketClient> _socketClients
+    - // vecteurs de Polls
 }
 
-' Socket serveur
 class SocketServer {
-    -address : string - recup de htons ?
-    -_fd : int
-    -_port : string
-    -_servers : vector<ServerConfig*>
-    +SocketServer();
-	+SocketServer(const SocketServer& other);
-	+SocketServer& operator=(const SocketServer& other);
-    +~SocketServer();
-    +bool    createSocket();
-    +bool    bindSocket();
-    +bool    listenSocket(int backlog = 10);
-    +int     acceptClient();
-    +void    closeSocket();
-    +int     getFd() const;
-    +const std::string& getPort() const;
-    +void setPort(const std::string& port);
-    +void addServer(ServerConfig* server);
-    +const std::vector<ServerConfig*>& getServers() const;
+    - std::vector<ServerConfig*> _servers
 }
 
-' Socket ServerConfig
-class ServerConfig {
-	+port : string	
-	+host : string	
-	+serverName : string
-	+maxBodySize : size_t
-	+errorPages : map<int, std::string>
-	+std::vector : <LocationConfig>
-
-	+ServerConfig() 
+class SocketClient {
+    + HttpRequest& getRequest()
 }
 
-SocketServer <|.. ServerConfig
-ConfigFile <|-- ServerConfig
-ServerConfig <|-- LocationConfig
+class ServerConfig
+class HttpRequest
 
-' Socket LocationConfig
-class LocationConfig {
+' Relations
+WebServer --- SocketServer : contient
+WebServer --- SocketClient : gère
 
-}
+SocketServer "1" *-- "*" ServerConfig : contient
+SocketClient --> HttpRequest : utilise
 
-' Socket LocationConfig
-class ConfigFile {
-
-}
+@enduml
 
 
+' @startuml
+' !theme blueprint
 
+' title Classes
 
-' ' Interface
-' interface IAutre {
-'     + pub()
+' ' Socket client
+' class SocketClient {
+'     -_fd : int
+'     -_buffer : string - read
+'     -clientPort : int - ntohs
+
+'     +SocketClient();
+'     +SocketClient(int fd);
+' 	+SocketClient(const SocketClient& other);
+' 	+SocketClient& operator=(const SocketClient& other);
+'     +~SocketClient();
+'     +int receiveData();
+'     +int sendData(const std::string& data);
+'     +void closeSocket();
+'     +int getFd() const;
+'     +const std::string& getBuffer() const;
+'     +int getPort() const;
+'     +void setPort(int port);
 ' }
 
-' ' Abstraite
-' abstract class AAutre {
-'     - priv : int
-'     + pub()
+' ' Socket serveur
+' class SocketServer {
+'     -address : string - recup de htons ?
+'     -_fd : int
+'     -_port : string
+'     -_servers : vector<ServerConfig*>
+'     +SocketServer();
+' 	+SocketServer(const SocketServer& other);
+' 	+SocketServer& operator=(const SocketServer& other);
+'     +~SocketServer();
+'     +bool    createSocket();
+'     +bool    bindSocket();
+'     +bool    listenSocket(int backlog = 10);
+'     +int     acceptClient();
+'     +void    closeSocket();
+'     +int     getFd() const;
+'     +const std::string& getPort() const;
+'     +void setPort(const std::string& port);
+'     +void addServer(ServerConfig* server);
+'     +const std::vector<ServerConfig*>& getServers() const;
 ' }
 
-' ' Classe 1
-' class autre1 {
-'     - priv : int
-'     + pub()
+' ' Socket ServerConfig
+' class ServerConfig {
+' 	+port : string	
+' 	+host : string	
+' 	+serverName : string
+' 	+maxBodySize : size_t
+' 	+errorPages : map<int, std::string>
+' 	+std::vector : <LocationConfig>
+
+' 	+ServerConfig() 
 ' }
 
-' ' classe 2
-' class autre2 {
-'     - priv : int
-'     + pub()
+' SocketServer <|.. ServerConfig
+' ConfigFile <|-- ServerConfig
+' ServerConfig <|-- LocationConfig
+
+' ' Socket LocationConfig
+' class LocationConfig {
+
 ' }
 
-' ' Relations
-' IAutre <|.. AAutre
-' AAutre <|-- autre1
-' AAutre <|-- autre2
+' ' Socket LocationConfig
+' class ConfigFile {
+
+' }
 
 
-struct addrinfo {
-    +int ai_flags;
-    +int ai_family;
-    +int ai_socktype;
-    +int ai_protocol;
-    +socklen_t ai_addrlen;
-    +struct sockaddr *ai_addr;
-    +char *ai_canonname;
-    +struct addrinfo *ai_next;
 
-    - hints.ai_family = AF_INET;      // IPv4
-    - hints.ai_socktype = SOCK_STREAM; // TCP
-    - hints.ai_flags = AI_PASSIVE;    // pour bind
-}
+
+' ' ' Interface
+' ' interface IAutre {
+' '     + pub()
+' ' }
+
+' ' ' Abstraite
+' ' abstract class AAutre {
+' '     - priv : int
+' '     + pub()
+' ' }
+
+' ' ' Classe 1
+' ' class autre1 {
+' '     - priv : int
+' '     + pub()
+' ' }
+
+' ' ' classe 2
+' ' class autre2 {
+' '     - priv : int
+' '     + pub()
+' ' }
+
+' ' ' Relations
+' ' IAutre <|.. AAutre
+' ' AAutre <|-- autre1
+' ' AAutre <|-- autre2
+
+
+' struct addrinfo {
+'     +int ai_flags;
+'     +int ai_family;
+'     +int ai_socktype;
+'     +int ai_protocol;
+'     +socklen_t ai_addrlen;
+'     +struct sockaddr *ai_addr;
+'     +char *ai_canonname;
+'     +struct addrinfo *ai_next;
+
+'     - hints.ai_family = AF_INET;      // IPv4
+'     - hints.ai_socktype = SOCK_STREAM; // TCP
+'     - hints.ai_flags = AI_PASSIVE;    // pour bind
+' }
 
 @enduml
