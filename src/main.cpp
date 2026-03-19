@@ -17,7 +17,7 @@
 #include "ServerConfig.hpp"
 #include <iostream>
 
-void	testPrint();
+void	testPrintParse();
 
 int main (int ac, char **av)
 {
@@ -28,19 +28,22 @@ int main (int ac, char **av)
 	try {
 		ParserConfig parser;
 		parser.parse(av[1]);
-		testPrint();
+		//testPrintParse();
 
 		WebServer webserver(parser.getServers());
-
+		//webserver.testPrintSocket();
 		// mettre boucle principale ici ( pour run tt le truc ) 
-
-	} catch (const ParseException &e) {
+		std::cout << "1" << std::endl;
+	}
+	catch (const ParseException &e) {
 		std::cerr << e.what() << std::endl;
 		return 1;
-	} catch (const std::exception &e) {
+	} 
+	catch (const std::exception &e) {
 		std::cerr << "Unexpected error: " << e.what() << std::endl;
 		return 1;
 	}
+	std::cout << "ALL GOOD BITCHES" << std::endl;
 	return 0;
 }
 
@@ -48,7 +51,7 @@ int main (int ac, char **av)
 // avec 2 ligens de trop 
 
 // print les element de la classe pour voir si tt ok
-void	testPrint()
+void	testPrintParse()
 {
 	std::cout << "Test print verif" << std::endl;
 	ParserConfig parser;

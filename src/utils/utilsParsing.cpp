@@ -18,7 +18,6 @@
 /*
 CHANGER POUR LE ENUM !!!!!!!!!!!!!!!!!
 */
-
 long	stringToLong(const std::string &str){
 	long result = 0;
 	for (size_t i = 0; i < str.size(); i++)

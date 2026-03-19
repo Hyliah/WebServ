@@ -13,7 +13,7 @@
 #include <iostream>
 #include <map>
 
-#include "HttpRequest.hpp"
+#include "../http/HttpRequest.hpp"
 
 /* ************************************************** */
 /* construtor & destructors                           */

@@ -17,7 +17,7 @@
 /* construtor & destructors                           */
 /* ************************************************** */
 
-SocketClient::SocketClient() : _fd(-1), _buffer(""), _headerParsed(false), _requestCompleted(false) {}
+SocketClient::SocketClient() : _fd(-1), _buffer(""), _headerParsed(false), _requestCompleted(false) { _headerParsed = false;}
 SocketClient::SocketClient(int fd) : _fd(fd), _buffer(""), _headerParsed(false), _requestCompleted(false) {}
 SocketClient::~SocketClient(){}
 
@@ -104,17 +104,17 @@ void SocketClient::parseBody(std::string &buffer, size_t &position) {
     if (position >= buffer.size())
         return;
 
-    size_t content_length = 0;
-    auto &headers = _request.getHeaders();
+    // size_t content_length = 0;
+    // auto &headers = _request.getHeaders();
     // if (headers.count("Content-Length")) {
     //     content_length = std::stoul(headers["Content-Length"]);                        //??????
     //}
 
     // attention à ne pas dépasser le buffer
-    size_t available = buffer.size() - position;
-    size_t to_read = std::min(content_length, available);
+    // size_t available = buffer.size() - position;
+    // size_t to_read = std::min(content_length, available);
 
-    _request.setBody(buffer.substr(position, to_read));
+    _request.setBody(buffer.substr(position, buffer.size()));
 }
 
 // \r\n fait partie du protocole HTTP peu importe l os utilisé 

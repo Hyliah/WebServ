@@ -29,12 +29,14 @@ private:
 	std::string							_port;
 	std::vector<const ServerConfig*>	_servers;
 
+	SocketServer(const SocketServer& other);
+	SocketServer& operator=(const SocketServer& other);
+
 public:
 
 	SocketServer();
 	SocketServer(std::string port);
-	SocketServer(const SocketServer& other) = delete;
-	SocketServer& operator=(const SocketServer& other) = delete;
+
 	~SocketServer();
 
 	void    createSocket();
@@ -50,6 +52,7 @@ public:
 	struct addrinfo* getAddrinfo() const;
 
 	const std::string& getPort() const;
+
 
 	int initStructGetaddrinfo(struct addrinfo& hints, struct addrinfo** res);
 	void addServer(ServerConfig* server);

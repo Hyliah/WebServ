@@ -24,15 +24,15 @@
 class WebServer{
 
 	private :
-		std::vector<SocketServer>	_socketServers;
+		std::vector<SocketServer*>	_socketServers;
 		std::map<int, SocketClient>	_socketClients;
 		std::vector<ServerConfig>	_servers;
 		//vecteurs de Pauls (Polls)
+        WebServer(const WebServer &other);
+		WebServer& operator=(const WebServer &other);
 
 	public :
 		WebServer(const std::vector<ServerConfig> &servers);
-		WebServer(const WebServer &other) = delete;
-		WebServer& operator=(const WebServer &other) = delete;
 		~WebServer();
 
 		//gettes & setters
@@ -53,6 +53,10 @@ class WebServer{
 		void handleRequest(SocketClient& client); //fonction qui va démarrer le parsing du http dans la classe SocketClient
 		//paul loop ?***
 	
+
+
+		////////// TTTEEEEEEEESTTTTT
+
 
 };
 

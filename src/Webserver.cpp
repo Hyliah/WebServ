@@ -14,15 +14,32 @@
 #include <iterator>
 #include <map>
 
+/* ************************************************** */
+/* construtor & destructors                           */
+/* ************************************************** */
+
+// ici tu initialises tes sockets à partir de _servers
+// for each server → créer un SocketServer sur le bon port
 WebServer::WebServer(const std::vector<ServerConfig> &servers) : _servers(servers)
 {
 	initSockets();
-	// ici tu initialises tes sockets à partir de _servers
-	// for each server → créer un SocketServer sur le bon port
+	cpyLinkConfig();
 }
-WebServer::~WebServer(){}
 
-//gettes & setters
+WebServer::~WebServer(){
+	for (std::vector<SocketServer*>::iterator it = _socketServers.begin();
+		it != _socketServers.end(); ++it) {
+	delete *it;
+    }
+    _socketServers.clear();
+
+	std::cout << "webserver closed" << std::endl;
+}
+
+/* ************************************************** */
+/* getters & setters.                                 */
+/* ************************************************** */
+
 // SocketServer&	WebServer::getServer(size_t idx){}
 // SocketClient&	WebServer::getClient(int fd){}
 // void	WebServer::setSocket(SocketServer& socket){}
@@ -33,7 +50,10 @@ WebServer::~WebServer(){}
 
 
 
-// autres
+/* ************************************************** */
+/* socket intit functions                             */
+/* ************************************************** */
+
 //void	WebServer::removeClient(int fd){}
 
 void	WebServer::initSockets(){
@@ -44,13 +64,13 @@ void	WebServer::initSockets(){
 		
 		bool exists = false;
 		for (size_t i = 0; i < _socketServers.size(); ++i) {
-			if (_socketServers[i].getPort() == it->port) {
+			if (_socketServers[i]->getPort() == it->port) {
 				exists = true;
 				break;
 			}
 		}
 		if (!exists) {
-			_socketServers.push_back(SocketServer(it->port));
+			_socketServers.push_back(new SocketServer(it->port));
 		}
 	}
 }
@@ -60,11 +80,11 @@ void	WebServer::cpyLinkConfig(){
 	std::vector<ServerConfig>::iterator it;
 
 	for (it = _servers.begin(); it != _servers.end(); ++it){	
-		std::vector<SocketServer>::iterator itserv;
+		std::vector<SocketServer*>::iterator itserv;
 		for (itserv = _socketServers.begin(); itserv != _socketServers.end(); ++itserv)
 		{
-			if (itserv->getPort() == it->port){
-				itserv->addServer(&(*it));
+			if ((*itserv)->getPort() == it->port){
+				(*itserv)->addServer(&(*it));
 				break;
 			}
 		}
@@ -73,7 +93,9 @@ void	WebServer::cpyLinkConfig(){
 
 // faire une boucle while qui va créer tous les socket. 
 
-void WebServer::handleRequest(SocketClient& client){} //fonction qui va démarrer le parsing du http dans la classe SocketClient
+void WebServer::handleRequest(SocketClient& client){
+	(void)client;
+} //fonction qui va démarrer le parsing du http dans la classe SocketClient
 //paul loop ?***
 
 

@@ -31,8 +31,8 @@ class HttpRequest
     public :
 
     HttpRequest();
-    HttpRequest(const HttpRequest &other) = delete;
-    HttpRequest& operator=(const HttpRequest &other) = delete;
+    // HttpRequest(const HttpRequest &other) = delete;
+    // HttpRequest& operator=(const HttpRequest &other) = delete;
     ~HttpRequest();
 
     const std::string& getMethod() const;

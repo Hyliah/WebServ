@@ -16,7 +16,7 @@
 #include <string>
 #include <unistd.h>
 
-#include "HttpRequest.hpp"
+#include "../http/HttpRequest.hpp"
 
 class SocketClient {
 
@@ -35,8 +35,8 @@ private:
     
     SocketClient();
     SocketClient(int fd);
-	SocketClient(const SocketClient& other) = delete;
-	SocketClient& operator=(const SocketClient& other) = delete;
+	//SocketClient(const SocketClient& other);
+	//SocketClient& operator=(const SocketClient& other);
     ~SocketClient();
     
     
