@@ -32,8 +32,6 @@ WebServer::~WebServer(){
 	delete *it;
     }
     _socketServers.clear();
-
-	std::cout << "webserver closed" << std::endl;
 }
 
 /* ************************************************** */

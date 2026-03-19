@@ -25,12 +25,10 @@ SocketServer::SocketServer(std::string port) : _sockFd(-1), _res(NULL), _port(po
 	createSocket();
 }
 SocketServer::~SocketServer(){
-	std::cout << "socket server destructeur  " << std::endl;
 	if (_sockFd != -1)
 		close(_sockFd);
 	if (_res)
 		freeaddrinfo(_res);
-	std::cout << "close et free ok  " << std::endl;
 }
 
 /* ************************************************** */
@@ -61,7 +59,9 @@ void    SocketServer::createSocket(){
 	_sockFd = socket(_res->ai_family, _res->ai_socktype, _res->ai_protocol);
 	if (_sockFd == -1)
 		throw SocketException("Error : socket not created");
-	std::cout << "\nLE SOCKET A CE SOCKFD " << _sockFd << "\n" << std::endl;
+
+	//std::cout << "\nLE SOCKET A CE SOCKFD " << _sockFd << "\n" << std::endl;
+	
 	if (!setSocket(_sockFd))
 		throw SocketException("Error : socket settings failed");
 

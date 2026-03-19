@@ -31,9 +31,8 @@ int main (int ac, char **av)
 		//testPrintParse();
 
 		WebServer webserver(parser.getServers());
-		//webserver.testPrintSocket();
+		//webserver.testPrintSocket(); //ALL GOOD
 		// mettre boucle principale ici ( pour run tt le truc ) 
-		std::cout << "1" << std::endl;
 	}
 	catch (const ParseException &e) {
 		std::cerr << e.what() << std::endl;
