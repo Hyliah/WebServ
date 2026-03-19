@@ -24,33 +24,34 @@
 class WebServer{
 
 	private :
-		std::vector<SocketServer> _socketServers;
-		std::map<int, SocketClient> _socketClients;
+		std::vector<SocketServer>	_socketServers;
+		std::map<int, SocketClient>	_socketClients;
+		std::vector<ServerConfig>	_servers;
 		//vecteurs de Pauls (Polls)
 
 	public :
-		WebServer();
+		WebServer(const std::vector<ServerConfig> &servers);
 		WebServer(const WebServer &other) = delete;
 		WebServer& operator=(const WebServer &other) = delete;
 		~WebServer();
 
+		//gettes & setters
+		// SocketServer&	getServer(size_t idx);
+		// SocketClient&	getClient(int fd);
+		// void	setSocket(SocketServer& socket);
+		// void 	setClient(int fd, SocketClient& client);
+		// // or
+		// void 	addClient(int fd); // faire la construction du Client directement dans cette fonction
 		
-		SocketServer&	getServer(size_t idx);
-		SocketClient&	getClient(int fd);
 		
-		void	removeClient(int fd);
+		void	cpyLinkConfig();
 		
-		void	setSocket(SocketServer& socket);
-		void 	setClient(int fd, SocketClient& client);
-		// or
-		void 	addClient(int fd); // faire la construction du Client directement dans cette fonction
+		// autres
+		//void	removeClient(int fd);
+		void	initSockets(); // faire une boucle while qui va créer tous les socket. 
 
-
-
-		handleRequest(SocketClien& client); //fonction qui va démarrer le parsing du http dans la classe SocketClient
-		//poll loop ?***
-
-
+		void handleRequest(SocketClient& client); //fonction qui va démarrer le parsing du http dans la classe SocketClient
+		//paul loop ?***
 	
 
 };

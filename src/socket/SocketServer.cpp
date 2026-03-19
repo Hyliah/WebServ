@@ -17,8 +17,10 @@
 /* construtor & destructors                           */
 /* ************************************************** */
 
-SocketServer::SocketServer() : _sockFd(-1), _port("default"), _servers(NULL), _res(NULL){}
-SocketServer::SocketServer(int fd) : _sockFd(fd), _port("default"), _servers(NULL), _res(NULL){}
+SocketServer::SocketServer() : _sockFd(-1), _port("default"), _res(NULL){
+	createSocket();
+}
+SocketServer::SocketServer(std::string port) : _sockFd(-1), _port(port), _res(NULL){}
 SocketServer::~SocketServer(){
 	if (_sockFd != -1)
 		close(_sockFd);
@@ -32,10 +34,9 @@ SocketServer::~SocketServer(){
 
 int									SocketServer::getFd() const{ return (_sockFd); }
 const std::string&					SocketServer::getPort() const{ return (_port); }
-const std::vector<ServerConfig*>&	SocketServer::getServers() const{ return (_servers); }
+const std::vector< const ServerConfig*>&	SocketServer::getServers() const{ return (_servers); }
 struct addrinfo* 					SocketServer::getAddrinfo() const { return _res;}
 
-void 								SocketServer::setPort(const std::string& port){ _port = port; }
 void 								SocketServer::addServer(ServerConfig* server){ _servers.push_back(server); }
 
 
@@ -43,8 +44,6 @@ void 								SocketServer::addServer(ServerConfig* server){ _servers.push_back(s
 /* socket handling functions                          */
 /* ************************************************** */
 
-//statics
-static int initStructGetaddrinfo(struct addrinfo& hints, struct addrinfo** res);
 static bool setSocket(int sockFd);
 
 //fucntions
@@ -65,13 +64,13 @@ void    SocketServer::createSocket(){
 		throw SocketException("Error : bind has failed");
 }
 
-	static int initStructGetaddrinfo(struct addrinfo& hints, struct addrinfo** res){
+	int SocketServer::initStructGetaddrinfo(struct addrinfo& hints, struct addrinfo** res){
 		memset(&hints, 0, sizeof(hints));
 		hints.ai_family = AF_INET;
 		hints.ai_socktype = SOCK_STREAM;
 		hints.ai_flags = AI_PASSIVE;
 
-		int ret = getaddrinfo(NULL, "8080", &hints, res);
+		int ret = getaddrinfo(NULL, _port.c_str(), &hints, res);
 		
 		return ret;
 	}
@@ -101,7 +100,7 @@ void    SocketServer::listenSocket(int backlog){
 }
 
 int     SocketServer::acceptClient(){
-	
+	return 1;
 }
 
 void    SocketServer::closeSocket(){

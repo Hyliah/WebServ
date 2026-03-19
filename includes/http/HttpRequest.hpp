@@ -31,21 +31,23 @@ class HttpRequest
     public :
 
     HttpRequest();
-    HttpRequest(const HttpRequest &other); //utile ou = delete ?
-    HttpRequest& operator=(const HttpRequest &other);
+    HttpRequest(const HttpRequest &other) = delete;
+    HttpRequest& operator=(const HttpRequest &other) = delete;
     ~HttpRequest();
 
-    std::string getMethod() const;
-    std::string getUri() const;
-    std::string getVersion() const;
-    std::string getBody() const;
-    std::map<std::string, std::string>& getHeaders();
+    const std::string& getMethod() const;
+    const std::string& getUri() const;
+    const std::string& getVersion() const;
+    const std::string& getBody() const;
+    long        getContentLength() const;
+    const std::map<std::string, std::string>& getHeaders() const;
+
     void setMethod(std::string);
     void setUri(std::string);
     void setVersion(std::string);
     void setBody(std::string);
-    void setHeaders(std::string key, std::string value);
-    // _data.insert(std::make_pair(date, value));
+    void setContentLength(long length);
+    void setHeaders(const std::string& key, const std::string& value);
 };
 
 // METHOD space URI space VERSION
@@ -71,5 +73,12 @@ URL encoding
 
 → %20 = espace
 
+
+
+
+dans les headers, que faire si y en a 2 les memes ?
+
+Erreur 400 bad request ! faire une fonction
+singleton : content length, host, content type, authorization, Transfer-Encoding:
 
 */

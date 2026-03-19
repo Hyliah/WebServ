@@ -23,7 +23,7 @@ class SocketClient {
 private:
 
     int         _fd;
-    std::string _buffer;
+    std::string _buffer; //recupéré avec recv() - attention en plusieurs fois
 
     HttpRequest _request;
 

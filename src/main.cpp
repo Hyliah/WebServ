@@ -10,6 +10,7 @@
 /*                                                                           */
 /*****************************************************************************/
 
+#include "WebServer.hpp"
 #include "Exceptions.hpp"
 #include "LocationConfig.hpp"
 #include "ParserConfig.hpp"
@@ -28,6 +29,11 @@ int main (int ac, char **av)
 		ParserConfig parser;
 		parser.parse(av[1]);
 		testPrint();
+
+		WebServer webserver(parser.getServers());
+
+		// mettre boucle principale ici ( pour run tt le truc ) 
+
 	} catch (const ParseException &e) {
 		std::cerr << e.what() << std::endl;
 		return 1;

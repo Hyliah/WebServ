@@ -24,36 +24,36 @@ class SocketServer {
 
 private:
 
-    int                             _sockFd;
-	struct addrinfo					*_res;
-    std::string                     _port;
-    std::vector<ServerConfig*>      _servers;
+	int									_sockFd;
+	struct addrinfo						*_res;
+	std::string							_port;
+	std::vector<const ServerConfig*>	_servers;
 
 public:
 
-    SocketServer();
-	SocketServer(int fd);
+	SocketServer();
+	SocketServer(std::string port);
 	SocketServer(const SocketServer& other) = delete;
 	SocketServer& operator=(const SocketServer& other) = delete;
-    ~SocketServer();
+	~SocketServer();
 
-    void    createSocket();
-    void    listenSocket(int backlog = 10);
+	void    createSocket();
+	void    listenSocket(int backlog = 10);
 
-    int     acceptClient();
+	int     acceptClient();
 
-    void    closeSocket();
+	void    closeSocket();
 
-    int     getFd() const;
+	int     getFd() const;
 
 
 	struct addrinfo* getAddrinfo() const;
 
-    const std::string& getPort() const;
-    void setPort(const std::string& port);
+	const std::string& getPort() const;
 
-    void addServer(ServerConfig* server);
-    const std::vector<ServerConfig*>& getServers() const;
+	int initStructGetaddrinfo(struct addrinfo& hints, struct addrinfo** res);
+	void addServer(ServerConfig* server);
+	const std::vector<const ServerConfig*>& getServers() const;
 };
 
 #endif

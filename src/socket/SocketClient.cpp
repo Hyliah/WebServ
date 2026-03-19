@@ -106,9 +106,9 @@ void SocketClient::parseBody(std::string &buffer, size_t &position) {
 
     size_t content_length = 0;
     auto &headers = _request.getHeaders();
-    if (headers.count("Content-Length")) {
-        content_length = std::stoul(headers["Content-Length"]);
-    }
+    // if (headers.count("Content-Length")) {
+    //     content_length = std::stoul(headers["Content-Length"]);                        //??????
+    //}
 
     // attention à ne pas dépasser le buffer
     size_t available = buffer.size() - position;

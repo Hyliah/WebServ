@@ -54,3 +54,34 @@
 // 		}
 // 	}
 // }
+
+
+
+
+
+
+
+
+
+
+// void WebServer::initSockets() {
+//     std::map<std::string, SocketServer> serversByPort;
+
+//     for (std::vector<ServerConfig>::iterator it = _servers.begin(); it != _servers.end(); ++it) {
+//         std::string port = it->port;
+
+//         // Si le port n'existe pas encore → créer le socket
+//         if (serversByPort.find(port) == serversByPort.end()) {
+//             serversByPort.insert(std::make_pair(port, SocketServer(port)));
+//         }
+
+//         // Ajouter la config au socket correspondant
+//         serversByPort[port].addConfig(&(*it));
+//     }
+
+//     // Copier dans ton vector final
+//     for (std::map<std::string, SocketServer>::iterator it = serversByPort.begin();
+//          it != serversByPort.end(); ++it) {
+//         _socketServers.push_back(it->second);
+//     }
+// }
