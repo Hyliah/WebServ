@@ -15,6 +15,8 @@
 
 #include <string>
 #include <unistd.h>
+#include <fcntl.h>
+#include <netdb.h>
 
 #include "../http/HttpRequest.hpp"
 
@@ -30,11 +32,13 @@ private:
     bool        _headerParsed;
     bool        _requestCompleted;
 
+    struct sockaddr_storage _addr; 
+
     
     public:
     
     SocketClient();
-    SocketClient(int fd);
+    SocketClient(int fd, struct sockaddr_storage addr);
 	//SocketClient(const SocketClient& other);
 	//SocketClient& operator=(const SocketClient& other);
     ~SocketClient();

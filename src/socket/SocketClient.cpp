@@ -18,7 +18,7 @@
 /* ************************************************** */
 
 SocketClient::SocketClient() : _fd(-1), _buffer(""), _headerParsed(false), _requestCompleted(false) { _headerParsed = false;}
-SocketClient::SocketClient(int fd) : _fd(fd), _buffer(""), _headerParsed(false), _requestCompleted(false) {}
+SocketClient::SocketClient(int fd, struct sockaddr_storage addr) : _fd(fd), _buffer(""), _headerParsed(false), _requestCompleted(false), _addr(addr) {}
 SocketClient::~SocketClient(){}
 
 /* ************************************************** */
@@ -51,6 +51,9 @@ bool SocketClient::parseRequest(){
 
     _requestCompleted = true;
     return true;
+
+    //pas chercher sinon ca compile pas
+    (void)_addr;
 }
     
 void SocketClient::parseFirstLine(std::string &buffer, size_t &position) {

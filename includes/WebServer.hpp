@@ -20,6 +20,7 @@
 
 #include "SocketClient.hpp"
 #include "SocketServer.hpp"
+#include "Exceptions.hpp"
 
 class WebServer{
 
@@ -50,8 +51,7 @@ class WebServer{
 		// SocketClient&	getClient(int fd);
 		// void	setSocket(SocketServer& socket);
 		// void 	setClient(int fd, SocketClient& client);
-		// // or
-		// void 	addClient(int fd); // faire la construction du Client directement dans cette fonction
+		void 	addClient(int fd, struct sockaddr_storage addr);
 		
 		
 		
@@ -61,7 +61,7 @@ class WebServer{
 		void	handleRequest(int fd); //fonction qui va démarrer le parsing du http dans la classe SocketClient
 		void	acceptClient(int fd);
 		void	sendResponse(int fd);
-		bool	isServerFd(int fd)
+		bool	isServerFd(int fd);
 
 };
 

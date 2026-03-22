@@ -21,7 +21,7 @@
 WebServer* gSignal = NULL; // pointeur global pour le signal
 
 void handle_sigint(int signum) {
-    if (gSignal)
+    if (signum)
         gSignal->_running = false; // sort de la loop proprement
 }
 
@@ -45,7 +45,7 @@ int main (int ac, char **av)
 		gSignal = &webserver;           	// assigner le pointeur global
 		signal(SIGINT, handle_sigint); 		// installer le handler
 
-		//webserver.eventLoop();           	// boucle poll()
+		webserver.pollLoop();           	// boucle poll()
 	}
 	catch (const ParseException &e) {
 		std::cerr << e.what() << std::endl;

@@ -13,7 +13,7 @@
 #include "WebServer.hpp"
 #include <iterator>
 #include <map>
-#include <signal.h>
+#include <poll.h>
 
 /* ************************************************** */
 /* construtor & destructors                           */
@@ -41,13 +41,11 @@ WebServer::~WebServer(){
 
 // SocketServer&	WebServer::getServer(size_t idx){}
 // SocketClient&	WebServer::getClient(int fd){}
-// void	WebServer::setSocket(SocketServer& socket){}
-// void 	WebServer::setClient(int fd, SocketClient& client){}
-// // or
-// void 	WebServer::addClient(int fd){} // faire la construction du Client directement dans cette fonction
 
-
-
+void	WebServer::addClient(int fd, struct sockaddr_storage addr){
+	SocketClient tmp(fd, addr);
+	_socketClients[fd] = tmp;
+}
 
 /* ************************************************** */
 /* socket intit functions                             */
@@ -99,14 +97,21 @@ void	WebServer::pollLoop(){
 	
 	while (_running){
 
-		int ret = poll(&_pollFds[0], _pollFds.size(), 1000); //timeout de 1seconde 
+		int ret = poll(&_pollFds[0], _pollFds.size(), 10000); //timeout de 1seconde 
 		
-		if (ret == -1)
-			throw RunningException("Poll");
+		std::cout << "_pollFds.size(): " << _pollFds.size() << std::endl;
+		
+		if (ret == -1) {
+			if (errno == EINTR) {
+				_running = false;
+				break;
+			} else 
+				throw RunningException(std::string("Poll: ") + strerror(errno));
+		}
 		else if (ret == 0) 
 			continue;
 		else  {
-			for (int i = 0; i < _pollFds.size(); ++i){
+			for (size_t i = 0; i < _pollFds.size(); ++i){
 				if (_pollFds[i].revents & POLLIN){ 
 					int fd = _pollFds[i].fd;
 					if (isServerFd(fd))
@@ -121,10 +126,12 @@ void	WebServer::pollLoop(){
 			}
 		}
 	}
+
+	//on doit clode le fd du accept ?
 }
 
 void	WebServer::initPollStruct(){
-	for (int i = 0; i < _socketServers.size(); ++i){
+	for (size_t i = 0; i < _socketServers.size(); ++i){
 		int fd = _socketServers[i]->getFd();
 
 		struct pollfd pfd;
@@ -139,13 +146,24 @@ void	WebServer::handleRequest(int fd){
 	(void)fd;
 }
 
-void	WebServer::acceptClient(int fd){
-	(void)fd;
+void	WebServer::acceptClient(int serverFd){
+	struct sockaddr_storage addr;
+	socklen_t addrlen = sizeof(addr);
+	int clientFd = accept(serverFd, (struct sockaddr*)&addr, &addrlen);
+	if (clientFd < 0)
+		throw RunningException("accept");
 
-	// accpt()
-	//fncltdsdcadg
-	// create new struct pollfds avec infos fd POLLIN 0
-	// push
+	int flags = fcntl(clientFd, F_GETFL, 0);
+	if (fcntl(clientFd, F_SETFL, flags | O_NONBLOCK) < 0)
+		throw RunningException("fcntl");
+	
+	struct pollfd pfd;
+	pfd.fd = clientFd;
+	pfd.events = POLLIN;
+	pfd.revents = 0;
+	_pollFds.push_back(pfd);
+	
+	addClient(clientFd, addr);
 }
 
 void	WebServer::sendResponse(int fd){
@@ -153,7 +171,7 @@ void	WebServer::sendResponse(int fd){
 }
 
 bool	WebServer::isServerFd(int fd){
-	for (int i = 0; i < _socketServers.size(); ++i){
+	for (size_t i = 0; i < _socketServers.size(); ++i){
 		if (_socketServers[i]->getFd() == fd)
 			return true;
 	}
