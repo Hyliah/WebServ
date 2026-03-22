@@ -44,12 +44,11 @@ void 								SocketServer::addServer(ServerConfig* server){ _servers.push_back(s
 
 
 /* ************************************************** */
-/* socket handling functions                          */
+/* socket creation                                    */
 /* ************************************************** */
 
 static bool setSocket(int sockFd);
 
-//fucntions
 void    SocketServer::createSocket(){
 	struct addrinfo hints;
 
@@ -59,26 +58,16 @@ void    SocketServer::createSocket(){
 	_sockFd = socket(_res->ai_family, _res->ai_socktype, _res->ai_protocol);
 	if (_sockFd == -1)
 		throw SocketException("Error : socket not created");
-
-	//std::cout << "\nLE SOCKET A CE SOCKFD " << _sockFd << "\n" << std::endl;
 	
 	if (!setSocket(_sockFd))
 		throw SocketException("Error : socket settings failed");
 
 	if (bind(_sockFd, _res->ai_addr, _res->ai_addrlen) == -1)
 		throw SocketException("Error : bind has failed");
+	
+	if (listen(_sockFd, SOMAXCONN) == -1)
+		throw SocketException("Error : listen has failed");
 }
-
-	int SocketServer::initStructGetaddrinfo(struct addrinfo& hints, struct addrinfo** res){
-		memset(&hints, 0, sizeof(hints));
-		hints.ai_family = AF_INET;
-		hints.ai_socktype = SOCK_STREAM;
-		hints.ai_flags = AI_PASSIVE;
-
-		int ret = getaddrinfo(NULL, _port.c_str(), &hints, res);
-		
-		return ret;
-	}
 
 	static bool setSocket(int sockFd){
 		int opt = 1;
@@ -94,15 +83,20 @@ void    SocketServer::createSocket(){
 		return true;
 	}
 
+int SocketServer::initStructGetaddrinfo(struct addrinfo& hints, struct addrinfo** res){
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
 
-/* ************************************************** */
-/* je ferai qu on y sera.                             */
-/* ************************************************** */
-
-void    SocketServer::listenSocket(int backlog){
-	(void)backlog;
-	//listen(fd, SOMAXCONN);
+	int ret = getaddrinfo(NULL, _port.c_str(), &hints, res);
+	
+	return ret;
 }
+
+/* ************************************************** */
+/* other socket fucntions                             */
+/* ************************************************** */
 
 int     SocketServer::acceptClient(){
 	return 1;

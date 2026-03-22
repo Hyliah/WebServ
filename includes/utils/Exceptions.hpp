@@ -80,16 +80,29 @@ int main() {
 // erreur de socket
 
 class SocketException : public WebservException {
-public:
-    SocketException(const std::string& msg)
-        : WebservException(buildMessage(msg)) {}
+	public:
+		SocketException(const std::string& msg)
+			: WebservException(buildMessage(msg)) {}
 
-private:
-    static std::string buildMessage(const std::string& msg) {
-        std::ostringstream oss;
-        oss << "Socket Error: " << msg;
-        return oss.str();
-    }
+	private:
+		static std::string buildMessage(const std::string& msg) {
+			std::ostringstream oss;
+			oss << "Socket Error: " << msg;
+			return oss.str();
+		}
+};
+
+class RunningException : public WebservException {
+	public:
+		RunningException(const std::string& msg)
+			: WebservException(buildMessage(msg)) {}
+
+	private:
+		static std::string buildMessage(const std::string& msg) {
+			std::ostringstream oss;
+			oss << "Running Error: " << msg;
+			return oss.str();
+		}
 };
 
 // erreur de CGI ?

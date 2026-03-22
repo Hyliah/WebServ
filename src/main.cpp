@@ -16,6 +16,14 @@
 #include "ParserConfig.hpp"
 #include "ServerConfig.hpp"
 #include <iostream>
+#include <csignal>
+
+WebServer* gSignal = NULL; // pointeur global pour le signal
+
+void handle_sigint(int signum) {
+    if (gSignal)
+        gSignal->_running = false; // sort de la loop proprement
+}
 
 void	testPrintParse();
 
@@ -25,14 +33,19 @@ int main (int ac, char **av)
 		std::cerr << "Usage: ./webserv [config_file]" << std::endl;
 		return 1;
 	}
+
+	
 	try {
 		ParserConfig parser;
 		parser.parse(av[1]);
-		//testPrintParse();
+		//testPrintParse();					//Parsing conf ALL GOOD
 
 		WebServer webserver(parser.getServers());
-		//webserver.testPrintSocket(); //ALL GOOD
-		// mettre boucle principale ici ( pour run tt le truc ) 
+		//webserver.testPrintSocket(); 		// creation socket ALL GOOD
+		gSignal = &webserver;           	// assigner le pointeur global
+		signal(SIGINT, handle_sigint); 		// installer le handler
+
+		//webserver.eventLoop();           	// boucle poll()
 	}
 	catch (const ParseException &e) {
 		std::cerr << e.what() << std::endl;
@@ -46,8 +59,20 @@ int main (int ac, char **av)
 	return 0;
 }
 
-// try and catch direct ds le main car sinon ca catch pas l'eereur et ca nous fait un mess d'erreur deguelasse 
-// avec 2 ligens de trop 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // print les element de la classe pour voir si tt ok
 void	testPrintParse()

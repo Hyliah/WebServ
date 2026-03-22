@@ -13,6 +13,7 @@
 #include "WebServer.hpp"
 #include <iterator>
 #include <map>
+#include <signal.h>
 
 /* ************************************************** */
 /* construtor & destructors                           */
@@ -20,7 +21,7 @@
 
 // ici tu initialises tes sockets à partir de _servers
 // for each server → créer un SocketServer sur le bon port
-WebServer::WebServer(const std::vector<ServerConfig> &servers) : _servers(servers)
+WebServer::WebServer(const std::vector<ServerConfig> &servers) : _servers(servers), _running(true)
 {
 	initSockets();
 	cpyLinkConfig();
@@ -89,12 +90,90 @@ void	WebServer::cpyLinkConfig(){
 	}	
 }
 
-// faire une boucle while qui va créer tous les socket. 
+/* ************************************************** */
+/* PAUL LOOP			                              */
+/* ************************************************** */
 
-void WebServer::handleRequest(SocketClient& client){
-	(void)client;
-} //fonction qui va démarrer le parsing du http dans la classe SocketClient
-//paul loop ?***
+void	WebServer::pollLoop(){
+	initPollStruct();
+	
+	while (_running){
+
+		int ret = poll(&_pollFds[0], _pollFds.size(), 1000); //timeout de 1seconde 
+		
+		if (ret == -1)
+			throw RunningException("Poll");
+		else if (ret == 0) 
+			continue;
+		else  {
+			for (int i = 0; i < _pollFds.size(); ++i){
+				if (_pollFds[i].revents & POLLIN){ 
+					int fd = _pollFds[i].fd;
+					if (isServerFd(fd))
+						acceptClient(fd);
+					else
+						handleRequest(fd);
+				}
+				if (_pollFds[i].revents & POLLOUT){
+					int fd = _pollFds[i].fd;
+					sendResponse(fd); 
+				}
+			}
+		}
+	}
+}
+
+void	WebServer::initPollStruct(){
+	for (int i = 0; i < _socketServers.size(); ++i){
+		int fd = _socketServers[i]->getFd();
+
+		struct pollfd pfd;
+		pfd.fd = fd;
+		pfd.events = POLLIN;
+		pfd.revents = 0;
+		_pollFds.push_back(pfd);	
+	}
+}
+
+void	WebServer::handleRequest(int fd){
+	(void)fd;
+}
+
+void	WebServer::acceptClient(int fd){
+	(void)fd;
+
+	// accpt()
+	//fncltdsdcadg
+	// create new struct pollfds avec infos fd POLLIN 0
+	// push
+}
+
+void	WebServer::sendResponse(int fd){
+	(void)fd;
+}
+
+bool	WebServer::isServerFd(int fd){
+	for (int i = 0; i < _socketServers.size(); ++i){
+		if (_socketServers[i]->getFd() == fd)
+			return true;
+	}
+	return false;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
