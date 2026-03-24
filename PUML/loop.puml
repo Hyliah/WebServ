@@ -232,7 +232,7 @@ partition "Boucle d'écoute du socket" {
 
 		if (POLLOUT ?) then (oui)
 
-			partition "envoi réponse" {
+			partition "sendResponse" {
 
 				:send();
 

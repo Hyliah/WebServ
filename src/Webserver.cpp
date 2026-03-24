@@ -48,7 +48,7 @@ void	WebServer::addClient(int fd, struct sockaddr_storage addr){
 }
 
 /* ************************************************** */
-/* socket intit functions                             */
+/* socket & general intit functions                   */
 /* ************************************************** */
 
 //void	WebServer::removeClient(int fd){}
@@ -88,6 +88,18 @@ void	WebServer::cpyLinkConfig(){
 	}	
 }
 
+void	WebServer::initPollStruct(){
+	for (size_t i = 0; i < _socketServers.size(); ++i){
+		int fd = _socketServers[i]->getFd();
+
+		struct pollfd pfd;
+		pfd.fd = fd;
+		pfd.events = POLLIN;
+		pfd.revents = 0;
+		_pollFds.push_back(pfd);	
+	}
+}
+
 /* ************************************************** */
 /* PAUL LOOP			                              */
 /* ************************************************** */
@@ -121,7 +133,7 @@ void	WebServer::pollLoop(){
 				}
 				if (_pollFds[i].revents & POLLOUT){
 					int fd = _pollFds[i].fd;
-					sendResponse(fd); 
+					sendResponse(fd);
 				}
 			}
 		}
@@ -130,20 +142,36 @@ void	WebServer::pollLoop(){
 	//on doit clode le fd du accept ?
 }
 
-void	WebServer::initPollStruct(){
-	for (size_t i = 0; i < _socketServers.size(); ++i){
-		int fd = _socketServers[i]->getFd();
-
-		struct pollfd pfd;
-		pfd.fd = fd;
-		pfd.events = POLLIN;
-		pfd.revents = 0;
-		_pollFds.push_back(pfd);	
-	}
-}
+/*
+	headers + body == Content-Length
+*/
 
 void	WebServer::handleRequest(int fd){
-	(void)fd;
+
+	char buffer[4096]; //4KB
+	ssize_t bytes = recv(fd, buffer, sizeof(buffer), 0);
+
+	if (bytes > 0) {
+		SocketClient& client = _socketClients[fd];
+		client.appendBuffer(std::string(buffer, bytes));
+
+        if (isRequestComplete(client)) {
+            client.parseRequest();
+            setPollOut(fd);
+        }
+	}
+
+	else if (bytes == 0) {
+		closeConnection(fd);
+	}
+
+	else {
+		if (errno != EAGAIN && errno != EWOULDBLOCK)
+        	closeConnection(fd);
+		// else {
+		// 	throw ? de quoi on verra //404 ou un vrai throw
+		// }
+	}
 }
 
 void	WebServer::acceptClient(int serverFd){
@@ -170,6 +198,12 @@ void	WebServer::sendResponse(int fd){
 	(void)fd;
 }
 
+
+/* ************************************************** */
+/* UTILS PAUL LOOP			                          */
+/* ************************************************** */
+
+
 bool	WebServer::isServerFd(int fd){
 	for (size_t i = 0; i < _socketServers.size(); ++i){
 		if (_socketServers[i]->getFd() == fd)
@@ -177,6 +211,27 @@ bool	WebServer::isServerFd(int fd){
 	}
 	return false;
 }
+
+bool 	WebServer::isRequestComplete(SocketClient& client){
+
+}
+
+void	WebServer::removePollFd(int fd){
+	//faire fonction
+	(void)fd;
+}
+
+void	WebServer::closeConnection(int fd){
+	close(fd); //utile si on met dans le destructeur ?????
+	_socketClients.erase(fd);
+	removePollFd(fd);
+}
+
+
+
+
+
+
 
 
 

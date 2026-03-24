@@ -34,7 +34,7 @@ const std::string& SocketClient::getBuffer() const{ return (_buffer); }
 /* parsing de la request du Paul                      */
 /* ************************************************** */
 
-void SocketClient::appendBuffer(std::string str){
+void SocketClient::appendBuffer(const std::string& str){
     _buffer += str; //mettre des verif ?
 }
 

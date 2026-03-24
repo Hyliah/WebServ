@@ -51,7 +51,7 @@ private:
     
     const std::string& getBuffer() const;
     
-    void appendBuffer(std::string);
+    void appendBuffer(const std::string& str);
     
     bool parseRequest();
     void parseFirstLine(std::string &buffer, size_t &position);

@@ -35,66 +35,43 @@ class WebServer{
 		WebServer& operator=(const WebServer &other);
 		
 	public :
-	
-		bool						_running;
-		
+
 		WebServer(const std::vector<ServerConfig> &servers);
 		~WebServer();
+	
+		bool	_running;
 		
 		void	cpyLinkConfig();
-		void	initSockets(); // faire une boucle while qui va créer tous les socket. 
-
-		void	pollLoop();
+		void	initSockets();
 		void	initPollStruct();
+
+		
 		//gettes & setters
 		// SocketServer&	getServer(size_t idx);
 		// SocketClient&	getClient(int fd);
-		// void	setSocket(SocketServer& socket);
-		// void 	setClient(int fd, SocketClient& client);
+		// void				setSocket(SocketServer& socket);
+		// void 			setClient(int fd, SocketClient& client);
 		void 	addClient(int fd, struct sockaddr_storage addr);
-		
-		
 		
 		// autres
 		//void	removeClient(int fd);
-
-		void	handleRequest(int fd); //fonction qui va démarrer le parsing du http dans la classe SocketClient
+		
+		//PAUL LOOP
+		void	pollLoop();
 		void	acceptClient(int fd);
+		void	handleRequest(int fd);
 		void	sendResponse(int fd);
+		
+		//PAUL LOOP UTILS
 		bool	isServerFd(int fd);
-
+		bool 	isRequestComplete(SocketClient& client);
+		
+		void	closeConnection(int fd);
+		void	removePollFd(int fd);
 };
 
 #endif
 
-
-
-// ** POLL LOOP : 
-
-/*
-	server socket ready -> deja créé dans le parsing de conf -> accept + creation du socketClient
-
-	client socket ready -> recv() -> buffer += data -> parsing HTTP
-	-> faire une class pour les Polls et faire un vecteur de cette classe
-
-		for (size_t i = 0; i < _servers.size(); i++)
-		{
-			pollfd p;
-			p.fd = _servers[i].getFd();
-			p.events = POLLIN;
-			p.revents = 0;
-
-			_pollfds.push_back(p);
-		}
-
-		dans la poll loop :
-			- accept()
-			- recv()
-			- parser HTTP
-			- send response
-
-
-*/
 
 
 
