@@ -11,9 +11,12 @@
 /*****************************************************************************/
 
 #include <iostream>
+#include <cctype>
+#include <cstring>
 #include <map>
 
 #include "../http/HttpRequest.hpp"
+#include "../utils/utilsParsing.hpp"
 
 /* ************************************************** */
 /* construtor & destructors                           */
@@ -38,4 +41,8 @@ void HttpRequest::setUri(std::string str){ _uri = str; }
 void HttpRequest::setVersion(std::string str){ _version = str; }
 void HttpRequest::setBody(std::string str){ _body = str; }
 void HttpRequest::setContentLength(long length) { _contentLength = length; }
-void HttpRequest::setHeaders(const std::string& key, const std::string& value){ _headers[key] = value; }
+void HttpRequest::setHeaders(const std::string& key, const std::string& value){
+    _headers[toLower(key)] = value;
+}
+
+

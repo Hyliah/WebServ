@@ -39,7 +39,7 @@ class HttpRequest
     const std::string& getUri() const;
     const std::string& getVersion() const;
     const std::string& getBody() const;
-    long        getContentLength() const;
+    long               getContentLength() const;
     const std::map<std::string, std::string>& getHeaders() const;
 
     void setMethod(std::string);

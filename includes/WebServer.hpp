@@ -68,6 +68,7 @@ class WebServer{
 		
 		void	closeConnection(int fd);
 		void	removePollFd(int fd);
+		void	setPollOut(int fd);
 };
 
 #endif

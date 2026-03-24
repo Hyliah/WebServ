@@ -22,7 +22,7 @@ long	stringToLong(const std::string &str){
 	long result = 0;
 	for (size_t i = 0; i < str.size(); i++)
 	{
-		if (!isdigit(str[i]))
+		if (!isdigit(static_cast<unsigned char>(str[i])))
 			throw ParseException(CONF, "Invalid number: " + str);
 		result = result * 10 + (str[i] - '0');
 	}
@@ -35,7 +35,7 @@ int	stringToInt(const std::string &str){
 	int result = 0;
 	for (size_t i = 0; i < str.size(); i++)
 	{
-		if (!isdigit(str[i]))
+		if (!isdigit(static_cast<unsigned char>(str[i])))
 			throw ParseException(CONF, "Invalid number: " + str);
 		if (result > (INT_MAX - (str[i] - '0')) / 10) // Verifie que le prochain chiffre n'entraînera pas un overflow
 			throw ParseException(CONF, "Number too large: " + str);
@@ -63,4 +63,11 @@ size_t	parseSize(const std::string &str){
 	if (val < 0) 
 		throw ParseException(CONF, "Size cannot be negative: " + str);
 	return static_cast<size_t>(val * multiplier);
+}
+
+std::string toLower(const std::string str){
+    std::string res;
+    for (size_t i = 0; i < str.size(); ++i) {
+        res[i] = std::tolower(str[i]);
+    } 
 }

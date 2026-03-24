@@ -12,13 +12,14 @@
 
 #include "SocketClient.hpp"
 #include <sstream>
+#include "../utils/utilsParsing.hpp"
 
 /* ************************************************** */
 /* construtor & destructors                           */
 /* ************************************************** */
 
-SocketClient::SocketClient() : _fd(-1), _buffer(""), _headerParsed(false), _requestCompleted(false) { _headerParsed = false;}
-SocketClient::SocketClient(int fd, struct sockaddr_storage addr) : _fd(fd), _buffer(""), _headerParsed(false), _requestCompleted(false), _addr(addr) {}
+SocketClient::SocketClient() : _fd(-1), _buffer(""), headerParsed(false), requestCompleted(false), contentLength(false), chunked(false){}
+SocketClient::SocketClient(int fd, struct sockaddr_storage addr) : _fd(fd), _buffer(""), headerParsed(false), contentLength(false), chunked(false), requestCompleted(false), _addr(addr) {}
 SocketClient::~SocketClient(){}
 
 /* ************************************************** */
@@ -38,22 +39,15 @@ void SocketClient::appendBuffer(const std::string& str){
     _buffer += str; //mettre des verif ?
 }
 
-bool SocketClient::parseRequest(){
-    // faire la gestion les Pauls et maintenant on part du principe que le Buffer a fini d etre rempli
+void SocketClient::parseRequest(){
     size_t header_end = _buffer.find("\r\n\r\n");
-    if (header_end == std::string::npos)
-        return false;
     
     size_t position = 0;
     parseFirstLine(_buffer, position);
     parseHeaders(_buffer, position);
-    parseBody(_buffer, position);
 
-    _requestCompleted = true;
-    return true;
-
-    //pas chercher sinon ca compile pas
-    (void)_addr;
+    //je le laisse au cas ou y a une une erreur il passera pas en true
+    headerParsed = true;
 }
     
 void SocketClient::parseFirstLine(std::string &buffer, size_t &position) {
@@ -100,8 +94,71 @@ void SocketClient::parseHeaders(std::string &buffer, size_t &position) {
         start = line_end + 2; // passer à la ligne suivante
     }
 
-    position = header_end + 4; // début du body
+    // position = header_end + 4; // début du body // Je gere ca plus loin du coup
 }
+
+/* ************************************************** */
+/* je ferai qu on y sera.                             */
+/* ************************************************** */
+
+void SocketClient::closeSocket(){
+}
+
+void SocketClient::handleLength(){
+
+    const std::map<std::string, std::string>& headers = _request.getHeaders();
+    
+    //Content Length
+    std::map<std::string, std::string>::const_iterator itCL;
+    itCL = headers.find("content-length");
+    if (itCL != headers.end()){
+        contentLength = true;
+        _request.setContentLength(stringToLong(itCL->second.c_str()));
+        // attention gerer les 400 ou 413 ou quoi si le string n est pas un noombre correct genre 10M
+        // peut etre faire une verif avant pour pas changer la fonction stringToLong
+    }
+    else {
+        contentLength = false;
+        _request.setContentLength(0);
+    }
+
+    //chunked
+    chunked = false;
+    std::map<std::string, std::string>::const_iterator itTE;
+    itTE = headers.find("transfer-encoding");
+    if (itTE != headers.end()){
+        std::string value = toLower(itTE->second);
+        if (value.find("chunked") != std::string::npos)
+            chunked = true;
+    }
+    if (chunked)
+        contentLength = false;     
+}
+
+
+
+
+
+
+// faut metttre un bool comme quoi on a ou pas un contentlength
+// mettre aussi un bool pour le chunk
+// ensuite gerer les 3 cas :
+// 1. pas de chunk et pas de content-lenth -> on s arrete au header
+// 1.5 verifier que les deux trucs de longueur ne soient pas a true tout les deux -> sinon -> passe a chunked
+// 3. gerer le chunked -> apprendre a fair ca. 
+// 2. content length (without chunked) oui mais pas chunked -> on parse jusqu a la taille definie
+
+// int SocketClient::receiveData(){
+//     return 1; //pour qu il ne casse pas les couillasses
+// }
+// int SocketClient::sendData(const std::string& data){
+//     return 1; //pour qu il ne casse pas les couillasses
+// }
+
+
+
+
+
 
 void SocketClient::parseBody(std::string &buffer, size_t &position) {
     if (position >= buffer.size())
@@ -119,23 +176,3 @@ void SocketClient::parseBody(std::string &buffer, size_t &position) {
 
     _request.setBody(buffer.substr(position, buffer.size()));
 }
-
-// \r\n fait partie du protocole HTTP peu importe l os utilisé 
-
-/* ************************************************** */
-/* je ferai qu on y sera.                             */
-/* ************************************************** */
-
-void SocketClient::closeSocket(){
-}
-
-
-
-
-
-// int SocketClient::receiveData(){
-//     return 1; //pour qu il ne casse pas les couillasses
-// }
-// int SocketClient::sendData(const std::string& data){
-//     return 1; //pour qu il ne casse pas les couillasses
-// }

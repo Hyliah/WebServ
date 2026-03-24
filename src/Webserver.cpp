@@ -94,7 +94,7 @@ void	WebServer::initPollStruct(){
 
 		struct pollfd pfd;
 		pfd.fd = fd;
-		pfd.events = POLLIN;
+		pfd.events = POLLIN; //changement ici
 		pfd.revents = 0;
 		_pollFds.push_back(pfd);	
 	}
@@ -124,6 +124,7 @@ void	WebServer::pollLoop(){
 			continue;
 		else  {
 			for (size_t i = 0; i < _pollFds.size(); ++i){
+				// METTRE ICI LES POLLER ET POLLHUP
 				if (_pollFds[i].revents & POLLIN){ 
 					int fd = _pollFds[i].fd;
 					if (isServerFd(fd))
@@ -156,8 +157,28 @@ void	WebServer::handleRequest(int fd){
 		client.appendBuffer(std::string(buffer, bytes));
 
         if (isRequestComplete(client)) {
-            client.parseRequest();
-            setPollOut(fd);
+            
+			client.parseRequest();
+            client.handleLength();
+
+			// case 1 : false false
+			// case 2 : client.chunked = true
+			// case 3 : client.contentLength = true
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			setPollOut(fd);
         }
 	}
 
@@ -198,11 +219,9 @@ void	WebServer::sendResponse(int fd){
 	(void)fd;
 }
 
-
 /* ************************************************** */
 /* UTILS PAUL LOOP			                          */
 /* ************************************************** */
-
 
 bool	WebServer::isServerFd(int fd){
 	for (size_t i = 0; i < _socketServers.size(); ++i){
@@ -213,11 +232,23 @@ bool	WebServer::isServerFd(int fd){
 }
 
 bool 	WebServer::isRequestComplete(SocketClient& client){
+	const std::string& buffer = client.getBuffer();
+	size_t pos = buffer.find("\r\n\r\n");
 
+	if (pos == npos)
+		return false; // ca veut dire que le rnrn n est encore dans le recv -> requete pas terminée
+	return true;
 }
 
 void	WebServer::removePollFd(int fd){
-	//faire fonction
+	// std::vector<struct pollfd>::iterator it;
+
+	// for (it = _pollFds.begin(); it != _pollFds.end(); ++it){
+	// 	if (it->fd == fd){
+	// 		->>>>>>>>>>>>> REMOVE
+	// 		break;
+	// 	}
+	// }
 	(void)fd;
 }
 
@@ -227,10 +258,53 @@ void	WebServer::closeConnection(int fd){
 	removePollFd(fd);
 }
 
+void	WebServer::setPollOut(int fd){
+	std::vector<struct pollfd>::iterator it;
+
+	for (it = _pollFds.begin(); it != _pollFds.end(); ++it){
+		if (it->fd == fd){
+			it->events = POLLOUT; // it->events = POLLOUT | POLLERR | POLLHUP;
+			break;
+		}
+	}
+}
 
 
 
 
+
+
+
+
+// SI ON VEUT
+/*
+Meileure gestion des erreur des PAUL 
+Mettre dans boucle paul au endroit indiqués les différents checks 
+et changer dans l init en POLLIN + au setPollOut -> it->events = POLLOUT/POLLIN | POLLERR | POLLHUP;
+
+if (revents & POLLERR) {
+    closeConnection(fd);
+}
+else if (revents & POLLHUP) {
+    closeConnection(fd);
+}
+else if (revents & POLLIN) {
+    handleRequest(fd);
+}
+else if (revents & POLLOUT) {
+    sendResponse(fd);
+}
+
+
+
+POLLHUP
+Le client a fermé la connexion
+
+POLLERR
+Erreur sur le socket
+
+
+*/
 
 
 

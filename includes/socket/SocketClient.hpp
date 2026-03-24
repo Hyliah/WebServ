@@ -29,35 +29,36 @@ private:
 
     HttpRequest _request;
 
-    bool        _headerParsed;
-    bool        _requestCompleted;
-
     struct sockaddr_storage _addr; 
 
     
     public:
     
+    bool        headerParsed;
+    bool        requestCompleted;
+    bool        contentLength;
+    bool        chunked;
+
     SocketClient();
     SocketClient(int fd, struct sockaddr_storage addr);
 	//SocketClient(const SocketClient& other);
 	//SocketClient& operator=(const SocketClient& other);
     ~SocketClient();
     
-    
     void closeSocket();
     
     int getFd() const;
     HttpRequest& getRequest();
-    
     const std::string& getBuffer() const;
     
     void appendBuffer(const std::string& str);
     
-    bool parseRequest();
+    void parseRequest();
     void parseFirstLine(std::string &buffer, size_t &position);
     void parseHeaders(std::string &buffer, size_t &position);
     void parseBody(std::string &buffer, size_t &position);
 
+    void handleLength();
     // int receiveData();
     // int sendData(const std::string& data);
 
