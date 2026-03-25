@@ -22,46 +22,59 @@
 
 class SocketClient {
 
-private:
+	private:
 
-    int         _fd;
-    std::string _buffer; //recupéré avec recv() - attention en plusieurs fois
+		int         _fd;
+		std::string _buffer; //recupéré avec recv() - attention en plusieurs fois
 
-    HttpRequest _request;
+		HttpRequest _request;
 
-    struct sockaddr_storage _addr; 
+		struct sockaddr_storage _addr; 
+		
+		SocketClient(const SocketClient& other);
+		SocketClient& operator=(const SocketClient& other);
+		
+	public:
+	
+		bool        headerParsed;
+		bool        requestCompleted;
+		bool        contentLength;
+		bool        chunked;
 
-    
-    public:
-    
-    bool        headerParsed;
-    bool        requestCompleted;
-    bool        contentLength;
-    bool        chunked;
+		// construtor & destructors 
+		SocketClient();
+		SocketClient(int fd, struct sockaddr_storage addr);
+		~SocketClient();
+		
+		void closeSocket();
+		
+		// Getters and setters
+		int					getFd() const;
+		HttpRequest&		getRequest();
+		const std::string&	getBuffer() const;
+		
+		//parsing de la request du Paul  
+		void	appendBuffer(const std::string& str);
+		void	parseRequest();
+		//void	parseBody(std::string &buffer, size_t &position);
+		
+		// parsing firstLine & Headers 
+		void	parseFirstLine(std::string &buffer, size_t &position);
+		void	parseHeaders(std::string &buffer, size_t &position);
+		
+		//Parsing Body 
+		void	parsingNoBody(){}
+		void	parsingChunked(){}
+		void	parsingContentLength(){}
 
-    SocketClient();
-    SocketClient(int fd, struct sockaddr_storage addr);
-	//SocketClient(const SocketClient& other);
-	//SocketClient& operator=(const SocketClient& other);
-    ~SocketClient();
-    
-    void closeSocket();
-    
-    int getFd() const;
-    HttpRequest& getRequest();
-    const std::string& getBuffer() const;
-    
-    void appendBuffer(const std::string& str);
-    
-    void parseRequest();
-    void parseFirstLine(std::string &buffer, size_t &position);
-    void parseHeaders(std::string &buffer, size_t &position);
-    void parseBody(std::string &buffer, size_t &position);
+		// checks Parsing 
+		bool	isValidURI();
+		bool	isValidMethod();
+		bool	isValidVersion();
 
-    void handleLength();
-    // int receiveData();
-    // int sendData(const std::string& data);
-
+		void handleLength();
+		// int receiveData();
+		// int sendData(const std::string& data);
 };
 
 #endif

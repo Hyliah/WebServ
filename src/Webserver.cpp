@@ -156,26 +156,22 @@ void	WebServer::handleRequest(int fd){
 		SocketClient& client = _socketClients[fd];
 		client.appendBuffer(std::string(buffer, bytes));
 
+		//le buffer de la requete est rempli en tout cas jusqu'au rnrn
         if (isRequestComplete(client)) {
             
 			client.parseRequest();
             client.handleLength();
 
-			// case 1 : false false
-			// case 2 : client.chunked = true
-			// case 3 : client.contentLength = true
-
-
-
-
-
-
-
-
-
-
-
-
+			if ((client.chunked || client.contentLength) && (client.getMethod() == "DELETE" || client.getMethod() == "GET"))
+				return; //BIG PROBLEM -> verif ca mais il me semble que oui, chatyy nous le dira
+			
+			// 3 gestion du parsing de body
+			if (!client.chunked && !client.contentLength) 
+				client.parsingNoBody();
+			else if (client.chuked)
+				client.parsingChunked();
+			else
+				client.parsingContentLength();
 
 
 			setPollOut(fd);
@@ -268,7 +264,6 @@ void	WebServer::setPollOut(int fd){
 		}
 	}
 }
-
 
 
 
