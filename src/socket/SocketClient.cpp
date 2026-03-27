@@ -18,8 +18,8 @@
 /* construtor & destructors                           */
 /* ************************************************** */
 
-SocketClient::SocketClient() : _fd(-1), _buffer(""), headerParsed(false), requestCompleted(false), contentLength(false), chunked(false){}
-SocketClient::SocketClient(int fd, struct sockaddr_storage addr) : _fd(fd), _buffer(""), headerParsed(false), contentLength(false), chunked(false), requestCompleted(false), _addr(addr) {}
+SocketClient::SocketClient() : _fd(-1), _buffer(""), ignoreBody(false), headerParsed(false), requestCompleted(false), contentLength(false), chunked(false){}
+SocketClient::SocketClient(int fd, struct sockaddr_storage addr) : _fd(fd), _buffer(""), ignoreBody(false), headerParsed(false), contentLength(false), chunked(false), requestCompleted(false), _addr(addr) {}
 SocketClient::~SocketClient(){}
 
 /* ************************************************** */
@@ -44,12 +44,9 @@ void	SocketClient::parseRequest(){
 	size_t position = 0;
 	parseFirstLine(_buffer, position);
 	parseHeaders(_buffer, position);
-
-	//je le laisse au cas ou y a une une erreur il passera pas en true
-	headerParsed = true;
 }
 
-void	SocketClient::handleLength(){
+void	SocketClient::defineBodyType(){
 
 	const std::map<std::string, std::string>& headers = _request.getHeaders();
 	
@@ -77,7 +74,7 @@ void	SocketClient::handleLength(){
 			chunked = true;
 	}
 	if (chunked)
-		contentLength = false;     
+		contentLength = false;
 }
 
 /* ************************************************** */
@@ -139,8 +136,19 @@ void	SocketClient::parseHeaders(std::string &buffer, size_t &position) {
 /* Parsing Body                                       */
 /* ************************************************** */
 
+/*
+	Tes fonctions doivent être :
+
+	👉 idempotentes + incrémentales
+
+	C’est-à-dire :
+
+	appelées plusieurs fois sans casser l’état
+	continuer là où elles en étaient
+*/
 void	SocketClient::parsingNoBody(){
-	// faire une verif chill la vie si POST GET DELETE, lesquels demandent un body ou pas 
+	// faire une verif chill la vie si POST GET DELETE, lesquels demandent un body ou pas
+	requestCompleted = true;
 }
 void	SocketClient::parsingChunked(){
 		// 4\r\nWiki\r\n
@@ -152,6 +160,8 @@ void	SocketClient::parsingChunked(){
 	// -> passer rn					-> si deja a la fin 			-> PROBLEM
 	// -> buffer += line(size of x) -> si texte plus grand que x 	-> PROBLEM
 	// 								-> si pas rn apres				-> PROBLEM
+	
+	requestCompleted = true;
 }
 void	SocketClient::parsingContentLength(){
 	// parser la taille du body. Si ca correspond pas au nombre -> si c est plus petit -> continue de recv -> si plus grand BITCH BIG PROBLEM

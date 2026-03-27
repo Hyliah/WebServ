@@ -148,34 +148,48 @@ void	WebServer::pollLoop(){
 */
 
 void	WebServer::handleRequest(int fd){
-
+	
 	char buffer[4096]; //4KB
 	ssize_t bytes = recv(fd, buffer, sizeof(buffer), 0);
-
+	
 	if (bytes > 0) {
 		SocketClient& client = _socketClients[fd];
 		client.appendBuffer(std::string(buffer, bytes));
 
-		//le buffer de la requete est rempli en tout cas jusqu'au rnrn
-        if (isRequestComplete(client)) {
-            
-			client.parseRequest();
-            client.handleLength();
+		if (client.getBuffer().size() > MAX_REQUEST_SIZE) { // DEFINIR LE MAX_REQUEST_SIZE
+			// faire une fonction erreur client.setError(413);
+			//setPollOut(fd);
+			return; //on enleve le paul de la struct mais le server reste
+		}
 
-			if ((client.chunked || client.contentLength) && (client.getMethod() == "DELETE" || client.getMethod() == "GET"))
-				return; //BIG PROBLEM -> verif ca mais il me semble que oui, chatyy nous le dira
+		//le buffer de la requete est rempli en tout cas jusqu'au rnrn
+		if (isHeaderComplete(client)) {
 			
-			// 3 gestion du parsing de body
-			if (!client.chunked && !client.contentLength) 
+			//pour le faire qu une seule fois
+			if (!client.headerParsed){
+				client.parseRequest();
+				client.defineBodyType(); // potentiellement renommer celle-ci aussi -> on gere plus que la length mais le type de body : NO, chuncked ou via CL --------------------------
+				//if (client.getContentLength() > maxBodySize)
+					// ERROR 413
+				client.headerParsed = true;
+			}
+
+			//meme si y a un body dans l histoire, on s en fiche. 
+			if (client.getMethod() == "DELETE" || client.getMethod() == "GET")
+				client.ignoreBody = true;
+			
+				// 3 gestion du parsing de body + mise a jour de létat de la requete quand c est fini
+			else if (!client.chunked && !client.contentLength) 
 				client.parsingNoBody();
-			else if (client.chuked)
+			else if (client.chunked)
 				client.parsingChunked();
 			else
 				client.parsingContentLength();
 
 
-			setPollOut(fd);
-        }
+			if (client.requestCompleted)
+				setPollOut(fd);
+		}
 	}
 
 	else if (bytes == 0) {
@@ -184,12 +198,23 @@ void	WebServer::handleRequest(int fd){
 
 	else {
 		if (errno != EAGAIN && errno != EWOULDBLOCK)
-        	closeConnection(fd);
+			closeConnection(fd);
 		// else {
 		// 	throw ? de quoi on verra //404 ou un vrai throw
 		// }
 	}
+
 }
+
+
+
+/*
+
+if (client.buffer.size() > MAX_REQUEST_SIZE)
+    → 413 Payload Too Large
+
+*/
+
 
 void	WebServer::acceptClient(int serverFd){
 	struct sockaddr_storage addr;
@@ -227,7 +252,7 @@ bool	WebServer::isServerFd(int fd){
 	return false;
 }
 
-bool 	WebServer::isRequestComplete(SocketClient& client){
+bool 	WebServer::isHeaderComplete(SocketClient& client){
 	const std::string& buffer = client.getBuffer();
 	size_t pos = buffer.find("\r\n\r\n");
 

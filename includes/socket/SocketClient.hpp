@@ -36,6 +36,7 @@ class SocketClient {
 		
 	public:
 	
+		bool		ignoreBody;
 		bool        headerParsed;
 		bool        requestCompleted;
 		bool        contentLength;
@@ -72,7 +73,7 @@ class SocketClient {
 		bool	isValidMethod();
 		bool	isValidVersion();
 
-		void handleLength();
+		void	defineBodyType();
 		// int receiveData();
 		// int sendData(const std::string& data);
 };

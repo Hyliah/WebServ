@@ -64,7 +64,7 @@ class WebServer{
 		
 		//PAUL LOOP UTILS
 		bool	isServerFd(int fd);
-		bool 	isRequestComplete(SocketClient& client);
+		bool 	isHeaderComplete(SocketClient& client);
 		
 		void	closeConnection(int fd);
 		void	removePollFd(int fd);
