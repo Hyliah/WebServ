@@ -48,15 +48,18 @@ void	SocketClient::parseRequest(){
 void	SocketClient::defineBodyType(){
 
 	const std::map<std::string, std::string>& headers = _request.getHeaders();
-	
+
+
 	//Content Length
 	std::map<std::string, std::string>::const_iterator itCL;
 	itCL = headers.find("content-length");
 	if (itCL != headers.end()){
 		contentLength = true;
-		_request.setContentLength(stringToLong(itCL->second.c_str()));
-		// attention gerer les 400 ou 413 ou quoi si le string n est pas un noombre correct genre 10M
 		// peut etre faire une verif avant pour pas changer la fonction stringToLong
+		// attention gerer les 400 ou 413 ou quoi si le string n est pas un noombre correct genre 10M
+		_request.setContentLength(stringToLong(itCL->second.c_str()));
+		if (_request.getContentLength() > DEFAULT_MAX_BODY_SIZE)
+			;
 	}
 	else {
 		contentLength = false;
@@ -135,17 +138,6 @@ void	SocketClient::parseHeaders(std::string &buffer, size_t &position) {
 /* Parsing Body                                       */
 /* ************************************************** */
 
-/*
-	Tes fonctions doivent être :
-
-	👉 idempotentes + incrémentales
-
-	C’est-à-dire :
-
-	appelées plusieurs fois sans casser l’état
-	continuer là où elles en étaient
-*/
-
 void	SocketClient::parsingNoBody(){
 	requestCompleted = true;
 }
@@ -191,6 +183,8 @@ void SocketClient::parsingChunked() {
 
 			_request.addBody(chunk);
 			_bytesRead += _bytesPending;
+			if (_bytesRead > DEFAULT_MAX_BODY_SIZE)
+				; // erreur dépassement -> HTTP 413 Payload Too Large
 
 			_buffer.erase(0, _bytesPending);
 
@@ -218,11 +212,21 @@ void SocketClient::parsingChunked() {
 	}
 }
 
-void	SocketClient::parsingContentLength(){
-	if (ignoreBody)
-		return;
-	// parser la taille du body. Si ca correspond pas au nombre -> si c est plus petit -> continue de recv -> si plus grand BITCH BIG PROBLEM
-	requestCompleted = true;
+void	SocketClient::parsingContentLength() {
+    size_t size = _buffer.size();
+    size_t remaining = _request.getContentLength() - _bytesRead;
+
+    if (size > remaining)
+        size = remaining;
+
+    if (size > 0) {
+        _request.addBody(_buffer.substr(0, size));
+        _bytesRead += size;
+        _buffer.erase(0, size);
+    }
+
+    if (_bytesRead == _request.getContentLength())
+        requestCompleted = true;
 }
 
 /* ************************************************** */
@@ -247,14 +251,43 @@ bool	SocketClient::isValidVersion(){
 	return true;
 }
 
+bool	SocketClient::isValidBody(){
 
-bool SocketClient::isDone() const {
+	const std::string& body = _request.getBody();
+
+
+	for (size_t i = 0; i < body.size(); ++i) {
+        if (!isprint(body[i]) && body[i] != '\n' && body[i] != '\r')
+            return false;
+    }
+	
+	if (body.empty() && !ignoreBody) //faire la verif des ignore body 
+		return false;
+
+	// Vérifier content-type / encoding
+	// Attention aux injections si tu passes le body à un parseur ou script
+	// Timeout / limite mémoire si traitement lourd
+	
+	return true;
+}
+
+bool	SocketClient::isDone() const {
 	return (_chunkState == CHUNK_DONE);
 }
 
-// faire une verif pcq si GET -> pas de body donc si CL ou TE c est que ca soucis
+void	SocketClient::cleanBuffer(){
+	size_t pos = _buffer.find("\r\n\r\n");
+
+	_buffer.erase(0, pos + 4);
+}
 
 
+
+
+/* 
+
+
+*/
 /* ************************************************** */
 /* je ferai qu on y sera.                             */
 /* ************************************************** */

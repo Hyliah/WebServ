@@ -183,8 +183,10 @@ void	WebServer::handleRequest(int fd){
 				// 3 gestion du parsing de body + mise a jour de létat de la requete quand c est fini
 			else if (!client.chunked && !client.contentLength) 
 				client.parsingNoBody();
-			else if (client.chunked)
+			else if (client.chunked){
 				client.parsingChunked();
+				//checking sur le client client._chunkstate
+			}
 			else
 				client.parsingContentLength();
 

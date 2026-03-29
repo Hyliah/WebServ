@@ -13,6 +13,8 @@
 #ifndef SOCKETCLIENT_HPP
 #define SOCKETCLIENT_HPP
 
+#define DEFAULT_MAX_BODY_SIZE 1048576 // 1 MB
+
 #include <string>
 #include <unistd.h>
 #include <fcntl.h>
@@ -27,6 +29,7 @@ enum ChunkState {
     CHUNK_DONE,
     CHUNK_ERROR
 };
+
 
 class SocketClient {
 
@@ -85,9 +88,11 @@ class SocketClient {
 		bool	isValidURI();
 		bool	isValidMethod();
 		bool	isValidVersion();
+		bool	isValidBody();
 		bool	isDone() const;
 
 		void	defineBodyType();
+		void	cleanBuffer();
 		// int receiveData();
 		// int sendData(const std::string& data);
 };
