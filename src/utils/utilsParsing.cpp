@@ -71,3 +71,24 @@ std::string toLower(const std::string str){
         res[i] = std::tolower(str[i]);
     } 
 }
+
+long	hexToLong(const std::string& hex)
+{
+    long result = 0;
+    
+    for (size_t i = 0; i < hex.size(); i++)
+    {
+        char c = hex[i];
+        result *= 16;
+        
+        if (c >= '0' && c <= '9')
+            result += c - '0';
+        else if (c >= 'a' && c <= 'f')
+            result += c - 'a' + 10;
+        else if (c >= 'A' && c <= 'F')
+            result += c - 'A' + 10;
+        else
+            return -1;
+    }
+    return result;
+}

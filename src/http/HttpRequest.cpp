@@ -45,4 +45,6 @@ void HttpRequest::setHeaders(const std::string& key, const std::string& value){
     _headers[toLower(key)] = value;
 }
 
-
+void HttpRequest::addBody(const std::string& str){
+    _body += str;
+}

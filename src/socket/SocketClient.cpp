@@ -18,29 +18,28 @@
 /* construtor & destructors                           */
 /* ************************************************** */
 
-SocketClient::SocketClient() : _fd(-1), _buffer(""), ignoreBody(false), headerParsed(false), requestCompleted(false), contentLength(false), chunked(false){}
-SocketClient::SocketClient(int fd, struct sockaddr_storage addr) : _fd(fd), _buffer(""), ignoreBody(false), headerParsed(false), contentLength(false), chunked(false), requestCompleted(false), _addr(addr) {}
+SocketClient::SocketClient() : _fd(-1), _bytesRead(0), _buffer(""), ignoreBody(false), headerParsed(false), requestCompleted(false), contentLength(false), chunked(false){}
+SocketClient::SocketClient(int fd, struct sockaddr_storage addr) : _fd(fd), _bytesRead(0), _buffer(""), ignoreBody(false), headerParsed(false), contentLength(false), chunked(false), requestCompleted(false), _addr(addr) {}
 SocketClient::~SocketClient(){}
 
 /* ************************************************** */
 /* getters & setters.                                 */
 /* ************************************************** */
 
-int					SocketClient::getFd() const{ return (_fd); }
+int					SocketClient::getFd() { return (_fd); }
 HttpRequest&		SocketClient::getRequest(){ return (_request); }
 const std::string&	SocketClient::getBuffer() const{ return (_buffer); }
+long				SocketClient::getBytes(){ return (_bytesRead); }
 
 /* ************************************************** */
 /* parsing de la request du Paul                      */
 /* ************************************************** */
 
-void	SocketClient::appendBuffer(const std::string& str){
-	_buffer += str; //mettre des verif ?
-}
+void	SocketClient::addBytes(long bytes){ _bytesRead += bytes; }
+void	SocketClient::appendBuffer(const std::string& str){ _buffer += str; }
 
 void	SocketClient::parseRequest(){
 	size_t header_end = _buffer.find("\r\n\r\n");
-	
 	size_t position = 0;
 	parseFirstLine(_buffer, position);
 	parseHeaders(_buffer, position);
@@ -146,25 +145,84 @@ void	SocketClient::parseHeaders(std::string &buffer, size_t &position) {
 	appelées plusieurs fois sans casser l’état
 	continuer là où elles en étaient
 */
+
 void	SocketClient::parsingNoBody(){
-	// faire une verif chill la vie si POST GET DELETE, lesquels demandent un body ou pas
 	requestCompleted = true;
 }
-void	SocketClient::parsingChunked(){
-		// 4\r\nWiki\r\n
-		// 5\r\npedia\r\n
-		// 0\r\n\r\n
-	// apprendre a comprendre comment gerer ca. Si je suis bien on a : 
-	// nombre x + rn + texte(size of x) + rn 
-	// -> rn = x					-> si pas size en int 			-> PROBLEM 
-	// -> passer rn					-> si deja a la fin 			-> PROBLEM
-	// -> buffer += line(size of x) -> si texte plus grand que x 	-> PROBLEM
-	// 								-> si pas rn apres				-> PROBLEM
-	
-	requestCompleted = true;
+
+
+
+void SocketClient::parsingChunked() {
+
+	while (1) {
+
+		if (_chunkState == CHUNK_SIZE) {
+
+			size_t pos = _buffer.find("\r\n");
+			if (pos == std::string::npos)
+				return; // attendre recv()
+
+			std::string line = _buffer.substr(0, pos);
+
+			//on peut faire un if == -1 au pire
+			try {
+				_bytesPending = hexToLong(line);
+			} catch (...) {
+				_chunkState = CHUNK_ERROR;
+				return;
+			}
+
+			_buffer.erase(0, pos + 2); // remove "size\r\n"
+
+			if (_bytesPending == 0) {
+				_chunkState = CHUNK_DONE;
+				return;
+			}
+
+			_chunkState = CHUNK_DATA;
+		}
+
+		else if (_chunkState == CHUNK_DATA) {
+
+			if (_buffer.size() < _bytesPending)
+				return; // attendre recv
+
+			std::string chunk = _buffer.substr(0, _bytesPending);
+
+			_request.addBody(chunk);
+			_bytesRead += _bytesPending;
+
+			_buffer.erase(0, _bytesPending);
+
+			_chunkState = CHUNK_CRLF;
+		}
+
+		else if (_chunkState == CHUNK_CRLF) {
+
+			if (_buffer.size() < 2)
+				return;
+
+			if (_buffer.substr(0, 2) != "\r\n") {
+				_chunkState = CHUNK_ERROR;
+				return;
+			}
+
+			_buffer.erase(0, 2);
+
+			_chunkState = CHUNK_SIZE;
+		}
+
+		else {
+			return;
+		}
+	}
 }
+
 void	SocketClient::parsingContentLength(){
+	if (ignoreBody)
+		return;
 	// parser la taille du body. Si ca correspond pas au nombre -> si c est plus petit -> continue de recv -> si plus grand BITCH BIG PROBLEM
+	requestCompleted = true;
 }
 
 /* ************************************************** */
@@ -190,6 +248,9 @@ bool	SocketClient::isValidVersion(){
 }
 
 
+bool SocketClient::isDone() const {
+	return (_chunkState == CHUNK_DONE);
+}
 
 // faire une verif pcq si GET -> pas de body donc si CL ou TE c est que ca soucis
 
@@ -239,4 +300,85 @@ void	SocketClient::closeSocket(){
 // 	// size_t to_read = std::min(content_length, available);
 
 // 	_request.setBody(buffer.substr(position, buffer.size()));
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//base chunked
+
+// void	SocketClient::parsingChunked(){
+// 	if (ignoreBody)
+// 		return;
+
+// 	// boucle
+// 	// 1ere etape : check size -> lire cmb de bytes arrivent
+// 	/*
+// 		chercher le rn. tout ce que y a avant -> hex to long -> si pb PROBLEM
+// 	*/
+// 	// 2e etape : check data -> lire ces bytes + addbytes si on pu lire CONTINUE/BREAK
+// 	/*
+// 		va chercher le prochain rn -> si y a pas on arrive chunked
+// 		si oui :
+// 			prend le bout du buffer pour metre dans hhtprequest body (faire des veri si plus long )
+// 			addbytes
+// 			verif maxbody size 
+// 	*/
+// 	// 3e etape : CRFL -> verifier le rn =? DONE
+
+// 	while (1){
+// 		/*
+
+// 		dans buffer aller jusqu'a \r\n
+// 		-> si pas trouvé -> RETURN pcq pas assez d info, on attend le prochain recv()
+// 		-> si trouvé 
+// 			-> extraction du hexa en str
+// 			-> bytesPending = hexToLong + verif (if = -1 == PROBLEM)
+// 			-> supprime jusqua \r\n inclus
+		
+// 		lire jusuq au prochain \r\n
+// 		-> si y a plus que bytesPending -> PROBLEM
+// 		-> si y a pas de \r\n -> RETURN 
+// 		-> si y a et que ca fait la taille fait la meme que bytePending
+// 			-> on extrait le mot qu on met dans body de httprequest
+// 			-> addBytes(bytes); -> client.bytesread
+		
+// 		verif de bytesRead pour MAX SIZE
+// 		*/
+// 	}
+
+// 	/*
+// 		check de si c est la fin
+// 		-> DONE = DONE
+// 	*/
+
+// 		// 4\r\nWiki\r\n
+// 		// 5\r\npedia\r\n
+// 		// 0\r\n\r\n
+	
+// 	// apprendre a comprendre comment gerer ca. Si je suis bien on a :
+
+// 	// nombre x + rn + texte(size of x) + rn 
+// 	// -> rn = x					-> si pas size en int 			-> PROBLEM 
+// 	// -> passer rn					-> si deja a la fin 			-> PROBLEM
+// 	// -> buffer += line(size of x) -> si texte plus grand que x 	-> PROBLEM
+// 	//							-> si pas rn apres				-> PROBLEM
+	
+// 	// if DONE 
+// 		requestCompleted = true;
 // }

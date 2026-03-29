@@ -168,9 +168,11 @@ void	WebServer::handleRequest(int fd){
 			//pour le faire qu une seule fois
 			if (!client.headerParsed){
 				client.parseRequest();
-				client.defineBodyType(); // potentiellement renommer celle-ci aussi -> on gere plus que la length mais le type de body : NO, chuncked ou via CL --------------------------
+				client.defineBodyType();
 				//if (client.getContentLength() > maxBodySize)
 					// ERROR 413
+				
+				// faire une fonction pour vider le buffer jusqu a rnrn
 				client.headerParsed = true;
 			}
 
@@ -205,7 +207,6 @@ void	WebServer::handleRequest(int fd){
 	}
 
 }
-
 
 
 /*

@@ -48,6 +48,8 @@ class HttpRequest
     void setBody(std::string);
     void setContentLength(long length);
     void setHeaders(const std::string& key, const std::string& value);
+
+    void addBody(const std::string& str);
 };
 
 // METHOD space URI space VERSION

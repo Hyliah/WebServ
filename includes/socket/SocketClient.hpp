@@ -20,12 +20,23 @@
 
 #include "../http/HttpRequest.hpp"
 
+enum ChunkState {
+    CHUNK_SIZE,
+    CHUNK_DATA,
+    CHUNK_CRLF,
+    CHUNK_DONE,
+    CHUNK_ERROR
+};
+
 class SocketClient {
 
 	private:
 
 		int         _fd;
+		long		_bytesRead;
+		long		_bytesPending;
 		std::string _buffer; //recupéré avec recv() - attention en plusieurs fois
+		ChunkState  _chunkState;
 
 		HttpRequest _request;
 
@@ -50,11 +61,13 @@ class SocketClient {
 		void closeSocket();
 		
 		// Getters and setters
-		int					getFd() const;
+		int					getFd();
 		HttpRequest&		getRequest();
 		const std::string&	getBuffer() const;
+		long				getBytes();
 		
 		//parsing de la request du Paul  
+		void	addBytes(long bytes);
 		void	appendBuffer(const std::string& str);
 		void	parseRequest();
 		//void	parseBody(std::string &buffer, size_t &position);
@@ -64,14 +77,15 @@ class SocketClient {
 		void	parseHeaders(std::string &buffer, size_t &position);
 		
 		//Parsing Body 
-		void	parsingNoBody(){}
-		void	parsingChunked(){}
-		void	parsingContentLength(){}
+		void	parsingNoBody();
+		void	parsingChunked();
+		void	parsingContentLength();
 
 		// checks Parsing 
 		bool	isValidURI();
 		bool	isValidMethod();
 		bool	isValidVersion();
+		bool	isDone() const;
 
 		void	defineBodyType();
 		// int receiveData();
