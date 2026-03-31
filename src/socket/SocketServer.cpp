@@ -75,7 +75,7 @@ void    SocketServer::createSocket(){
 			return false;
 
 		int flags = fcntl(sockFd, F_GETFL, 0);
-		if (flags < 1)
+		if (flags < 0)
 			return false;
 		if (fcntl(sockFd, F_SETFL, flags | O_NONBLOCK) < 0)
 			return false;

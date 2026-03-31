@@ -28,11 +28,19 @@ WebServer::WebServer(const std::vector<ServerConfig> &servers) : _servers(server
 }
 
 WebServer::~WebServer(){
+	for (std::map<int, SocketClient*>::iterator it = _socketClients.begin();
+		 it != _socketClients.end(); ++it) {
+		
+		close(it->first);          // ferme le fd
+		delete it->second;         // delete le client
+	}
+	_socketClients.clear();
+
 	for (std::vector<SocketServer*>::iterator it = _socketServers.begin();
 		it != _socketServers.end(); ++it) {
 	delete *it;
-    }
-    _socketServers.clear();
+	}
+	_socketServers.clear();
 }
 
 /* ************************************************** */
@@ -43,8 +51,8 @@ WebServer::~WebServer(){
 // SocketClient&	WebServer::getClient(int fd){}
 
 void	WebServer::addClient(int fd, struct sockaddr_storage addr){
-	SocketClient tmp(fd, addr);
-	_socketClients[fd] = tmp;
+	SocketClient* client = new SocketClient(fd, addr);
+	_socketClients[fd] = client;
 }
 
 /* ************************************************** */
@@ -111,7 +119,7 @@ void	WebServer::pollLoop(){
 
 		int ret = poll(&_pollFds[0], _pollFds.size(), 10000); //timeout de 1seconde 
 		
-		std::cout << "_pollFds.size(): " << _pollFds.size() << std::endl;
+		//std::cout << "_pollFds.size(): " << _pollFds.size() << std::endl;
 		
 		if (ret == -1) {
 			if (errno == EINTR) {
@@ -123,7 +131,8 @@ void	WebServer::pollLoop(){
 		else if (ret == 0) 
 			continue;
 		else  {
-			for (size_t i = 0; i < _pollFds.size(); ++i){
+			size_t size = _pollFds.size();
+			for (size_t i = 0; i < size; ++i){
 				// METTRE ICI LES POLLER ET POLLHUP
 				if (_pollFds[i].revents & POLLIN){ 
 					int fd = _pollFds[i].fd;
@@ -135,6 +144,7 @@ void	WebServer::pollLoop(){
 				if (_pollFds[i].revents & POLLOUT){
 					int fd = _pollFds[i].fd;
 					sendResponse(fd);
+					// delete de la boucle de paul
 				}
 			}
 		}
@@ -146,78 +156,6 @@ void	WebServer::pollLoop(){
 /*
 	headers + body == Content-Length
 */
-
-void	WebServer::handleRequest(int fd){
-	
-	char buffer[4096]; //4KB
-	ssize_t bytes = recv(fd, buffer, sizeof(buffer), 0);
-	
-	if (bytes > 0) {
-		SocketClient& client = _socketClients[fd];
-		client.appendBuffer(std::string(buffer, bytes));
-
-		if (client.getBuffer().size() > MAX_REQUEST_SIZE) { // DEFINIR LE MAX_REQUEST_SIZE
-			// faire une fonction erreur client.setError(413);
-			//setPollOut(fd);
-			return; //on enleve le paul de la struct mais le server reste
-		}
-
-		//le buffer de la requete est rempli en tout cas jusqu'au rnrn
-		if (isHeaderComplete(client)) {
-			
-			//pour le faire qu une seule fois
-			if (!client.headerParsed){
-				client.parseRequest();
-				client.defineBodyType();
-				//if (client.getContentLength() > maxBodySize)
-					// ERROR 413
-				
-				// faire une fonction pour vider le buffer jusqu a rnrn
-				client.headerParsed = true;
-			}
-
-			//meme si y a un body dans l histoire, on s en fiche. 
-			if (client.getMethod() == "DELETE" || client.getMethod() == "GET")
-				client.ignoreBody = true;
-			
-				// 3 gestion du parsing de body + mise a jour de létat de la requete quand c est fini
-			else if (!client.chunked && !client.contentLength) 
-				client.parsingNoBody();
-			else if (client.chunked){
-				client.parsingChunked();
-				//checking sur le client client._chunkstate
-			}
-			else
-				client.parsingContentLength();
-
-
-			if (client.requestCompleted)
-				setPollOut(fd);
-		}
-	}
-
-	else if (bytes == 0) {
-		closeConnection(fd);
-	}
-
-	else {
-		if (errno != EAGAIN && errno != EWOULDBLOCK)
-			closeConnection(fd);
-		// else {
-		// 	throw ? de quoi on verra //404 ou un vrai throw
-		// }
-	}
-
-}
-
-
-/*
-
-if (client.buffer.size() > MAX_REQUEST_SIZE)
-    → 413 Payload Too Large
-
-*/
-
 
 void	WebServer::acceptClient(int serverFd){
 	struct sockaddr_storage addr;
@@ -237,10 +175,111 @@ void	WebServer::acceptClient(int serverFd){
 	_pollFds.push_back(pfd);
 	
 	addClient(clientFd, addr);
+	std::cout << "[ACCEPT] nouveau client fd=" << clientFd << std::endl; //-----------------------------------
 }
 
-void	WebServer::sendResponse(int fd){
-	(void)fd;
+void	WebServer::handleRequest(int fd){
+	
+	char buffer[4096]; //4KB
+	ssize_t bytes = recv(fd, buffer, sizeof(buffer), 0);
+	std::cout << "[RECV] fd=" << fd << " bytes=" << bytes << std::endl; //---------------------------------------------
+	
+	if (bytes > 0) {
+		SocketClient* client = _socketClients[fd];
+		client->appendBuffer(std::string(buffer, bytes));
+
+		if (client->getBuffer().size() > MAX_REQUEST_SIZE) { // DEFINIR LE MAX_REQUEST_SIZE
+			// faire une fonction erreur client.setError(413);
+			//setPollOut(fd);
+			return; //on enleve le paul de la struct mais le server reste
+		}
+
+		//le buffer de la requete est rempli en tout cas jusqu'au rnrn
+		if (isHeaderComplete(client)) {
+			std::cout << "[HEADERS OK] méthode=" << client->getRequest().getMethod() //---------------------------------
+                  << " uri=" << client->getRequest().getUri() << std::endl;
+    
+			//pour le faire qu une seule fois
+			if (!client->headerParsed){
+				client->parseRequest();
+				client->defineBodyType();
+				client->cleanBuffer();
+				//if (client.getContentLength() > maxBodySize)
+					// ERROR 413
+				
+					std::cout << "--- DEBUG BUFFER BODY BEGIN ---" << std::endl;
+    				std::cout << client->getBuffer().substr(0, 100) << "..." << std::endl; // Affiche les 100 premiers caractères
+    				std::cout << "--- DEBUG BUFFER BODY END ---" << std::endl;
+				// faire une fonction pour vider le buffer jusqu a rnrn
+				client->headerParsed = true;
+			}
+
+			//meme si y a un body dans l histoire, on s en fiche. 
+			if (client->getRequest().getMethod() == "DELETE" || client->getRequest().getMethod() == "GET")
+				client->ignoreBody = true;
+			
+				// 3 gestion du parsing de body + mise a jour de létat de la requete quand c est fini
+			else if (!client->chunked && !client->contentLength) 
+				client->parsingNoBody();
+			else if (client->chunked){
+				client->parsingChunked();
+				//checking sur le client client._chunkstate
+			}
+			else
+				client->parsingContentLength();
+
+
+			if (client->requestCompleted){
+				std::cout << "[REQUEST COMPLETE] fd=" << fd << std::endl;//----------------------------------------------
+				setPollOut(fd);
+			}
+		}
+	}
+
+	else if (bytes == 0) {
+		closeConnection(fd);
+	}
+
+	else {
+		if (errno != EAGAIN && errno != EWOULDBLOCK)
+			closeConnection(fd);
+		// else {
+		// 	throw ? de quoi on verra //404 ou un vrai throw
+		// }
+	}
+
+}
+
+/*
+
+if (client.buffer.size() > MAX_REQUEST_SIZE)
+	→ 413 Payload Too Large
+
+*/
+
+// void	WebServer::sendResponse(int fd){
+// 	(void)fd;
+// }
+
+void WebServer::sendResponse(int fd) {
+    std::cout << "[SEND] réponse envoyée fd=" << fd << std::endl; //-----------------------------------------
+    SocketClient* client = _socketClients[fd];
+    HttpRequest req = client->getRequest();
+    
+    (void)req; // on s'en sert pas encore
+    
+    std::string body = "<html><body><h1>Ca marche</h1></body></html>";
+    
+    std::string response =
+        "HTTP/1.1 200 OK\r\n"
+        "Content-Type: text/html\r\n"
+        //"Content-Length: " + toString(body.size()) + "\r\n"
+        "Connection: close\r\n"
+        "\r\n"
+        + body;
+    
+    send(fd, response.c_str(), response.size(), 0);
+    closeConnection(fd);
 }
 
 /* ************************************************** */
@@ -255,32 +294,39 @@ bool	WebServer::isServerFd(int fd){
 	return false;
 }
 
-bool 	WebServer::isHeaderComplete(SocketClient& client){
-	const std::string& buffer = client.getBuffer();
+bool 	WebServer::isHeaderComplete(SocketClient* client){
+	const std::string& buffer = client->getBuffer();
 	size_t pos = buffer.find("\r\n\r\n");
 
-	if (pos == npos)
+	if (pos == std::string::npos)
 		return false; // ca veut dire que le rnrn n est encore dans le recv -> requete pas terminée
 	return true;
 }
 
 void	WebServer::removePollFd(int fd){
-	// std::vector<struct pollfd>::iterator it;
+	std::vector<struct pollfd>::iterator it;
 
-	// for (it = _pollFds.begin(); it != _pollFds.end(); ++it){
-	// 	if (it->fd == fd){
-	// 		->>>>>>>>>>>>> REMOVE
-	// 		break;
-	// 	}
-	// }
-	(void)fd;
+	for (it = _pollFds.begin(); it != _pollFds.end(); ++it){
+		if (it->fd == fd){
+			_pollFds.erase(it);
+			break;
+		}
+	}
 }
 
-void	WebServer::closeConnection(int fd){
-	close(fd); //utile si on met dans le destructeur ?????
-	_socketClients.erase(fd);
+void WebServer::closeConnection(int fd){
+	std::cout << "[CLOSE] fd=" << fd << std::endl; //---------------------------------------------------------
+	close(fd);
+
+	std::map<int, SocketClient*>::iterator it = _socketClients.find(fd);
+	if (it != _socketClients.end()) {
+		delete it->second;
+		_socketClients.erase(it);
+	}
+
 	removePollFd(fd);
 }
+
 
 void	WebServer::setPollOut(int fd){
 	std::vector<struct pollfd>::iterator it;
@@ -306,18 +352,23 @@ Mettre dans boucle paul au endroit indiqués les différents checks
 et changer dans l init en POLLIN + au setPollOut -> it->events = POLLOUT/POLLIN | POLLERR | POLLHUP;
 
 if (revents & POLLERR) {
-    closeConnection(fd);
+	closeConnection(fd);
 }
 else if (revents & POLLHUP) {
-    closeConnection(fd);
+	closeConnection(fd);
 }
 else if (revents & POLLIN) {
-    handleRequest(fd);
+	handleRequest(fd);
 }
 else if (revents & POLLOUT) {
-    sendResponse(fd);
+	sendResponse(fd);
 }
 
+-> merci chatos
+if (_pollFds[i].revents & (POLLERR | POLLHUP)) {
+	closeConnection(fd);
+	continue;
+}
 
 
 POLLHUP

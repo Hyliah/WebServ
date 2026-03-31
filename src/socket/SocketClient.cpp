@@ -18,8 +18,8 @@
 /* construtor & destructors                           */
 /* ************************************************** */
 
-SocketClient::SocketClient() : _fd(-1), _bytesRead(0), _buffer(""), ignoreBody(false), headerParsed(false), requestCompleted(false), contentLength(false), chunked(false){}
-SocketClient::SocketClient(int fd, struct sockaddr_storage addr) : _fd(fd), _bytesRead(0), _buffer(""), ignoreBody(false), headerParsed(false), contentLength(false), chunked(false), requestCompleted(false), _addr(addr) {}
+SocketClient::SocketClient() : _fd(-1), _bytesRead(0), _bytesPending(0), _buffer(""), _chunkState(CHUNK_SIZE), ignoreBody(false), headerParsed(false), requestCompleted(false), contentLength(false), chunked(false) {}
+SocketClient::SocketClient(int fd, struct sockaddr_storage addr) : _fd(fd), _bytesRead(0), _bytesPending(0), _buffer(""), _chunkState(CHUNK_SIZE), _addr(addr), ignoreBody(false), headerParsed(false), requestCompleted(false), contentLength(false), chunked(false) {}
 SocketClient::~SocketClient(){}
 
 /* ************************************************** */
@@ -39,10 +39,19 @@ void	SocketClient::addBytes(long bytes){ _bytesRead += bytes; }
 void	SocketClient::appendBuffer(const std::string& str){ _buffer += str; }
 
 void	SocketClient::parseRequest(){
-	size_t header_end = _buffer.find("\r\n\r\n");
+
+	std::cout << "--- DEBUG BUFFER START ---" << std::endl;
+    std::cout << _buffer.substr(0, 100) << "..." << std::endl; // Affiche les 100 premiers caractères
+    std::cout << "--- DEBUG BUFFER END ---" << std::endl;
+
+	//size_t header_end = _buffer.find("\r\n\r\n");
 	size_t position = 0;
 	parseFirstLine(_buffer, position);
 	parseHeaders(_buffer, position);
+
+	std::cout << "--- DEBUG BUFFER START AFTER PARSING ---" << std::endl;
+    std::cout << _buffer.substr(0, 100) << "..." << std::endl; // Affiche les 100 premiers caractères
+    std::cout << "--- DEBUG BUFFER END AFTER PARSING ---" << std::endl;
 }
 
 void	SocketClient::defineBodyType(){
@@ -120,6 +129,7 @@ void	SocketClient::parseHeaders(std::string &buffer, size_t &position) {
 	while (start < header_end) {
 		size_t line_end = buffer.find("\r\n", start);
 		if (line_end == std::string::npos) break;
+		// check header line size
 
 		std::string line = buffer.substr(start, line_end - start);
 
@@ -131,6 +141,8 @@ void	SocketClient::parseHeaders(std::string &buffer, size_t &position) {
 			_request.setHeaders(key, value);
 		}
 		start = line_end + 2; // passer à la ligne suivante
+		
+		//check max header size
 	}
 }
 
@@ -143,9 +155,7 @@ void	SocketClient::parsingNoBody(){
 }
 
 
-
 void SocketClient::parsingChunked() {
-
 	while (1) {
 
 		if (_chunkState == CHUNK_SIZE) {
@@ -153,7 +163,6 @@ void SocketClient::parsingChunked() {
 			size_t pos = _buffer.find("\r\n");
 			if (pos == std::string::npos)
 				return; // attendre recv()
-
 			std::string line = _buffer.substr(0, pos);
 
 			//on peut faire un if == -1 au pire
@@ -163,9 +172,7 @@ void SocketClient::parsingChunked() {
 				_chunkState = CHUNK_ERROR;
 				return;
 			}
-
 			_buffer.erase(0, pos + 2); // remove "size\r\n"
-
 			if (_bytesPending == 0) {
 				_chunkState = CHUNK_DONE;
 				return;
@@ -175,12 +182,9 @@ void SocketClient::parsingChunked() {
 		}
 
 		else if (_chunkState == CHUNK_DATA) {
-
-			if (_buffer.size() < _bytesPending)
+			if ((long)_buffer.size() < _bytesPending)
 				return; // attendre recv
-
 			std::string chunk = _buffer.substr(0, _bytesPending);
-
 			_request.addBody(chunk);
 			_bytesRead += _bytesPending;
 			if (_bytesRead > DEFAULT_MAX_BODY_SIZE)
@@ -192,22 +196,24 @@ void SocketClient::parsingChunked() {
 		}
 
 		else if (_chunkState == CHUNK_CRLF) {
-
 			if (_buffer.size() < 2)
 				return;
-
 			if (_buffer.substr(0, 2) != "\r\n") {
 				_chunkState = CHUNK_ERROR;
 				return;
 			}
-
 			_buffer.erase(0, 2);
 
 			_chunkState = CHUNK_SIZE;
 		}
 
-		else {
-			return;
+		else if (_chunkState == CHUNK_DONE){
+			requestCompleted = true;
+
+		}
+		
+		else { //CHUNK ERROR
+			return; //a voir :) 
 		}
 	}
 }
@@ -267,7 +273,7 @@ bool	SocketClient::isValidBody(){
 	// Vérifier content-type / encoding
 	// Attention aux injections si tu passes le body à un parseur ou script
 	// Timeout / limite mémoire si traitement lourd
-	
+
 	return true;
 }
 
@@ -282,12 +288,6 @@ void	SocketClient::cleanBuffer(){
 }
 
 
-
-
-/* 
-
-
-*/
 /* ************************************************** */
 /* je ferai qu on y sera.                             */
 /* ************************************************** */

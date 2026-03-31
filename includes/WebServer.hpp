@@ -22,14 +22,16 @@
 #include "SocketServer.hpp"
 #include "Exceptions.hpp"
 
+#define MAX_REQUEST_SIZE 8192
+
 class WebServer{
 
 	private :
 		
-		std::vector<SocketServer*>	_socketServers;
-		std::map<int, SocketClient>	_socketClients;
-		std::vector<ServerConfig>	_servers;
-		std::vector<struct pollfd>	_pollFds; //pauls 
+		std::vector<SocketServer*>	    _socketServers;
+		std::map<int, SocketClient*>	_socketClients;
+		std::vector<ServerConfig>	    _servers;
+		std::vector<struct pollfd>	    _pollFds; //pauls 
         
 		WebServer(const WebServer &other);
 		WebServer& operator=(const WebServer &other);
@@ -64,7 +66,7 @@ class WebServer{
 		
 		//PAUL LOOP UTILS
 		bool	isServerFd(int fd);
-		bool 	isHeaderComplete(SocketClient& client);
+		bool 	isHeaderComplete(SocketClient* client);
 		
 		void	closeConnection(int fd);
 		void	removePollFd(int fd);

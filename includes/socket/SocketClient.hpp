@@ -14,6 +14,8 @@
 #define SOCKETCLIENT_HPP
 
 #define DEFAULT_MAX_BODY_SIZE 1048576 // 1 MB
+#define MAX_HEADER_SIZE 42 //faire mieux
+#define MAX_HEADER_LINE_SIZE 42
 
 #include <string>
 #include <unistd.h>
@@ -47,6 +49,7 @@ class SocketClient {
 		
 		SocketClient(const SocketClient& other);
 		SocketClient& operator=(const SocketClient& other);
+		
 		
 	public:
 	

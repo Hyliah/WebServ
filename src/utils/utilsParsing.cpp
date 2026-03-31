@@ -65,11 +65,12 @@ size_t	parseSize(const std::string &str){
 	return static_cast<size_t>(val * multiplier);
 }
 
-std::string toLower(const std::string str){
+std::string toLower(const std::string& str){
     std::string res;
     for (size_t i = 0; i < str.size(); ++i) {
         res[i] = std::tolower(str[i]);
-    } 
+    }
+	return res;
 }
 
 long	hexToLong(const std::string& hex)
