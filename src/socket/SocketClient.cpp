@@ -40,18 +40,18 @@ void	SocketClient::appendBuffer(const std::string& str){ _buffer += str; }
 
 void	SocketClient::parseRequest(){
 
-	std::cout << "--- DEBUG BUFFER START ---" << std::endl;
-    std::cout << _buffer.substr(0, 100) << "..." << std::endl; // Affiche les 100 premiers caractères
-    std::cout << "--- DEBUG BUFFER END ---" << std::endl;
+	// std::cout << "--- DEBUG BUFFER START ---" << std::endl;
+    // std::cout << _buffer.substr(0, 100) << "..." << std::endl; // Affiche les 100 premiers caractères
+    // std::cout << "--- DEBUG BUFFER END ---" << std::endl;
 
 	//size_t header_end = _buffer.find("\r\n\r\n");
 	size_t position = 0;
 	parseFirstLine(_buffer, position);
 	parseHeaders(_buffer, position);
 
-	std::cout << "--- DEBUG BUFFER START AFTER PARSING ---" << std::endl;
-    std::cout << _buffer.substr(0, 100) << "..." << std::endl; // Affiche les 100 premiers caractères
-    std::cout << "--- DEBUG BUFFER END AFTER PARSING ---" << std::endl;
+	// std::cout << "--- DEBUG BUFFER START AFTER PARSING ---" << std::endl;
+    // std::cout << _buffer.substr(0, 100) << "..." << std::endl; // Affiche les 100 premiers caractères
+    // std::cout << "--- DEBUG BUFFER END AFTER PARSING ---" << std::endl;
 }
 
 void	SocketClient::defineBodyType(){

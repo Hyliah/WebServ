@@ -14,6 +14,7 @@
 #include <iterator>
 #include <map>
 #include <poll.h>
+#include <string>
 
 /* ************************************************** */
 /* construtor & destructors                           */
@@ -196,8 +197,7 @@ void	WebServer::handleRequest(int fd){
 
 		//le buffer de la requete est rempli en tout cas jusqu'au rnrn
 		if (isHeaderComplete(client)) {
-			std::cout << "[HEADERS OK] méthode=" << client->getRequest().getMethod() //---------------------------------
-                  << " uri=" << client->getRequest().getUri() << std::endl;
+
     
 			//pour le faire qu une seule fois
 			if (!client->headerParsed){
@@ -207,26 +207,28 @@ void	WebServer::handleRequest(int fd){
 				//if (client.getContentLength() > maxBodySize)
 					// ERROR 413
 				
-					std::cout << "--- DEBUG BUFFER BODY BEGIN ---" << std::endl;
-    				std::cout << client->getBuffer().substr(0, 100) << "..." << std::endl; // Affiche les 100 premiers caractères
-    				std::cout << "--- DEBUG BUFFER BODY END ---" << std::endl;
+					// std::cout << "--- DEBUG BUFFER BODY BEGIN ---" << std::endl;
+    				// std::cout << client->getBuffer().substr(0, 100) << "..." << std::endl; // Affiche les 100 premiers caractères
+    				// std::cout << "--- DEBUG BUFFER BODY END ---" << std::endl;
 				// faire une fonction pour vider le buffer jusqu a rnrn
 				client->headerParsed = true;
 			}
 
+			std::cout << "[HEADERS OK] méthode=" << client->getRequest().getMethod() //---------------------------------
+                  << " uri=" << client->getRequest().getUri() << std::endl;
 			//meme si y a un body dans l histoire, on s en fiche. 
+			
 			if (client->getRequest().getMethod() == "DELETE" || client->getRequest().getMethod() == "GET")
 				client->ignoreBody = true;
 			
-				// 3 gestion du parsing de body + mise a jour de létat de la requete quand c est fini
-			else if (!client->chunked && !client->contentLength) 
-				client->parsingNoBody();
-			else if (client->chunked){
+
+			if (client->chunked)
 				client->parsingChunked();
-				//checking sur le client client._chunkstate
-			}
+			else if (client->contentLength) 
+				client->parsingContentLength();	
 			else
-				client->parsingContentLength();
+				client->parsingNoBody();
+				
 
 
 			if (client->requestCompleted){
@@ -261,26 +263,53 @@ if (client.buffer.size() > MAX_REQUEST_SIZE)
 // 	(void)fd;
 // }
 
+std::string toString(size_t n) {
+    std::stringstream ss;
+    ss << n;
+    return ss.str();
+}
+
 void WebServer::sendResponse(int fd) {
-    std::cout << "[SEND] réponse envoyée fd=" << fd << std::endl; //-----------------------------------------
-    SocketClient* client = _socketClients[fd];
-    HttpRequest req = client->getRequest();
-    
-    (void)req; // on s'en sert pas encore
+    std::cout << "[SEND] réponse envoyée fd=" << fd << std::endl;
     
     std::string body = "<html><body><h1>Ca marche</h1></body></html>";
     
-    std::string response =
-        "HTTP/1.1 200 OK\r\n"
-        "Content-Type: text/html\r\n"
-        //"Content-Length: " + toString(body.size()) + "\r\n"
-        "Connection: close\r\n"
-        "\r\n"
-        + body;
+    // On construit la réponse proprement
+    std::stringstream ss;
+    ss << "HTTP/1.1 200 OK\r\n";
+    ss << "Content-Type: text/html\r\n";
+    ss << "Content-Length: " << body.size() << "\r\n"; // TRÈS IMPORTANT
+    ss << "Connection: close\r\n";
+    ss << "\r\n"; // La ligne vide qui sépare les headers du body
+    ss << body;
     
+    std::string response = ss.str();
     send(fd, response.c_str(), response.size(), 0);
+    
+    // On ferme après le send car on a mis "Connection: close"
     closeConnection(fd);
 }
+
+// void WebServer::sendResponse(int fd) {
+//     std::cout << "[SEND] réponse envoyée fd=" << fd << std::endl; //-----------------------------------------
+//     SocketClient* client = _socketClients[fd];
+//     HttpRequest req = client->getRequest();
+    
+//     (void)req; // on s'en sert pas encore
+    
+//     std::string body = "<html><body><h1>Ca marche</h1></body></html>";
+    
+//     std::string response =
+//         "HTTP/1.1 200 OK\r\n"
+//         "Content-Type: text/html\r\n"
+//         "Content-Length: " + toString(body.size()) + "\r\n"
+//         "Connection: close\r\n"
+//         "\r\n"
+//         + body;
+    
+//     send(fd, response.c_str(), response.size(), 0);
+//     closeConnection(fd);
+// }
 
 /* ************************************************** */
 /* UTILS PAUL LOOP			                          */
