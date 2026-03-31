@@ -176,15 +176,13 @@ void	WebServer::acceptClient(int serverFd){
 	_pollFds.push_back(pfd);
 	
 	addClient(clientFd, addr);
-	std::cout << "[ACCEPT] nouveau client fd=" << clientFd << std::endl; //-----------------------------------
 }
 
 void	WebServer::handleRequest(int fd){
 	
 	char buffer[4096]; //4KB
 	ssize_t bytes = recv(fd, buffer, sizeof(buffer), 0);
-	std::cout << "[RECV] fd=" << fd << " bytes=" << bytes << std::endl; //---------------------------------------------
-	
+
 	if (bytes > 0) {
 		SocketClient* client = _socketClients[fd];
 		client->appendBuffer(std::string(buffer, bytes));
@@ -195,11 +193,7 @@ void	WebServer::handleRequest(int fd){
 			return; //on enleve le paul de la struct mais le server reste
 		}
 
-		//le buffer de la requete est rempli en tout cas jusqu'au rnrn
 		if (isHeaderComplete(client)) {
-
-    
-			//pour le faire qu une seule fois
 			if (!client->headerParsed){
 				client->parseRequest();
 				client->defineBodyType();
@@ -213,10 +207,6 @@ void	WebServer::handleRequest(int fd){
 				// faire une fonction pour vider le buffer jusqu a rnrn
 				client->headerParsed = true;
 			}
-
-			std::cout << "[HEADERS OK] méthode=" << client->getRequest().getMethod() //---------------------------------
-                  << " uri=" << client->getRequest().getUri() << std::endl;
-			//meme si y a un body dans l histoire, on s en fiche. 
 			
 			if (client->getRequest().getMethod() == "DELETE" || client->getRequest().getMethod() == "GET")
 				client->ignoreBody = true;
@@ -228,13 +218,9 @@ void	WebServer::handleRequest(int fd){
 				client->parsingContentLength();	
 			else
 				client->parsingNoBody();
-				
 
-
-			if (client->requestCompleted){
-				std::cout << "[REQUEST COMPLETE] fd=" << fd << std::endl;//----------------------------------------------
+			if (client->requestCompleted)
 				setPollOut(fd);
-			}
 		}
 	}
 
@@ -251,65 +237,47 @@ void	WebServer::handleRequest(int fd){
 	}
 
 }
-
 /*
-
 if (client.buffer.size() > MAX_REQUEST_SIZE)
 	→ 413 Payload Too Large
 
 */
 
-// void	WebServer::sendResponse(int fd){
-// 	(void)fd;
-// }
+void	WebServer::sendResponse(int fd){
+	std::string method = client.getMethod();
 
-std::string toString(size_t n) {
-    std::stringstream ss;
-    ss << n;
-    return ss.str();
+	if (method == "GET")
+		methodGet();
+	else if (method == "POST")
+		methodPost();
+	if (method == "DELETE")
+		methodDelete();
+	//else 
+	//gros problem sa mere
 }
 
-void WebServer::sendResponse(int fd) {
-    std::cout << "[SEND] réponse envoyée fd=" << fd << std::endl;
-    
-    std::string body = "<html><body><h1>Ca marche</h1></body></html>";
-    
-    // On construit la réponse proprement
-    std::stringstream ss;
-    ss << "HTTP/1.1 200 OK\r\n";
-    ss << "Content-Type: text/html\r\n";
-    ss << "Content-Length: " << body.size() << "\r\n"; // TRÈS IMPORTANT
-    ss << "Connection: close\r\n";
-    ss << "\r\n"; // La ligne vide qui sépare les headers du body
-    ss << body;
-    
-    std::string response = ss.str();
-    send(fd, response.c_str(), response.size(), 0);
-    
-    // On ferme après le send car on a mis "Connection: close"
-    closeConnection(fd);
+/* ************************************************** */
+/* UTILS RESPONSE.     		                          */
+/* ************************************************** */
+
+void	WebServer::methodGet(){
+	/*
+	- lire le fichier ?httprequest
+	- générer le body 
+	- creation d une http response -> stringstream 
+	- ajout des headers
+	- fonction send : send(fd, response.c_str(), response.size(), 0);
+	- closeConnection(fd);
+	*/
 }
 
-// void WebServer::sendResponse(int fd) {
-//     std::cout << "[SEND] réponse envoyée fd=" << fd << std::endl; //-----------------------------------------
-//     SocketClient* client = _socketClients[fd];
-//     HttpRequest req = client->getRequest();
-    
-//     (void)req; // on s'en sert pas encore
-    
-//     std::string body = "<html><body><h1>Ca marche</h1></body></html>";
-    
-//     std::string response =
-//         "HTTP/1.1 200 OK\r\n"
-//         "Content-Type: text/html\r\n"
-//         "Content-Length: " + toString(body.size()) + "\r\n"
-//         "Connection: close\r\n"
-//         "\r\n"
-//         + body;
-    
-//     send(fd, response.c_str(), response.size(), 0);
-//     closeConnection(fd);
-// }
+void	WebServer::methodPost(){
+
+}
+
+void	WebServer::methodDelete(){
+
+}
 
 /* ************************************************** */
 /* UTILS PAUL LOOP			                          */
@@ -344,7 +312,6 @@ void	WebServer::removePollFd(int fd){
 }
 
 void WebServer::closeConnection(int fd){
-	std::cout << "[CLOSE] fd=" << fd << std::endl; //---------------------------------------------------------
 	close(fd);
 
 	std::map<int, SocketClient*>::iterator it = _socketClients.find(fd);
@@ -436,4 +403,45 @@ Erreur sur le socket
 	for (it = _servers.begin(); it != _servers.end(); ++it){
 		_socketServers.push_back(SocketServer(it->port));
 	}
+*/
+
+
+
+
+
+
+
+
+
+
+/*
+HARDCODE DU SENDRESPONSE 
+
+// std::string toString(size_t n) {
+//     std::stringstream ss;
+//     ss << n;
+//     return ss.str();
+// }
+
+// void WebServer::sendResponse(int fd) {
+//     std::cout << "[SEND] réponse envoyée fd=" << fd << std::endl;
+    
+//     std::string body = "<html><body><h1>Ca marche</h1></body></html>";
+    
+//     // On construit la réponse proprement
+//     std::stringstream ss;
+//     ss << "HTTP/1.1 200 OK\r\n";
+//     ss << "Content-Type: text/html\r\n";
+//     ss << "Content-Length: " << body.size() << "\r\n"; // TRÈS IMPORTANT
+//     ss << "Connection: close\r\n";
+//     ss << "\r\n"; // La ligne vide qui sépare les headers du body
+//     ss << body;
+    
+//     std::string response = ss.str();
+//     send(fd, response.c_str(), response.size(), 0);
+    
+//     // On ferme après le send car on a mis "Connection: close"
+//     closeConnection(fd);
+// }
+
 */

@@ -64,6 +64,11 @@ class WebServer{
 		void	handleRequest(int fd);
 		void	sendResponse(int fd);
 		
+        //UTILS RESPONSE
+        void	methodGet();
+        void	methodPost();
+        void	methodDelete();
+
 		//PAUL LOOP UTILS
 		bool	isServerFd(int fd);
 		bool 	isHeaderComplete(SocketClient* client);
@@ -71,6 +76,9 @@ class WebServer{
 		void	closeConnection(int fd);
 		void	removePollFd(int fd);
 		void	setPollOut(int fd);
+
+
+
 };
 
 #endif
