@@ -53,7 +53,7 @@ class WebServer{
 		// SocketClient&	getClient(int fd);
 		// void				setSocket(SocketServer& socket);
 		// void 			setClient(int fd, SocketClient& client);
-		void 	addClient(int fd, struct sockaddr_storage addr);
+		// void 	addClient(int fd, struct sockaddr_storage addr);
 		
 		// autres
 		//void	removeClient(int fd);
@@ -70,9 +70,10 @@ class WebServer{
 		void	methodDelete();
 		
 		std::string	resolvePath();
-		std::string	decodePath(std::string &path);
-		std::string	normalizePath(std::string &path);
-		void		checkErrorPath(std::string &path);
+		std::string	decodePath(const std::string &path);
+		std::string	normalizePath(const std::string &path);
+		void		checkErrorPath(const std::string &path);
+		std::string findRoot();
 
 		//PAUL LOOP UTILS
 		bool	isServerFd(int fd);

@@ -21,8 +21,10 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <netdb.h>
+#include "SocketServer.hpp"
 
 #include "../http/HttpRequest.hpp"
+
 
 enum ChunkState {
     CHUNK_SIZE,
@@ -37,11 +39,12 @@ class SocketClient {
 
 	private:
 
-		int         _fd;
-		long		_bytesRead;
-		long		_bytesPending;
-		std::string _buffer; //recupéré avec recv() - attention en plusieurs fois
-		ChunkState  _chunkState;
+		int				_fd;
+		long			_bytesRead;
+		long			_bytesPending;
+		std::string		_buffer; //recupéré avec recv() - attention en plusieurs fois
+		ChunkState		_chunkState;
+		SocketServer*	_server;
 
 		HttpRequest _request;
 
@@ -71,6 +74,7 @@ class SocketClient {
 		HttpRequest&		getRequest();
 		const std::string&	getBuffer() const;
 		long				getBytes();
+		SocketServer*		getServer();
 		
 		//parsing de la request du Paul  
 		void	addBytes(long bytes);

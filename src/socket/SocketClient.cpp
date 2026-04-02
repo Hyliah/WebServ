@@ -30,6 +30,7 @@ int					SocketClient::getFd() { return (_fd); }
 HttpRequest&		SocketClient::getRequest(){ return (_request); }
 const std::string&	SocketClient::getBuffer() const{ return (_buffer); }
 long				SocketClient::getBytes(){ return (_bytesRead); }
+SocketServer*		SocketClient::getServer(){ return (_server); }
 
 /* ************************************************** */
 /* parsing de la request du Paul                      */

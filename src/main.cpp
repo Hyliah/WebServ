@@ -33,7 +33,6 @@ int main (int ac, char **av)
 		std::cerr << "Usage: ./webserv [config_file]" << std::endl;
 		return 1;
 	}
-
 	
 	try {
 		ParserConfig parser;

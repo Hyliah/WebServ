@@ -51,10 +51,10 @@ WebServer::~WebServer(){
 // SocketServer&	WebServer::getServer(size_t idx){}
 // SocketClient&	WebServer::getClient(int fd){}
 
-void	WebServer::addClient(int fd, struct sockaddr_storage addr){
-	SocketClient* client = new SocketClient(fd, addr);
-	_socketClients[fd] = client;
-}
+// void	WebServer::addClient(int fd, struct sockaddr_storage addr){
+// 	SocketClient* client = new SocketClient(fd, addr);
+// 	_socketClients[fd] = client;
+// }
 
 /* ************************************************** */
 /* socket & general intit functions                   */
@@ -169,13 +169,25 @@ void	WebServer::acceptClient(int serverFd){
 	if (fcntl(clientFd, F_SETFL, flags | O_NONBLOCK) < 0)
 		throw RunningException("fcntl");
 	
+
+	SocketServer* serverPtr = NULL;
+    for (size_t i = 0; i < _socketServers.size(); ++i) {
+        if (_socketServers[i]->getFd() == serverFd) {
+            serverPtr = _socketServers[i];
+            break;
+        }
+    }
+    if (!serverPtr)
+        throw RunningException("acceptClient: serverFd not found");
+
 	struct pollfd pfd;
 	pfd.fd = clientFd;
 	pfd.events = POLLIN;
 	pfd.revents = 0;
 	_pollFds.push_back(pfd);
-	
-	addClient(clientFd, addr);
+
+	SocketClient* client = new SocketClient(clientFd, addr, serverPtr);
+    _socketClients[clientFd] = client;
 }
 
 void	WebServer::handleRequest(int fd){
@@ -261,8 +273,11 @@ void	WebServer::sendResponse(int fd){
 /* ************************************************** */
 
 void	WebServer::methodGet(){
+
+	//1. resolve path (faire avant pendant le parsing) /definir taille max URI - 414
+	std::string path = resolvePath();
+	
 	/*
-	1. resolve path (faire avant pendant le parsing) /definir taille max URI - 414
 	2. check si fichier existant / else 404 - dino
 		check si readable (persmission?) / else 403
 	3. lecture du fichier
@@ -279,50 +294,50 @@ void	WebServer::methodGet(){
 	*/
 }
 
-/*
-std::string uri = request.getUri();
-
-// 1. split query
-size_t pos = uri.find('?');
-std::string path = uri.substr(0, pos);
-
-// 2. decode %XX
-path = urlDecode(path);
-
-// 3. sécurité
-if (path contient "..")
-    erreur 403
-
-// 4. construire path final
-std::string fullPath = root + path;
 
 
 
-check sécurité
-   ↓
-root + path
-*/
+std::string WebServer::resolvePath() {
+    std::string& uri = client._request.getUri();
+    
+    size_t pos = uri.find('?');
+    std::string path = uri.substr(0, pos);
 
-std::string	WebServer::resolvePath(){
-	std::string& uri = client._request.getUri();
-	
-	size_t pos = uri.find('?');
-	std::string path = uri.substr(0, pos);
-	std::string finalPath;
-	//std::string query = uri.substr(pos, uri.end()); -> si on veut gerer ca
+    std::string finalPath = decodePath(path);
+    finalPath = normalizePath(finalPath);
+    checkErrorPath(finalPath);
+	std::string root = findRoot();
 
-	finalPath = decodePath(path); // gestion avec des if catch throw and shit
-	finalPath = normalizePath(finalPath); //same
+    finalPath = root + finalPath;
 
-	/*
-	check secure 
-	path = root + uri
-	*/
-	return finalPath;
-
+    return finalPath;
 }
 
-std::string	WebServer::decodePath(std::string &path){
+std::string WebServer::findRoot(){
+	const std::vector<const ServerConfig*>& conf = client.getServer().getServers();
+    HttpRequest& req = client.getRequest();
+    const std::map<std::string, std::string>& headers = req.getHeaders();
+
+    std::string host;
+    std::map<std::string,std::string>::const_iterator it = headers.find("host");
+    if (it != headers.end())
+        host = it->second;
+
+    std::string recupRoot;
+    for (size_t i = 0; i < conf.size(); ++i) {
+        const ServerConfig* cfg = conf[i];
+        if (cfg->serverName == host) {
+            recupRoot = cfg->root;
+            break;
+        }
+    }
+    if (recupRoot.empty() && !conf.empty())
+        recupRoot = conf[0]->root; // fallback
+
+	return recupRoot;
+}
+
+std::string	WebServer::decodePath(const std::string &path){
 	std::string output;
 
 	if (path.empty())
@@ -360,7 +375,7 @@ std::string	WebServer::decodePath(std::string &path){
 }
 
 
-std::string	WebServer::normalizePath(std::string &path){
+std::string	WebServer::normalizePath(const std::string &path){
 
 	std::vector<std::string> segmentPath;
 	std::stringstream ss(path);
@@ -390,9 +405,17 @@ std::string	WebServer::normalizePath(std::string &path){
 	return result;
 }
 
-void	WebServer::checkErrorPath(std::string &path){
-	// check final du path -> pas 2x/ pas de .. et autre % et printable please
-	//403
+void	WebServer::checkErrorPath(const std::string &path){
+	if (output.find("%") != std::string::npos)
+		//error bitches 403 
+	if (output.find("//") != std::string::npos)
+		//error bitches 403 
+	if (output.find("..") != std::string::npos)
+		//error bitches 403 
+	for (size_t i = 0 ; i < path.size() ; i++){
+		if (path[i] < ' ' && path[i] > 176)
+			//error bitches 403 
+	}
 }
 
 void	WebServer::methodPost(){
@@ -568,4 +591,83 @@ HARDCODE DU SENDRESPONSE
 //     closeConnection(fd);
 // }
 
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// supprimer si ca compile bien :)
+
+
+/*
+// std::string	WebServer::resolvePath(){
+// 	std::string& uri = client._request.getUri();
+	
+// 	size_t pos = uri.find('?');
+// 	std::string path = uri.substr(0, pos);
+// 	std::string finalPath;
+// 	//std::string query = uri.substr(pos, uri.end()); -> si on veut gerer ca
+
+// 	finalPath = decodePath(path); // gestion avec des if catch throw and shit
+// 	finalPath = normalizePath(finalPath); //same
+// 	checkErrorPath();
+
+// 	const std::vector<const ServerConfig*>& conf = client.getServer().getServers();
+
+// 	HttpRequest& req = client.getRequest();
+// 	const std::map<std::string, std::string>& headers = req.getHeaders();
+
+// 	std::string host;
+// 	std::map<std::string,std::string>::const_iterator it = headers.find("host");
+// 	if (it != headers.end())
+// 		host = it->second;
+// 	else
+// 		host = ""; // ou fallback
+	
+
+// 	std::string recupRoot;
+// 	for (size_t i = 0; i < conf.size(); ++i) {
+// 		const ServerConfig* cfg = conf[i];
+// 		if (cfg->serverName == host) {
+// 			recupRoot = cfg->root;
+// 			break;
+// 		}
+// 	}
+
+// 	// fallback sur le premier serveur si host pas trouvé
+// 	if (recupRoot.empty() && !conf.empty())
+// 		recupRoot = conf[0]->root;
+
+// 	finalPath = recupRoot + finalPath;
+
+// 	return finalPath;
+
+// }
 */
