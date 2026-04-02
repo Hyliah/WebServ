@@ -20,5 +20,8 @@ long		hexToLong(const std::string& hex);
 int			stringToInt(const std::string &str); // peut etre utile pour port, erreur http ?? check plus tard 
 size_t		parseSize(const std::string &str); // pour parser les tailles avec K, M, G
 std::string	toLower(const std::string& str);
+bool        isHex(char c);
+int         hexValue(char c);
+char        hexToChar(char a, char b);
 
 #endif

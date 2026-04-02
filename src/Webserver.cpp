@@ -262,13 +262,137 @@ void	WebServer::sendResponse(int fd){
 
 void	WebServer::methodGet(){
 	/*
-	- lire le fichier ?httprequest
+	1. resolve path (faire avant pendant le parsing) /definir taille max URI - 414
+	2. check si fichier existant / else 404 - dino
+		check si readable (persmission?) / else 403
+	3. lecture du fichier
+	4. generer la reponse + headers 
+	5. envoyer la reponse
+	6. close
+
+	- lire le fichier ? URI
 	- générer le body 
 	- creation d une http response -> stringstream 
 	- ajout des headers
 	- fonction send : send(fd, response.c_str(), response.size(), 0);
 	- closeConnection(fd);
 	*/
+}
+
+/*
+std::string uri = request.getUri();
+
+// 1. split query
+size_t pos = uri.find('?');
+std::string path = uri.substr(0, pos);
+
+// 2. decode %XX
+path = urlDecode(path);
+
+// 3. sécurité
+if (path contient "..")
+    erreur 403
+
+// 4. construire path final
+std::string fullPath = root + path;
+
+
+
+check sécurité
+   ↓
+root + path
+*/
+
+std::string	WebServer::resolvePath(){
+	std::string& uri = client._request.getUri();
+	
+	size_t pos = uri.find('?');
+	std::string path = uri.substr(0, pos);
+	std::string finalPath;
+	//std::string query = uri.substr(pos, uri.end()); -> si on veut gerer ca
+
+	finalPath = decodePath(path); // gestion avec des if catch throw and shit
+	finalPath = normalizePath(finalPath); //same
+
+	/*
+	check secure 
+	path = root + uri
+	*/
+	return finalPath;
+
+}
+
+std::string	WebServer::decodePath(std::string &path){
+	std::string output;
+
+	if (path.empty())
+		//error bitches 400
+	for (size_t i = 0 ; i < path.size() ; i++){
+		if (path[i] == '%') {
+			if (i + 2 >= path.size())
+				//error bitches 400
+			char c1 = path[i + 1];
+			char c2 = path[i + 2];
+
+			if (c1 == '0' && c2 == '0')
+				//error bitches 400
+
+			if (!isHex(c1) || !(isHex(c2)))
+				//error bitches 400
+			char decoded = hexToChar(c1, c2);
+
+			output += decoded;
+			i += 2;
+		}
+		// else if (path[i] == '+')
+        //     output += ' ';
+		else 
+			output += path[i];
+	}
+
+	if (output.find("%2f") != std::string::npos)
+		//error bitches 403 
+	
+	if (output.find('\0') != std::string::npos)
+    	// throw 400;
+	
+	return output;
+}
+
+
+std::string	WebServer::normalizePath(std::string &path){
+
+	std::vector<std::string> segmentPath;
+	std::stringstream ss(path);
+	std::string segment;
+
+	while((getline(ss, segment, '/'))){
+		if (segment == "" || segment == ".")
+			continue;
+		
+		else if (segment == ".."){
+			if (segmentPath.empty())
+				//error bitches 400 
+			segmentPath.pop_back();
+		}
+
+		else 
+			segmentPath.push_back(segment);
+	}
+
+	std::string result = "/";
+	for (size_t i = 0 ; i < segmentPath.size() ; i++){
+		result += segmentPath[i];
+		if (i != segmentPath.size() - 1)
+			result += "/";
+	}
+
+	return result;
+}
+
+void	WebServer::checkErrorPath(std::string &path){
+	// check final du path -> pas 2x/ pas de .. et autre % et printable please
+	//403
 }
 
 void	WebServer::methodPost(){
