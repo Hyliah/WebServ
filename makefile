@@ -11,7 +11,7 @@ SRCS = src/main.cpp \
 	   src/socket/SocketClient.cpp \
 	   src/socket/SocketServer.cpp \
 	   src/http/HttpRequest.cpp \
-	   src/WebServer.cpp \
+	   src/webServer/WebServer.cpp \
 	   src/utils/utilsParsing.cpp
 OBJDIR = obj
 OBJS = $(SRCS:src/%.cpp=$(OBJDIR)/%.o)

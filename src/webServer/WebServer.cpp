@@ -275,15 +275,46 @@ void	WebServer::sendResponse(int fd){
 void	WebServer::methodGet(){
 
 	//1. resolve path (faire avant pendant le parsing) /definir taille max URI - 414
+	if (client._request.getUri() > MAX_URI_SIZE) // a mettre dans la verif au parsing
+		// return 414;
 	std::string path = resolvePath();
+
+	//2. Vérifications sécurité (path traversal, etc.)
+
+	//3. Vérifier existence (stat)
+	struct stat st;
+	int	statReturn;
+	
+	statRetrun = stat(path.c_str(), &st);
+
+	if (statRetrun < 0) {
+		// 404 Not Found
+	}
+	
+	//4. Vérifier permissions
+	if (access(path.c_str(), R_OK) != 0) {
+		// 403 Forbidden
+	}
+	
+	if (statRetrun == 0){
+		// 5. Si dossier → gérer index / autoindex
+		if (st.st_mode & S_IFDIR){
+			handleDirectory(path);
+		}
+		//6. Lire fichier
+		else
+			std::ifstream file(path.c_str());
+		
+
+	}
 	
 	/*
-	2. check si fichier existant / else 404 - dino
-		check si readable (persmission?) / else 403
-	3. lecture du fichier
-	4. generer la reponse + headers 
-	5. envoyer la reponse
-	6. close
+	7. Construire réponse HTTP + headers
+	8. Envoyer (send)
+	9. Gérer connexion (keep-alive ou close)
+	*/
+	
+	/*
 
 	- lire le fichier ? URI
 	- générer le body 
@@ -294,8 +325,88 @@ void	WebServer::methodGet(){
 	*/
 }
 
+void WebServer::handleDirectory(const std::string& path){
+
+	ServerConfig* chosenConfig = findMatchingConfig();
+	if (!chosenConfig.index.empty()){
+		for (size_t i = 0 ; i < index.size() ; i++){
+			std::string fullPath = path;
+			
+			if (fullPath[fullPath.size() - 1] != '/')
+        		fullPath += "/";
+
+    		fullPath += indexes[i];
+
+			struct stat st;
+			if (stat(fullPath.c_str(), R_OK) == 0)
+				return serveFile(client, fullPath, st);
+		}
+	}
+
+	if (chosenConfig.autoindex == true){
+
+		//return generateListing(path);
+			// générer le html de la liste des fichiers
+	}
+
+	//return 403;
 
 
+	
+	
+}
+
+Response WebServer::serveFile(SocketClient& client, const std::string& path, struct stat& st){
+	Response res;
+	res.statusLine = "HTTP/1.1 200 OK";
+
+	res.headers["Content-Length"] = std::to_string(st.st_size);
+	//res.headers["Content-Type"] = getMimeType(path);  -> a coder
+
+	std::ifstream file(path.c_str(), std::ios::binary); //chercher wtf
+	std::ostringstream ss;
+	ss << file.rdbuf();
+	res.body = ss.str();
+
+	return res;
+}
+
+//void	generateListing(const std::string &path);
+
+SeverConfig* WebServer::findMatchingConfig(){
+	const std::vector<const ServerConfig*>& configs = _server->getServers();
+
+	const ServerConfig* chosenConfig = NULL;
+	std::string host = client.getRequest().getHeaders().at("host");
+
+	for (size_t i = 0; i < configs.size(); i++) {
+		if (configs[i]->serverName == host) {
+			chosenConfig = configs[i];
+			break;
+		}
+	}
+
+	if (!chosenConfig && !configs.empty()) {
+		chosenConfig = configs[0];
+	}
+	return chosenConfig;
+}
+
+void WebServer::cleanFinalPath(std::string& root, std::string& finalPath) {
+    if (root.empty())
+        return;
+
+    if (finalPath.empty()) {
+        finalPath = "/";
+        return;
+    }
+
+    if (root[root.size() - 1] == '/' && finalPath[0] == '/')
+        finalPath = finalPath.substr(1);
+
+    else if (root[root.size() - 1] != '/' && finalPath[0] != '/')
+        root += "/";
+}
 
 std::string WebServer::resolvePath() {
     std::string& uri = client._request.getUri();
@@ -308,10 +419,12 @@ std::string WebServer::resolvePath() {
     checkErrorPath(finalPath);
 	std::string root = findRoot();
 
+	cleanFinalPath(root, finalPath);
     finalPath = root + finalPath;
 
     return finalPath;
 }
+
 
 std::string WebServer::findRoot(){
 	const std::vector<const ServerConfig*>& conf = client.getServer().getServers();
@@ -332,7 +445,7 @@ std::string WebServer::findRoot(){
         }
     }
     if (recupRoot.empty() && !conf.empty())
-        recupRoot = conf[0]->root; // fallback
+        recupRoot = conf[0]->root;
 
 	return recupRoot;
 }

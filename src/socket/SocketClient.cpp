@@ -141,10 +141,23 @@ void	SocketClient::parseHeaders(std::string &buffer, size_t &position) {
 
 			_request.setHeaders(key, value);
 		}
+		else 
+			// 400 Bad request (pas de :)
 		start = line_end + 2; // passer à la ligne suivante
 		
 		//check max header size
 	}
+
+	//fair une fonction isValidHeaders() avec : 
+	// 400 BAD REQUEST
+	// 	header mal formé
+	// caractères invalides
+	// Content-Length invalide
+	// veif max taille de 1 header (genre 4KB) 431
+	// verif max taille de tous les headers (genre 8KB) 431
+	// nombre max de headers (genre 100) 431
+
+	//header obligatoire : Host sinon 400
 }
 
 /* ************************************************** */
@@ -154,7 +167,6 @@ void	SocketClient::parseHeaders(std::string &buffer, size_t &position) {
 void	SocketClient::parsingNoBody(){
 	requestCompleted = true;
 }
-
 
 void SocketClient::parsingChunked() {
 	while (1) {
@@ -241,6 +253,7 @@ void	SocketClient::parsingContentLength() {
 /* ************************************************** */
 
 bool	SocketClient::isValidURI(){
+	//verif 414 too long.
 	return true;
 	//qu est ce qui définit un URI valide ? We ll never know
 }
@@ -273,7 +286,7 @@ bool	SocketClient::isValidBody(){
 
 	// Vérifier content-type / encoding
 	// Attention aux injections si tu passes le body à un parseur ou script
-	// Timeout / limite mémoire si traitement lourd
+	// Timeout / limite mémoire si traitement lourd - 413 payload too large
 
 	return true;
 }

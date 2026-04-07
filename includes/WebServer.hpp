@@ -23,7 +23,7 @@
 #include "Exceptions.hpp"
 
 #define MAX_REQUEST_SIZE 8192
-
+#define MAX_URI_SIZE 2048
 class WebServer{
 
 	private :
@@ -69,12 +69,17 @@ class WebServer{
 		void	methodPost();
 		void	methodDelete();
 		
+		//paths
 		std::string	resolvePath();
 		std::string	decodePath(const std::string &path);
 		std::string	normalizePath(const std::string &path);
 		void		checkErrorPath(const std::string &path);
 		std::string findRoot();
+		void		cleanFinalPath(std::string& root, std::string& finalPath);
 
+
+		void		handleDirectory(const std::string& path);
+		SeverConfig* WebServer::findMatchingConfig();
 		//PAUL LOOP UTILS
 		bool	isServerFd(int fd);
 		bool 	isHeaderComplete(SocketClient* client);
