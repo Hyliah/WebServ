@@ -13,9 +13,10 @@
 #include <iostream>
 #include <cctype>
 #include <cstring>
+#include <sstream>
 #include <map>
 
-class Response {
+class HttpResponse {
 	public:
 		std::string statusLine;
 		std::map<std::string,std::string> headers;

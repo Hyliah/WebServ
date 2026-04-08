@@ -64,17 +64,17 @@ class SocketClient {
 
 		// construtor & destructors 
 		SocketClient();
-		SocketClient(int fd, struct sockaddr_storage addr);
+		SocketClient(int fd, struct sockaddr_storage addr, SocketServer* serverPtr);
 		~SocketClient();
 		
 		void closeSocket();
 		
 		// Getters and setters
 		int					getFd();
-		HttpRequest&		getRequest();
+		const HttpRequest&	getRequest() const;
 		const std::string&	getBuffer() const;
 		long				getBytes();
-		SocketServer*		getServer();
+		const SocketServer*	getServer() const;
 		
 		//parsing de la request du Paul  
 		void	addBytes(long bytes);

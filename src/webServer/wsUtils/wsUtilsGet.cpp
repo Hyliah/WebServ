@@ -11,13 +11,14 @@
 /*****************************************************************************/
 
 #include "WebServer.hpp"
+#include "../utils/utilsParsing.hpp"
 
 
 /* ************************************************** */
 /* Directory					                      */
 /* ************************************************** */
 
-Response WebServer::handleDirectory(SocketClient& client, const std::string& path){
+HttpResponse WebServer::handleDirectory(const SocketClient* client, const std::string& path){
 
 	const ServerConfig* config = findMatchingConfig(client);
 	
@@ -37,19 +38,27 @@ Response WebServer::handleDirectory(SocketClient& client, const std::string& pat
             }
 		}
 	}
+// ------------------------------------------------------------------------------------------------------- Attention boucle for location quel prendre ?
+	// if (config->autoindex == true){
+	// 	return generateListing(path);
+	// 		// générer le html de la liste des fichiers
+	// }
 
-	if (config->autoindex == true){
-		return generateListing(path);
-			// générer le html de la liste des fichiers
-	}
-
-	//return 403;
+	//403
+	return fillResponseOK("hardcode", 5, "text/html"); // A SUPPRIMER SINON CA COMPILAIT PAS AVANT LE TRUC D ERREUR -------------------------------------
 }
 
-Response WebServer::serveFile(SocketClient& client, const std::string& path, struct stat& st){
-	Response res;
+std::string getMimeType(std::string path){
+	(void)path;
+	return "hello";
+}
+HttpResponse WebServer::serveFile(const SocketClient* client, const std::string& path, struct stat& st){
+	(void)client;
+	(void)st;
+	HttpResponse res;
 	std::ifstream file(path.c_str(), std::ios::binary); //chercher wtf
 	if (!file)
+		;
 	// return 500 (faire fonction qui retourne une response et prend en parame le code d erreur)
 	
 	std::ostringstream ss;
@@ -59,9 +68,12 @@ Response WebServer::serveFile(SocketClient& client, const std::string& path, str
 	return fillResponseOK(body, body.size(), getMimeType(path));
 }
 
-Response	WebServer::generateListing(const std::string &path){
+
+
+HttpResponse	WebServer::generateListing(const std::string &path){
 	DIR* dir = opendir(path.c_str());
 	if (!dir)
+		;
 		//erreur 403 ou 500 
 
 	std::stringstream body;
@@ -89,8 +101,8 @@ Response	WebServer::generateListing(const std::string &path){
 	return fillResponseOK(content, content.size(), "text/html");
 }
 
-Response	WebServer::fillResponseOK(std::string body, long size, std::string type){
-	Response res;
+HttpResponse	WebServer::fillResponseOK(std::string body, long size, std::string type){
+	HttpResponse res;
 
 	res.statusLine = "HTTP/1.1 200 OK";
 	res.body = body;
@@ -101,11 +113,11 @@ Response	WebServer::fillResponseOK(std::string body, long size, std::string type
 	return res;
 }
 
-const ServerConfig* WebServer::findMatchingConfig(SocketClient& client) {
-    const std::vector<const ServerConfig*>& configs = client.getServer().getServers();
+const ServerConfig* WebServer::findMatchingConfig(const SocketClient* client) const {
+    const std::vector<const ServerConfig*>& configs = client->getServer()->getServers();
 
     std::string host;
-    const std::map<std::string, std::string>& headers = client.getRequest().getHeaders();
+    const std::map<std::string, std::string>& headers = client->getRequest().getHeaders();
 
     std::map<std::string, std::string>::const_iterator it = headers.find("host");
     if (it != headers.end())

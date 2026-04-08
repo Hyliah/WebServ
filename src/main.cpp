@@ -11,6 +11,7 @@
 /*****************************************************************************/
 
 #include "WebServer.hpp"
+//#include "../http/HttpResponse.hpp"
 #include "Exceptions.hpp"
 #include "LocationConfig.hpp"
 #include "ParserConfig.hpp"

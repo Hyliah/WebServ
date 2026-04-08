@@ -10,7 +10,7 @@
 /*                                                                           */
 /*****************************************************************************/
 
-#include "HttpResponse.hpp"
+#include "../http/HttpResponse.hpp"
 
 std::string HttpResponse::ResponseToString() const {
 	std::stringstream ss;

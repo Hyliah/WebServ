@@ -100,6 +100,7 @@ bool isHex(char c) {
 
 int hexValue(char c){
 	if (!isHex(c))
+		;
 		//error 400?
 	if (c >= '0' && c <= '9')
 		return (c - '0');

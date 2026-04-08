@@ -17,47 +17,36 @@
 /* UTILS RESPONSE.     		                          */
 /* ************************************************** */
 
-void	WebServer::methodGet(){
+HttpResponse	WebServer::methodGet(const SocketClient* client){
 
-	//1. resolve path (faire avant pendant le parsing) /definir taille max URI - 414
-	if (client._request.getUri() > MAX_URI_SIZE) // a mettre dans la verif au parsing
+	//1. Max URI
+	if (client->getRequest().getUri().size() > MAX_URI_SIZE) // a mettre dans la verif au parsing
+		;	
 		// return 414;
-	std::string path = resolvePath();
+	
+	//2. Résolution du Path
+	std::string path = resolvePath(client);
 
-	//2. Vérifications sécurité (path traversal, etc.)
-
-	//3. Vérifier existence (stat)
 	struct stat st;
-	int	statReturn;
-	
-	statRetrun = stat(path.c_str(), &st);
+	if (stat(path.c_str(), &st) < 0)
+		;
+		// return error 404
 
-	if (statRetrun < 0) {
-		// 404 Not Found
-	}
-	
-	//4. Vérifier permissions
+	//3. Permission
 	if (access(path.c_str(), R_OK) != 0) {
-		// 403 Forbidden
+		;
+		// return builderrr(403) Forbidden
 	}
 	
-	if (statRetrun == 0){
-		// 5. Si dossier → gérer index / autoindex
-		if (st.st_mode & S_IFDIR){
-			handleDirectory(path);
-		}
-		//6. Lire fichier
-		else
-			std::ifstream file(path.c_str());
-		
 
+	// 4. Directory → gérer index / autoindex
+	if (st.st_mode & S_IFDIR){
+		return handleDirectory(client, path);
 	}
 	
-	/*
-	7. Construire réponse HTTP + headers
-	8. Envoyer (send)
-	9. Gérer connexion (keep-alive ou close)
-	*/
+	//5. File
+	return serveFile(client, path, st);
+	
 	
 	/*
 

@@ -75,6 +75,7 @@ void	WebServer::pollLoop(){
 			size_t size = _pollFds.size();
 			for (size_t i = 0; i < size; ++i){
 				// METTRE ICI LES POLLER ET POLLHUP
+				
 				if (_pollFds[i].revents & POLLIN){ 
 					int fd = _pollFds[i].fd;
 					if (isServerFd(fd))
@@ -191,16 +192,27 @@ if (client.buffer.size() > MAX_REQUEST_SIZE)
 */
 
 void	WebServer::sendResponse(int fd){
-	std::string method = client.getMethod();
+	const SocketClient* client = _socketClients[fd];
+	
+	std::string method = client->getRequest().getMethod();
 
+	HttpResponse res;
 	if (method == "GET")
-		methodGet();
+		res = methodGet(client);
 	else if (method == "POST")
 		methodPost();
 	if (method == "DELETE")
 		methodDelete();
 	//else 
-	//gros problem sa mere
+	//res = buildError(4000000);
+
+
+    std::string response = res.ResponseToString();
+    send(fd, response.c_str(), response.size(), 0);
+    
+//     // On ferme après le send car on a mis "Connection: close"
+	closeConnection(fd);
+
 }
 
 

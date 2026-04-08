@@ -11,6 +11,7 @@ SRCS = src/main.cpp \
 	   src/socket/SocketClient.cpp \
 	   src/socket/SocketServer.cpp \
 	   src/http/HttpRequest.cpp \
+	   src/http/HttpResponse.cpp \
 	   src/webServer/WebServer.cpp \
 	   src/webServer/wsUtils/wsResponse.cpp \
 	   src/webServer/wsUtils/wsUtilsGet.cpp \

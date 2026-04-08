@@ -18,8 +18,8 @@
 /* construtor & destructors                           */
 /* ************************************************** */
 
-SocketClient::SocketClient() : _fd(-1), _bytesRead(0), _bytesPending(0), _buffer(""), _chunkState(CHUNK_SIZE), ignoreBody(false), headerParsed(false), requestCompleted(false), contentLength(false), chunked(false) {}
-SocketClient::SocketClient(int fd, struct sockaddr_storage addr) : _fd(fd), _bytesRead(0), _bytesPending(0), _buffer(""), _chunkState(CHUNK_SIZE), _addr(addr), ignoreBody(false), headerParsed(false), requestCompleted(false), contentLength(false), chunked(false) {}
+SocketClient::SocketClient() : _fd(-1), _bytesRead(0), _bytesPending(0), _buffer(""), _chunkState(CHUNK_SIZE), _server(NULL), ignoreBody(false), headerParsed(false), requestCompleted(false), contentLength(false), chunked(false) {}
+SocketClient::SocketClient(int fd, struct sockaddr_storage addr, SocketServer* serverPtr) : _fd(fd), _bytesRead(0), _bytesPending(0), _buffer(""), _chunkState(CHUNK_SIZE), _server(serverPtr), _addr(addr), ignoreBody(false), headerParsed(false), requestCompleted(false), contentLength(false), chunked(false) {}
 SocketClient::~SocketClient(){}
 
 /* ************************************************** */
@@ -27,10 +27,10 @@ SocketClient::~SocketClient(){}
 /* ************************************************** */
 
 int					SocketClient::getFd() { return (_fd); }
-HttpRequest&		SocketClient::getRequest(){ return (_request); }
+const HttpRequest&	SocketClient::getRequest() const { return (_request); }
 const std::string&	SocketClient::getBuffer() const{ return (_buffer); }
 long				SocketClient::getBytes(){ return (_bytesRead); }
-SocketServer*		SocketClient::getServer(){ return (_server); }
+const SocketServer*		SocketClient::getServer() const { return (_server); }
 
 /* ************************************************** */
 /* parsing de la request du Paul                      */

@@ -19,11 +19,16 @@
 #include <vector>
 #include <poll.h>
 #include <map>
+#include <sys/stat.h>
+#include <dirent.h>
+#include <fstream>
 
 #include "SocketClient.hpp"
 #include "SocketServer.hpp"
 #include "ServerConfig.hpp"
 #include "Exceptions.hpp"
+#include "../http/HttpResponse.hpp"
+#include "../utils/utilsParsing.hpp"
 
 #define MAX_REQUEST_SIZE 8192
 #define MAX_URI_SIZE 2048
@@ -73,25 +78,25 @@ class WebServer{
 		void	initPollStruct();
 
 		//UTILS RESPONSE -> dans le fichier wsResponse.cpp
-		void	methodGet();
+		HttpResponse	methodGet(const SocketClient* client);
 		void	methodPost();
 		void	methodDelete();
 
 		//UTILS GET -> dans le fichier wsUtilsGet.cpp
-		Response	handleDirectory(SocketClient& client, const std::string& path);
-		Response	generateListing(const std::string &path);
-		Response	serveFile(SocketClient& client, const std::string& path, struct stat& st);
-		Response	fillResponseOK(std::string body, long size, std::string type);
-		SeverConfig* findMatchingConfig(SocketClient& client);
+		HttpResponse	handleDirectory(const SocketClient* client, const std::string& path);
+		HttpResponse	generateListing(const std::string &path);
+		HttpResponse	serveFile(const SocketClient* client, const std::string& path, struct stat& st);
+		HttpResponse	fillResponseOK(std::string body, long size, std::string type);
+		const ServerConfig*	findMatchingConfig(const SocketClient* client) const;
 
 		
 		
 		//PATH -> dans le fichier wsPath.cpp
-		std::string	resolvePath();
+		std::string	resolvePath(const SocketClient* client);
 		std::string	decodePath(const std::string &path);
 		std::string	normalizePath(const std::string &path);
 		void		checkErrorPath(const std::string &path);
-		std::string findRoot();
+		std::string findRoot(const SocketClient* client);
 		void		cleanFinalPath(std::string& root, std::string& finalPath);
 
 		
