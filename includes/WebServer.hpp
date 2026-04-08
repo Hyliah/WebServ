@@ -14,12 +14,15 @@
 #define WEBSERVER_HPP
 
 #include <iostream>
+#include <iterator>
 #include <string>
 #include <vector>
+#include <poll.h>
 #include <map>
 
 #include "SocketClient.hpp"
 #include "SocketServer.hpp"
+#include "ServerConfig.hpp"
 #include "Exceptions.hpp"
 
 #define MAX_REQUEST_SIZE 8192
@@ -43,9 +46,7 @@ class WebServer{
 	
 		bool	_running;
 		
-		void	cpyLinkConfig();
-		void	initSockets();
-		void	initPollStruct();
+
 
 		
 		//gettes & setters
@@ -64,12 +65,28 @@ class WebServer{
 		void	handleRequest(int fd);
 		void	sendResponse(int fd);
 		
-		//UTILS RESPONSE
+
+
+		//INIT -> dans le fichier wsUntilsInit.cpp
+		void	cpyLinkConfig();
+		void	initSockets();
+		void	initPollStruct();
+
+		//UTILS RESPONSE -> dans le fichier wsResponse.cpp
 		void	methodGet();
 		void	methodPost();
 		void	methodDelete();
+
+		//UTILS GET -> dans le fichier wsUtilsGet.cpp
+		Response	handleDirectory(SocketClient& client, const std::string& path);
+		Response	generateListing(const std::string &path);
+		Response	serveFile(SocketClient& client, const std::string& path, struct stat& st);
+		Response	fillResponseOK(std::string body, long size, std::string type);
+		SeverConfig* findMatchingConfig(SocketClient& client);
+
 		
-		//paths
+		
+		//PATH -> dans le fichier wsPath.cpp
 		std::string	resolvePath();
 		std::string	decodePath(const std::string &path);
 		std::string	normalizePath(const std::string &path);
@@ -77,10 +94,8 @@ class WebServer{
 		std::string findRoot();
 		void		cleanFinalPath(std::string& root, std::string& finalPath);
 
-
-		void		handleDirectory(const std::string& path);
-		SeverConfig* WebServer::findMatchingConfig();
-		//PAUL LOOP UTILS
+		
+		//PAUL LOOP UTILS -> dans le fichier wsUtilsPollLoop.cpp
 		bool	isServerFd(int fd);
 		bool 	isHeaderComplete(SocketClient* client);
 		
@@ -88,6 +103,7 @@ class WebServer{
 		void	removePollFd(int fd);
 		void	setPollOut(int fd);
 
+		
 
 
 };
