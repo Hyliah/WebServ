@@ -18,6 +18,7 @@ SRCS = src/main.cpp \
 	   src/webServer/wsUtils/wsUtilsInit.cpp \
 	   src/webServer/wsUtils/wsUtilsPath.cpp \
 	   src/webServer/wsUtils/wsUtilsPollLoop.cpp \
+	   src/webServer/wsUtils/wsErrorResponse.cpp \
 	   src/utils/utilsParsing.cpp
 OBJDIR = obj
 OBJS = $(SRCS:src/%.cpp=$(OBJDIR)/%.o)

@@ -104,6 +104,7 @@ void	WebServer::pollLoop(){
 	}
 	//on doit clode le fd du accept ?
 }
+}
 
 void	WebServer::acceptClient(int serverFd){
 	struct sockaddr_storage addr;
@@ -155,8 +156,8 @@ void	WebServer::handleRequest(int fd){
 				client->parseRequest();
 				client->defineBodyType();
 				client->cleanBuffer();
-				if (client->getContentLength() > maxBodySize)
-					throw ResponseException(fd, 413);
+				// if (client->getRequest().getContentLength() > maxBodySize) //gestion du maxBodysize
+				// 	throw ResponseException(fd, 413);
 				
 				// faire une fonction pour vider le buffer jusqu a rnrn -- e le laisse pcq je sais pas si c est fait
 				client->headerParsed = true;
@@ -197,7 +198,7 @@ if (client.buffer.size() > MAX_REQUEST_SIZE)
 */
 
 void	WebServer::sendResponse(int fd, int codeError){
-	const SocketClient* client = _socketClients[fd];
+	SocketClient* client = _socketClients[fd];
 	
 	std::string method = client->getRequest().getMethod();
 

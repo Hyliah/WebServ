@@ -12,12 +12,12 @@
 
 #include "WebServer.hpp"
 
-httpResponse WebServer::buildErrorResponse(int code) {
-    httpResponse res;
+HttpResponse WebServer::buildErrorResponse(int code) {
+    HttpResponse res;
 
     std::string statusText = "Error";
 	//std::string	imagePath = "Error";
-	std::string comment = ""
+	std::string comment = "";
 
 	if (code == 400){
 		statusText = "Bad Request";

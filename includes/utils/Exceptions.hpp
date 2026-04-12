@@ -105,6 +105,15 @@ class RunningException : public WebservException {
 		}
 };
 
+class ResponseException : public std::exception {
+    private:
+        int _fd;
+        int _code;
+    public:
+        ResponseException(int fd, int code) : _fd(fd), _code(code) {}
+        int getFd() const { return _fd; }
+        int getCode() const { return _code; }
+};
 
 // erreur de CGI ?
 

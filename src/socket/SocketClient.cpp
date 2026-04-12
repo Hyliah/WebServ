@@ -13,6 +13,7 @@
 #include "SocketClient.hpp"
 #include <sstream>
 #include "../utils/utilsParsing.hpp"
+#include "Exceptions.hpp"
 
 /* ************************************************** */
 /* construtor & destructors                           */
@@ -69,7 +70,7 @@ void	SocketClient::defineBodyType(){
 		// attention gerer les 400 ou 413 ou quoi si le string n est pas un noombre correct genre 10M
 		_request.setContentLength(stringToLong(itCL->second.c_str()));
 		if (_request.getContentLength() > DEFAULT_MAX_BODY_SIZE)
-			throw ResponseException(fd, 413); //CHANGER LE NUMERO QUAND JE LE CONNAITRAI !!!!!!!!!!!!!!!!!!!!!!
+			throw ResponseException(_fd, 413); //CHANGER LE NUMERO QUAND JE LE CONNAITRAI !!!!!!!!!!!!!!!!!!!!!!
 	}
 	else {
 		contentLength = false;

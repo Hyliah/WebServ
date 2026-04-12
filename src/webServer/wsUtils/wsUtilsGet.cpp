@@ -26,7 +26,7 @@ HttpResponse WebServer::handleDirectory(const SocketClient* client, const std::s
 		for (size_t i = 0 ; i < config->index.size() ; i++){
 			std::string fullPath = path;
 			
-			if (!fullpath.empty() && fullPath[fullPath.size() - 1] != '/')
+			if (!fullPath.empty() && fullPath[fullPath.size() - 1] != '/')
         		fullPath += "/";
 
     		fullPath += config->index[i];
@@ -44,7 +44,7 @@ HttpResponse WebServer::handleDirectory(const SocketClient* client, const std::s
 	// 		// générer le html de la liste des fichiers
 	// }
 
-	else
+	//else
 		return buildErrorResponse(403);
 }
 

@@ -17,7 +17,7 @@
 /* UTILS RESPONSE.     		                          */
 /* ************************************************** */
 
-HttpResponse	WebServer::methodGet(const SocketClient* client){
+HttpResponse	WebServer::methodGet(SocketClient* client){
 
 	//1. Max URI
 	if (client->getRequest().getUri().size() > MAX_URI_SIZE) // a mettre dans la verif au parsing
@@ -36,7 +36,7 @@ HttpResponse	WebServer::methodGet(const SocketClient* client){
 	}
 	
 	// 4. Directory → gérer index / autoindex
-	if (S_IFDIR(st.st_mode)){
+	if (st.st_mode & S_IFDIR){
 		return handleDirectory(client, path);
 	}
 	

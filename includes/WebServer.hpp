@@ -78,7 +78,7 @@ class WebServer{
 		void	initPollStruct();
 
 		//UTILS RESPONSE -> dans le fichier wsResponse.cpp
-		HttpResponse	methodGet(const SocketClient* client);
+		HttpResponse	methodGet(SocketClient* client);
 		void	methodPost();
 		void	methodDelete();
 
@@ -92,7 +92,7 @@ class WebServer{
 		
 		
 		//PATH -> dans le fichier wsPath.cpp
-		std::string	resolvePath(const SocketClient* client);
+		std::string	resolvePath(SocketClient* client);
 		std::string	decodePath(const std::string &path, int fd);
 		std::string	normalizePath(const std::string &path, int fd);
 		void		checkErrorPath(const std::string &path, int fd);
@@ -108,17 +108,7 @@ class WebServer{
 		void	removePollFd(int fd);
 		void	setPollOut(int fd);
 
-
-		class ResponseException : public std::exception {
-			private:
-				int _fd;
-				int _code;
-			public:
-				ResponseException(int fd, int code) : _fd(fd), _code(code) {}
-				int getFd() const { return _fd; }
-				int getCode() const { return _code; }
-		};
-
+		HttpResponse buildErrorResponse(int code);
 };
 
 #endif
