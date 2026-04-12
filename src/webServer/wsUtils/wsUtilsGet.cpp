@@ -21,32 +21,49 @@
 HttpResponse WebServer::handleDirectory(const SocketClient* client, const std::string& path){
 
 	const ServerConfig* config = findMatchingConfig(client);
-	
-	if (!config->index.empty()){
-		for (size_t i = 0 ; i < config->index.size() ; i++){
-			std::string fullPath = path;
-			
-			if (!fullPath.empty() && fullPath[fullPath.size() - 1] != '/')
-        		fullPath += "/";
+	const LocationConfig* loc = findMatchingLocation(client);
 
-    		fullPath += config->index[i];
+	const std::vector<std::string>* indexes;
+	bool autoindex;
 
-			struct stat st;
-			if (stat(fullPath.c_str(), &st) == 0 && S_ISREG(st.st_mode)) {
+	if (loc && !loc->index.empty())
+		indexes = &loc->index;
+	else
+		indexes = &config->index;
+
+	if (loc)
+		autoindex = loc->autoindex;
+	else
+		autoindex = false;
+
+	// INDEX
+    if (!indexes->empty()) {
+        for (size_t i = 0; i < indexes->size(); i++) {
+            std::string fullPath = path;
+
+            if (!fullPath.empty() && fullPath[fullPath.size() - 1] != '/')
+                fullPath += "/";
+
+            fullPath += (*indexes)[i];
+
+            struct stat st;
+            if (stat(fullPath.c_str(), &st) == 0 && S_ISREG(st.st_mode)) {
                 if (access(fullPath.c_str(), R_OK) == 0)
                     return serveFile(client, fullPath, st);
             }
-		}
-	}
-// ------------------------------------------------------------------------------------------------------- Attention boucle for location quel prendre ?
-	// else if (config->autoindex == true){
-	// 	return generateListing(path);
-	// 		// générer le html de la liste des fichiers
-	// }
+        }
+    }
 
-	//else
-		return buildErrorResponse(403);
+    // AUTOINDEX
+    if (autoindex) {
+        return generateListing(path);
+    }
+
+    // FORBIDDEN
+    return buildErrorResponse(403);
 }
+
+
 
 std::string getMimeType(std::string path){
 	(void)path;
@@ -74,7 +91,7 @@ HttpResponse WebServer::serveFile(const SocketClient* client, const std::string&
 HttpResponse	WebServer::generateListing(const std::string &path){
 	DIR* dir = opendir(path.c_str());
 	if (!dir)
-		buildErrorResponse(403);
+		return buildErrorResponse(403);
 
 	std::stringstream body;
 
@@ -134,6 +151,40 @@ const ServerConfig* WebServer::findMatchingConfig(const SocketClient* client) co
     return NULL;
 }
 
+const LocationConfig* WebServer::findMatchingLocation(const SocketClient* client) {
+    const ServerConfig* server = findMatchingConfig(client);
+    if (!server)
+        return NULL;
+
+    const std::string& uri = client->getRequest().getUri();
+
+    const LocationConfig* bestMatch = NULL;
+    size_t bestLen = 0;
+
+    for (size_t i = 0; i < server->locations.size(); ++i) {
+        const LocationConfig& loc = server->locations[i];
+        const std::string& locPath = loc.path;
+
+        if (locPath.empty())
+            continue;
+
+        if (uri.compare(0, locPath.size(), locPath) != 0)
+            continue;
+
+        if (uri.size() > locPath.size()) {
+            if (locPath[locPath.size() - 1] != '/' &&
+                uri[locPath.size()] != '/')
+                continue;
+        }
+
+        if (locPath.size() > bestLen) {
+            bestMatch = &loc;
+            bestLen = locPath.size();
+        }
+    }
+
+    return bestMatch;
+}
 
 /* ************************************************** */
 /* File							                      */

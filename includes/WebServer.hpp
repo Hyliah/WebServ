@@ -87,8 +87,9 @@ class WebServer{
 		HttpResponse	generateListing(const std::string &path);
 		HttpResponse	serveFile(const SocketClient* client, const std::string& path, struct stat& st);
 		HttpResponse	fillResponseOK(std::string body, long size, std::string type);
-		const ServerConfig*	findMatchingConfig(const SocketClient* client) const;
-
+		
+		const ServerConfig*		findMatchingConfig(const SocketClient* client) const;
+		const LocationConfig*	findMatchingLocation(const SocketClient* client);
 		
 		
 		//PATH -> dans le fichier wsPath.cpp
