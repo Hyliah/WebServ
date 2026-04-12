@@ -14,13 +14,14 @@
 
 std::string WebServer::resolvePath(const SocketClient* client) {
     const std::string& uri = client->getRequest().getUri();
-    
+    int fd = client.getFd();
+
     size_t pos = uri.find('?');
     std::string path = uri.substr(0, pos);
 
-    std::string finalPath = decodePath(path);
-    finalPath = normalizePath(finalPath);
-    checkErrorPath(finalPath);
+    std::string finalPath = decodePath(path, fd);
+    finalPath = normalizePath(finalPath, fd);
+    checkErrorPath(finalPath, fd);
 	std::string root = findRoot(client);
 
 	cleanFinalPath(root, finalPath);
@@ -29,27 +30,26 @@ std::string WebServer::resolvePath(const SocketClient* client) {
     return finalPath;
 }
 
-std::string	WebServer::decodePath(const std::string &path){
+std::string	WebServer::decodePath(const std::string &path, int fd){
 	std::string output;
 
 	if (path.empty())
-		//error bitches 400
-		;
+		throw ResponseException(fd, 400);
+
 	for (size_t i = 0 ; i < path.size() ; i++){
 		if (path[i] == '%') {
 			if (i + 2 >= path.size())
-				;
-				//error bitches 400
+				throw ResponseException(fd, 400);
+
 			char c1 = path[i + 1];
 			char c2 = path[i + 2];
 
 			if (c1 == '0' && c2 == '0')
-				;
-				//error bitches 400
+				throw ResponseException(fd, 400);
 
 			if (!isHex(c1) || !(isHex(c2)))
-				;
-				//error bitches 400
+				throw ResponseException(fd, 400);
+
 			char decoded = hexToChar(c1, c2);
 
 			output += decoded;
@@ -62,17 +62,15 @@ std::string	WebServer::decodePath(const std::string &path){
 	}
 
 	if (output.find("%2f") != std::string::npos)
-		;
-		//error bitches 403 
+		throw ResponseException(fd, 403);
 	
 	if (output.find('\0') != std::string::npos)
-		;
-    	// throw 400;
+		throw ResponseException(fd, 400);
 	
 	return output;
 }
 
-std::string	WebServer::normalizePath(const std::string &path){
+std::string	WebServer::normalizePath(const std::string &path, int fd){
 
 	std::vector<std::string> segmentPath;
 	std::stringstream ss(path);
@@ -84,8 +82,7 @@ std::string	WebServer::normalizePath(const std::string &path){
 		
 		else if (segment == ".."){
 			if (segmentPath.empty())
-				;
-				//error bitches 400 
+				throw ResponseException(fd, 400);
 			segmentPath.pop_back();
 		}
 
@@ -143,19 +140,19 @@ std::string WebServer::findRoot(const SocketClient* client){
 	return recupRoot;
 }
 
-void	WebServer::checkErrorPath(const std::string &path){
+//voir d ou elle part pour voir comment on renvoi l erreur : buildErrorResponse(403);
+void	WebServer::checkErrorPath(const std::string &path, int fd){
 	if (path.find("%") != std::string::npos)
-		;
-		//error bitches 403 
+		throw ResponseException(fd, 403);
+
 	if (path.find("//") != std::string::npos)
-		;
-		//error bitches 403 
+		throw ResponseException(fd, 403);
+
 	if (path.find("..") != std::string::npos)
-		;
-		//error bitches 403 
+		throw ResponseException(fd, 403);
+
 	for (size_t i = 0 ; i < path.size() ; i++){
 		if (path[i] < ' ' && path[i] > '~')
-			;
-			//error bitches 403 
+			throw ResponseException(fd, 403);
 	}
 }

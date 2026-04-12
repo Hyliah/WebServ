@@ -26,26 +26,26 @@ HttpResponse WebServer::handleDirectory(const SocketClient* client, const std::s
 		for (size_t i = 0 ; i < config->index.size() ; i++){
 			std::string fullPath = path;
 			
-			if (fullPath[fullPath.size() - 1] != '/')
+			if (!fullpath.empty() && fullPath[fullPath.size() - 1] != '/')
         		fullPath += "/";
 
     		fullPath += config->index[i];
 
 			struct stat st;
-			if (stat(fullPath.c_str(), &st) == 0) {
+			if (stat(fullPath.c_str(), &st) == 0 && S_ISREG(st.st_mode)) {
                 if (access(fullPath.c_str(), R_OK) == 0)
                     return serveFile(client, fullPath, st);
             }
 		}
 	}
 // ------------------------------------------------------------------------------------------------------- Attention boucle for location quel prendre ?
-	// if (config->autoindex == true){
+	// else if (config->autoindex == true){
 	// 	return generateListing(path);
 	// 		// générer le html de la liste des fichiers
 	// }
 
-	//403
-	return fillResponseOK("hardcode", 5, "text/html"); // A SUPPRIMER SINON CA COMPILAIT PAS AVANT LE TRUC D ERREUR -------------------------------------
+	else
+		return buildErrorResponse(403);
 }
 
 std::string getMimeType(std::string path){
@@ -55,17 +55,18 @@ std::string getMimeType(std::string path){
 HttpResponse WebServer::serveFile(const SocketClient* client, const std::string& path, struct stat& st){
 	(void)client;
 	(void)st;
-	HttpResponse res;
-	std::ifstream file(path.c_str(), std::ios::binary); //chercher wtf
-	if (!file)
-		;
-	// return 500 (faire fonction qui retourne une response et prend en parame le code d erreur)
+	
+    std::ifstream file(path.c_str(), std::ios::binary);
+    if (!file) {
+        return buildErrorResponse(500);
+    }
 	
 	std::ostringstream ss;
 	ss << file.rdbuf();
 	std::string body = ss.str();
 
-	return fillResponseOK(body, body.size(), getMimeType(path));
+	HttpResponse res = fillResponseOK(body, body.size(), getMimeType(path));
+	return res;
 }
 
 
@@ -73,8 +74,7 @@ HttpResponse WebServer::serveFile(const SocketClient* client, const std::string&
 HttpResponse	WebServer::generateListing(const std::string &path){
 	DIR* dir = opendir(path.c_str());
 	if (!dir)
-		;
-		//erreur 403 ou 500 
+		buildErrorResponse(403);
 
 	std::stringstream body;
 
@@ -108,7 +108,7 @@ HttpResponse	WebServer::fillResponseOK(std::string body, long size, std::string 
 	res.body = body;
 	res.headers["Content-Length"] = longToString(size);
 	res.headers["Content-Type"] = type;
-	res.headers["Connection"] = "close";
+	res.headers["Connection"] = "close"; //keep-alive
 
 	return res;
 }
@@ -140,8 +140,3 @@ const ServerConfig* WebServer::findMatchingConfig(const SocketClient* client) co
 /* ************************************************** */
 
 
-
-
-
-
-//Response WebServer::buildErrorResponse(int code);

@@ -105,6 +105,7 @@ class RunningException : public WebservException {
 		}
 };
 
+
 // erreur de CGI ?
 
 // erreur de http ? 

@@ -74,18 +74,29 @@ void	WebServer::pollLoop(){
 		else  {
 			size_t size = _pollFds.size();
 			for (size_t i = 0; i < size; ++i){
-				// METTRE ICI LES POLLER ET POLLHUP
+
+				if (_pollFds[i].revents & (POLLHUP | POLLERR)) {
+    				closeConnection(_pollFds[i].fd);
+    				continue;
+				}
 				
 				if (_pollFds[i].revents & POLLIN){ 
 					int fd = _pollFds[i].fd;
-					if (isServerFd(fd))
-						acceptClient(fd);
-					else
-						handleRequest(fd);
+					if (isServerFd(fd)){
+						try { acceptClient(fd); }
+						catch (const ResponseException& e) {
+    						sendResponse(e.getFd(), e.getCode());
+						}
+					}
+					else {
+						try { handleRequest(fd); }
+						catch (const ResponseException& e) {
+							sendResponse(e.getFd(), e.getCode());
+						}
 				}
 				if (_pollFds[i].revents & POLLOUT){
 					int fd = _pollFds[i].fd;
-					sendResponse(fd);
+					sendResponse(fd, 0);
 					// delete de la boucle de paul
 				}
 			}
@@ -99,11 +110,11 @@ void	WebServer::acceptClient(int serverFd){
 	socklen_t addrlen = sizeof(addr);
 	int clientFd = accept(serverFd, (struct sockaddr*)&addr, &addrlen);
 	if (clientFd < 0)
-		throw RunningException("accept");
+		throw ResponseException(clientFd, 500);
 
 	int flags = fcntl(clientFd, F_GETFL, 0);
 	if (fcntl(clientFd, F_SETFL, flags | O_NONBLOCK) < 0)
-		throw RunningException("fcntl");
+		throw ResponseException(clientFd, 500);
 	
 
 	SocketServer* serverPtr = NULL;
@@ -114,7 +125,7 @@ void	WebServer::acceptClient(int serverFd){
         }
     }
     if (!serverPtr)
-        throw RunningException("acceptClient: serverFd not found");
+        throw ResponseException(clientFd, 500);
 
 	struct pollfd pfd;
 	pfd.fd = clientFd;
@@ -128,31 +139,26 @@ void	WebServer::acceptClient(int serverFd){
 
 void	WebServer::handleRequest(int fd){
 	
-	char buffer[4096]; //4KB
+	char buffer[4096]; //4KB -->> mettre dans un fichier ?????????????????
 	ssize_t bytes = recv(fd, buffer, sizeof(buffer), 0);
 
 	if (bytes > 0) {
 		SocketClient* client = _socketClients[fd];
 		client->appendBuffer(std::string(buffer, bytes));
 
-		if (client->getBuffer().size() > MAX_REQUEST_SIZE) { // DEFINIR LE MAX_REQUEST_SIZE
-			// faire une fonction erreur client.setError(413);
-			//setPollOut(fd);
-			return; //on enleve le paul de la struct mais le server reste
-		}
+		// if (client->getBuffer().size() > MAX_REQUEST_SIZE) {
+		// 	return throw ResponseException(fd, 500);
+		// }
 
 		if (isHeaderComplete(client)) {
 			if (!client->headerParsed){
 				client->parseRequest();
 				client->defineBodyType();
 				client->cleanBuffer();
-				//if (client.getContentLength() > maxBodySize)
-					// ERROR 413
+				if (client->getContentLength() > maxBodySize)
+					throw ResponseException(fd, 413);
 				
-					// std::cout << "--- DEBUG BUFFER BODY BEGIN ---" << std::endl;
-    				// std::cout << client->getBuffer().substr(0, 100) << "..." << std::endl; // Affiche les 100 premiers caractères
-    				// std::cout << "--- DEBUG BUFFER BODY END ---" << std::endl;
-				// faire une fonction pour vider le buffer jusqu a rnrn
+				// faire une fonction pour vider le buffer jusqu a rnrn -- e le laisse pcq je sais pas si c est fait
 				client->headerParsed = true;
 			}
 			
@@ -180,10 +186,9 @@ void	WebServer::handleRequest(int fd){
 		if (errno != EAGAIN && errno != EWOULDBLOCK)
 			closeConnection(fd);
 		// else {
-		// 	throw ? de quoi on verra //404 ou un vrai throw
+		// 	throw ResponseException(fd, 404);
 		// }
 	}
-
 }
 /*
 if (client.buffer.size() > MAX_REQUEST_SIZE)
@@ -191,27 +196,30 @@ if (client.buffer.size() > MAX_REQUEST_SIZE)
 
 */
 
-void	WebServer::sendResponse(int fd){
+void	WebServer::sendResponse(int fd, int codeError){
 	const SocketClient* client = _socketClients[fd];
 	
 	std::string method = client->getRequest().getMethod();
 
 	HttpResponse res;
-	if (method == "GET")
-		res = methodGet(client);
-	else if (method == "POST")
-		methodPost();
-	if (method == "DELETE")
-		methodDelete();
-	//else 
-	//res = buildError(4000000);
 
+	if (codeError != 0){
+		res = buildErrorResponse(codeError);
+	}
 
+	else {	
+		if (method == "GET")
+		//mettre le try and catch et recup le fd etcode derreur pour faire un res d errreur
+			res = methodGet(client);
+		else if (method == "POST")
+			methodPost(); //mettre en res mais ce sera pour plus tard
+		else if (method == "DELETE")
+			methodDelete(); //mettre en res mais ce sera pour plus tard
+	}
     std::string response = res.ResponseToString();
-    send(fd, response.c_str(), response.size(), 0);
-    
-//     // On ferme après le send car on a mis "Connection: close"
-	closeConnection(fd);
+    ssize_t sent = send(fd, response.c_str(), response.size(), 0);
+	if (sent < 0)
+    	closeConnection(fd);
 
 }
 

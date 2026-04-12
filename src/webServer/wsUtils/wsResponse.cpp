@@ -21,26 +21,22 @@ HttpResponse	WebServer::methodGet(const SocketClient* client){
 
 	//1. Max URI
 	if (client->getRequest().getUri().size() > MAX_URI_SIZE) // a mettre dans la verif au parsing
-		;	
-		// return 414;
+		return buildErrorResponse(414);
 	
 	//2. Résolution du Path
 	std::string path = resolvePath(client);
 
 	struct stat st;
 	if (stat(path.c_str(), &st) < 0)
-		;
-		// return error 404
+		return buildErrorResponse(404);
 
 	//3. Permission
 	if (access(path.c_str(), R_OK) != 0) {
-		;
-		// return builderrr(403) Forbidden
+		return buildErrorResponse(403);
 	}
 	
-
 	// 4. Directory → gérer index / autoindex
-	if (st.st_mode & S_IFDIR){
+	if (S_IFDIR(st.st_mode)){
 		return handleDirectory(client, path);
 	}
 	
@@ -49,11 +45,6 @@ HttpResponse	WebServer::methodGet(const SocketClient* client){
 	
 	
 	/*
-
-	- lire le fichier ? URI
-	- générer le body 
-	- creation d une http response -> stringstream 
-	- ajout des headers
 	- fonction send : send(fd, response.c_str(), response.size(), 0);
 	- closeConnection(fd);
 	*/
@@ -62,10 +53,10 @@ HttpResponse	WebServer::methodGet(const SocketClient* client){
 
 
 void	WebServer::methodPost(){
-
+// A FAIRE
 }
 
 void	WebServer::methodDelete(){
-
+// A FAIRE
 }
 

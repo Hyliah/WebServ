@@ -68,7 +68,7 @@ class WebServer{
 		void	pollLoop();
 		void	acceptClient(int fd);
 		void	handleRequest(int fd);
-		void	sendResponse(int fd);
+		void	sendResponse(int fd, int codeError);
 		
 
 
@@ -93,9 +93,9 @@ class WebServer{
 		
 		//PATH -> dans le fichier wsPath.cpp
 		std::string	resolvePath(const SocketClient* client);
-		std::string	decodePath(const std::string &path);
-		std::string	normalizePath(const std::string &path);
-		void		checkErrorPath(const std::string &path);
+		std::string	decodePath(const std::string &path, int fd);
+		std::string	normalizePath(const std::string &path, int fd);
+		void		checkErrorPath(const std::string &path, int fd);
 		std::string findRoot(const SocketClient* client);
 		void		cleanFinalPath(std::string& root, std::string& finalPath);
 
@@ -108,8 +108,16 @@ class WebServer{
 		void	removePollFd(int fd);
 		void	setPollOut(int fd);
 
-		
 
+		class ResponseException : public std::exception {
+			private:
+				int _fd;
+				int _code;
+			public:
+				ResponseException(int fd, int code) : _fd(fd), _code(code) {}
+				int getFd() const { return _fd; }
+				int getCode() const { return _code; }
+		};
 
 };
 

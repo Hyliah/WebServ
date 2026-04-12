@@ -69,7 +69,7 @@ void	SocketClient::defineBodyType(){
 		// attention gerer les 400 ou 413 ou quoi si le string n est pas un noombre correct genre 10M
 		_request.setContentLength(stringToLong(itCL->second.c_str()));
 		if (_request.getContentLength() > DEFAULT_MAX_BODY_SIZE)
-			;
+			throw ResponseException(fd, 413); //CHANGER LE NUMERO QUAND JE LE CONNAITRAI !!!!!!!!!!!!!!!!!!!!!!
 	}
 	else {
 		contentLength = false;
@@ -107,18 +107,18 @@ void	SocketClient::parseFirstLine(std::string &buffer, size_t &position) {
 	pos = firstLine.find(' ', start);
 	_request.setMethod(firstLine.substr(start, pos - start));
 	if (!isValidMethod())
-		return ; // error 400 bad request I suppose
+		throw ResponseException(_fd, 400);
 
 	start = pos + 1;
 	pos = firstLine.find(' ', start);
 	_request.setUri(firstLine.substr(start, pos - start));
 	if (!isValidURI())
-		return ; // error 400 bad request I suppose
+		throw ResponseException(_fd, 414);
 
 	start = pos + 1;
 	_request.setVersion(firstLine.substr(start));
 	if (!isValidVersion())
-		return ; // error 400 bad request I suppose
+		throw ResponseException(_fd, 400);
 
 	position = line_end + 2;
 }
@@ -142,7 +142,7 @@ void	SocketClient::parseHeaders(std::string &buffer, size_t &position) {
 			_request.setHeaders(key, value);
 		}
 		else 
-			// 400 Bad request (pas de :)
+			throw ResponseException(_fd, 400);
 		start = line_end + 2; // passer à la ligne suivante
 		
 		//check max header size
@@ -201,7 +201,7 @@ void SocketClient::parsingChunked() {
 			_request.addBody(chunk);
 			_bytesRead += _bytesPending;
 			if (_bytesRead > DEFAULT_MAX_BODY_SIZE)
-				; // erreur dépassement -> HTTP 413 Payload Too Large
+				throw ResponseException(_fd, 413);
 
 			_buffer.erase(0, _bytesPending);
 
@@ -226,7 +226,7 @@ void SocketClient::parsingChunked() {
 		}
 		
 		else { //CHUNK ERROR
-			return; //a voir :) 
+			throw ResponseException(_fd, 418); //a voir quel NB LUI DONNER une error dans le body
 		}
 	}
 }
@@ -252,10 +252,10 @@ void	SocketClient::parsingContentLength() {
 /* checks Parsing                                     */
 /* ************************************************** */
 
+// verifier si y a un host
 bool	SocketClient::isValidURI(){
-	//verif 414 too long.
+	 
 	return true;
-	//qu est ce qui définit un URI valide ? We ll never know
 }
 
 bool	SocketClient::isValidMethod(){
@@ -265,9 +265,7 @@ bool	SocketClient::isValidMethod(){
 }
 
 bool	SocketClient::isValidVersion(){
-	//definir les version qui sont présente. Si 1.1 on sait que c est obligatoire d avoir un host. 
-	// faire cette verif une fois que le header est fini de parser.
-	//definir le format acceptable d envoi de version.
+	//definir 1.1 or nothing bitches
 	return true;
 }
 
@@ -300,7 +298,6 @@ void	SocketClient::cleanBuffer(){
 
 	_buffer.erase(0, pos + 4);
 }
-
 
 /* ************************************************** */
 /* je ferai qu on y sera.                             */
