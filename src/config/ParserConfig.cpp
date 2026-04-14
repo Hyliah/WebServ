@@ -124,6 +124,8 @@ void	ParserConfig::parseServer(std::vector<std::string>::iterator &it){
 	while (it != _tokens.end() && *it != "}"){
 		if (*it == "listen")
 			handleListen(it, newServer);
+		else if (*it == "host")
+			handleHost(it, newServer);
 		else if (*it == "server_name")
 			handleServerName(it, newServer);
 		else if (*it == "error_page")
@@ -161,7 +163,7 @@ void	ParserConfig::parseLocation(std::vector<std::string>::iterator &it, ServerC
 	while (it != _tokens.end() && *it != "}"){
 		if (*it == "root")
 			handleRoot(it, newLocation);
-		else if (*it == "allow_methods")
+		else if (*it == "allow_methods" || *it == "methods")
 			handleMethods(it, newLocation);
 		else if (*it == "autoindex")
 			handleAutoindex(it, newLocation);
@@ -210,25 +212,9 @@ void ParserConfig::handleListen(std::vector<std::string>::iterator &it, ServerCo
 {
     it++;
     if (!validateValue(it))
-        throw ParseException(CONF, "'listen' directive needs a value (e.g., 80 or 127.0.0.1:80)");
+        throw ParseException(CONF, "'listen' directive needs a value (e.g., 8080)");
 
-    std::string value = *it;
-
-    // cherche un ':' pour savoir si on a host:port ou juste port
-    size_t colon = value.find(':');
-
-    if (colon != std::string::npos)
-    {
-        // format "127.0.0.1:8080"
-        server.host = value.substr(0, colon);
-        server.port = value.substr(colon + 1);
-    }
-    else
-    {
-        // format "8080" seulement
-        server.host = "0.0.0.0"; // valeur par defaut
-        server.port = value;
-    }
+    server.port = *it;
 
     // verif que le port est bien un nombre
     for (size_t i = 0; i < server.port.size(); i++)
@@ -236,12 +222,20 @@ void ParserConfig::handleListen(std::vector<std::string>::iterator &it, ServerCo
         if (!isdigit(server.port[i]))
             throw ParseException(CONF, "invalid port value: " + server.port);
     }
-
     // verif que le port est dans la plage valide
     int port = stringToInt(server.port);
     if (port <= 0 || port > 65535)
         throw ParseException(CONF, "port out of range (1-65535): " + server.port);
 
+    it++;
+    checkSemicolon(it);
+}
+void ParserConfig::handleHost(std::vector<std::string>::iterator &it, ServerConfig &server)
+{
+    it++;
+    if (!validateValue(it))
+        throw ParseException(CONF, "'host' directive needs a value (e.g., 127.0.0.1)");
+    server.host = *it;
     it++;
     checkSemicolon(it);
 }

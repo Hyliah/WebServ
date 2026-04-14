@@ -35,6 +35,7 @@ class ParserConfig {
 
 		// HANDLERS serveur
 		void						handleListen(std::vector<std::string>::iterator &it, ServerConfig &server);
+		void 						handleHost(std::vector<std::string>::iterator &it, ServerConfig &server);
 		void						handleServerName(std::vector<std::string>::iterator &it, ServerConfig &server);
 		void						handleErrorPage(std::vector<std::string>::iterator &it, ServerConfig &server);
 		void						handleMaxBodySize(std::vector<std::string>::iterator &it, ServerConfig &server);

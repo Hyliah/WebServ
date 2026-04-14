@@ -38,7 +38,7 @@ int main (int ac, char **av)
 	try {
 		ParserConfig parser;
 		parser.parse(av[1]);
-		//testPrintParse();					//Parsing conf ALL GOOD
+		testPrintParse();					//Parsing conf ALL GOOD
 
 		WebServer webserver(parser.getServers());
 		//webserver.testPrintSocket(); 		// creation socket ALL GOOD
@@ -79,7 +79,7 @@ void	testPrintParse()
 {
 	std::cout << "Test print verif" << std::endl;
 	ParserConfig parser;
-	parser.parse("config/test.conf");
+	parser.parse("config/base.conf");
 	const std::vector<ServerConfig> &servers = parser.getServers();
 	for (size_t i = 0; i < servers.size(); i++) {
 		std::cout << "Server " << i << ":" << std::endl;
