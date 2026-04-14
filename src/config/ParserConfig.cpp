@@ -187,19 +187,63 @@ void	ParserConfig::parseLocation(std::vector<std::string>::iterator &it, ServerC
 /* *************************************************** */
 /*  HANDLERS SERVER                                    */
 /* *************************************************** */ 
-void	ParserConfig::handleListen(std::vector<std::string>::iterator &it, ServerConfig &server){
-	it++;
-	if (!validateValue(it)) {	
-		throw ParseException(CONF, "'listen' directive needs a value (e.g., 80 or 127.0.0.1:80)");
-	}
+
 	// ajouter plein de truc ici en fait c'est pas du tout suffisant 
 	// check avec host:port  ex: "127.0.0.1:8080"
 	// check si empty ? ou alors apres avec :
 	// check si port est un nombre et dans la plage 0-65535 ( verifyconfig ? )
 	// check port only 
-	server.port = *it;
-	it++;
-	checkSemicolon(it);
+
+// Version initiale 
+// void	ParserConfig::handleListen(std::vector<std::string>::iterator &it, ServerConfig &server){
+// 	it++;
+// 	if (!validateValue(it)) {	
+// 		throw ParseException(CONF, "'listen' directive needs a value (e.g., 80 or 127.0.0.1:80)");
+// 	}
+// 	server.port = *it;
+// 	it++;
+// 	checkSemicolon(it);
+// }
+
+// version plus complete 
+void ParserConfig::handleListen(std::vector<std::string>::iterator &it, ServerConfig &server)
+{
+    it++;
+    if (!validateValue(it))
+        throw ParseException(CONF, "'listen' directive needs a value (e.g., 80 or 127.0.0.1:80)");
+
+    std::string value = *it;
+
+    // cherche un ':' pour savoir si on a host:port ou juste port
+    size_t colon = value.find(':');
+
+    if (colon != std::string::npos)
+    {
+        // format "127.0.0.1:8080"
+        server.host = value.substr(0, colon);
+        server.port = value.substr(colon + 1);
+    }
+    else
+    {
+        // format "8080" seulement
+        server.host = "0.0.0.0"; // valeur par defaut
+        server.port = value;
+    }
+
+    // verif que le port est bien un nombre
+    for (size_t i = 0; i < server.port.size(); i++)
+    {
+        if (!isdigit(server.port[i]))
+            throw ParseException(CONF, "invalid port value: " + server.port);
+    }
+
+    // verif que le port est dans la plage valide
+    int port = stringToInt(server.port);
+    if (port <= 0 || port > 65535)
+        throw ParseException(CONF, "port out of range (1-65535): " + server.port);
+
+    it++;
+    checkSemicolon(it);
 }
 
 void	ParserConfig::handleServerName(std::vector<std::string>::iterator &it, ServerConfig &server){

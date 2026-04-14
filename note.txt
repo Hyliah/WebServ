@@ -12,3 +12,34 @@ a faire plus tard si tout marche bien
 
 
 // a faire 
+
+
+// fonction generate autoindex 
+void WebServer::generateAutoIndex(int fd, const std::string& path) {
+    DIR* dir = opendir(path.c_str());
+    if (!dir) {
+        sendError(fd, 403);
+        return;
+    }
+
+    std::string html = "<html><head><title>Index of " + path + "</title></head><body>";
+    html += "<h1>Index of " + path + "</h1><hr><ul>";
+
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != NULL) {
+        std::string name = entry->d_name;
+        if (name == ".") continue; // On ignore le répertoire courant
+        
+        // On crée un lien hypertexte pour chaque fichier/dossier
+        html += "<li><a href=\"" + name + (entry->d_type == DT_DIR ? "/" : "") + "\">";
+        html += name + (entry->d_type == DT_DIR ? "/" : "");
+        html += "</a></li>";
+    }
+    closedir(dir);
+
+    html += "</ul><hr></body></html>";
+
+    // Envoyer la réponse avec les headers appropriés
+    sendCustomResponse(fd, 200, "text/html", html);
+}
+
