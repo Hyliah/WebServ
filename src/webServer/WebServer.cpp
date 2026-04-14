@@ -57,11 +57,14 @@ WebServer::~WebServer(){
 
 void	WebServer::pollLoop(){
 	initPollStruct();
-	
+
+	LOG("---- NEW POLL LOOP ----");
+
 	while (_running){
 
 		int ret = poll(&_pollFds[0], _pollFds.size(), 10000); //timeout de 1seconde ou 10 ?? changer peut etre
-		
+		LOG("poll() ret = " << ret);
+
 		if (ret == -1) {
 			if (errno == EINTR) {
 				_running = false;
@@ -75,13 +78,17 @@ void	WebServer::pollLoop(){
 			size_t size = _pollFds.size();
 			for (size_t i = 0; i < size; ++i){
 
+				LOG("Checking fd: " << _pollFds[i].fd  << " revents: " << _pollFds[i].revents);
+				
 				if (_pollFds[i].revents & (POLLHUP | POLLERR)) {
     				closeConnection(_pollFds[i].fd);
     				continue;
 				}
 				
-				if (_pollFds[i].revents & POLLIN){ 
+				if (_pollFds[i].revents & POLLIN){
 					int fd = _pollFds[i].fd;
+					LOG("POLLIN on fd " << fd); 
+
 					if (isServerFd(fd)){
 						try { acceptClient(fd); }
 						catch (const ResponseException& e) {
@@ -93,20 +100,27 @@ void	WebServer::pollLoop(){
 						catch (const ResponseException& e) {
 							sendResponse(e.getFd(), e.getCode());
 						}
+					}
 				}
 				if (_pollFds[i].revents & POLLOUT){
 					int fd = _pollFds[i].fd;
+
+					LOG("POLLOUT on fd " << fd);
 					sendResponse(fd, 0);
 					// delete de la boucle de paul
 				}
+			
 			}
 		}
-	}
 	//on doit clode le fd du accept ?
-}
+	}
 }
 
 void	WebServer::acceptClient(int serverFd){
+
+	LOG(">>> ACCEPT CLIENT on server fd " << serverFd);
+
+
 	struct sockaddr_storage addr;
 	socklen_t addrlen = sizeof(addr);
 	int clientFd = accept(serverFd, (struct sockaddr*)&addr, &addrlen);
@@ -130,6 +144,10 @@ void	WebServer::acceptClient(int serverFd){
 
 	struct pollfd pfd;
 	pfd.fd = clientFd;
+
+	LOG("New client fd = " << clientFd);
+
+
 	pfd.events = POLLIN;
 	pfd.revents = 0;
 	_pollFds.push_back(pfd);
@@ -140,18 +158,26 @@ void	WebServer::acceptClient(int serverFd){
 
 void	WebServer::handleRequest(int fd){
 	
+	LOG(">>> handleRequest fd = " << fd);
+
 	char buffer[4096]; //4KB -->> mettre dans un fichier ?????????????????
 	ssize_t bytes = recv(fd, buffer, sizeof(buffer), 0);
+	LOG("recv bytes = " << bytes);
 
 	if (bytes > 0) {
 		SocketClient* client = _socketClients[fd];
 		client->appendBuffer(std::string(buffer, bytes));
+
+		LOG("BUFFER NOW:\n" << client->getBuffer());
+
 
 		// if (client->getBuffer().size() > MAX_REQUEST_SIZE) {
 		// 	return throw ResponseException(fd, 500);
 		// }
 
 		if (isHeaderComplete(client)) {
+			
+			LOG(">>> HEADER COMPLETE");
 			if (!client->headerParsed){
 				client->parseRequest();
 				client->defineBodyType();
@@ -161,10 +187,15 @@ void	WebServer::handleRequest(int fd){
 				
 				// faire une fonction pour vider le buffer jusqu a rnrn -- e le laisse pcq je sais pas si c est fait
 				client->headerParsed = true;
+
+				LOG("Method: " << client->getRequest().getMethod());
+				LOG("URI: " << client->getRequest().getUri());
+
 			}
 			
 			if (client->getRequest().getMethod() == "DELETE" || client->getRequest().getMethod() == "GET")
 				client->ignoreBody = true;
+			
 			
 
 			if (client->chunked)
@@ -174,9 +205,18 @@ void	WebServer::handleRequest(int fd){
 			else
 				client->parsingNoBody();
 
-			if (client->requestCompleted)
+			LOG("Chunked: " << client->chunked);
+			LOG("ContentLength: " << client->contentLength);
+
+			if (client->requestCompleted){
+
+				LOG(">>> REQUEST COMPLETE");
+				
 				setPollOut(fd);
+			}
 		}
+		else
+			LOG("Header NOT complete yet");
 	}
 
 	else if (bytes == 0) {
@@ -198,9 +238,15 @@ if (client.buffer.size() > MAX_REQUEST_SIZE)
 */
 
 void	WebServer::sendResponse(int fd, int codeError){
+
+	LOG(">>> sendResponse fd = " << fd);
+
+
 	SocketClient* client = _socketClients[fd];
 	
 	std::string method = client->getRequest().getMethod();
+
+	LOG("Method = " << method);
 
 	HttpResponse res;
 
@@ -213,14 +259,29 @@ void	WebServer::sendResponse(int fd, int codeError){
 		//mettre le try and catch et recup le fd etcode derreur pour faire un res d errreur
 			res = methodGet(client);
 		else if (method == "POST")
-			methodPost(); //mettre en res mais ce sera pour plus tard
+			res = methodPost(); //mettre en res mais ce sera pour plus tard
 		else if (method == "DELETE")
-			methodDelete(); //mettre en res mais ce sera pour plus tard
+			res = methodDelete(); //mettre en res mais ce sera pour plus tard
 	}
     std::string response = res.ResponseToString();
-    ssize_t sent = send(fd, response.c_str(), response.size(), 0);
-	if (sent < 0)
-    	closeConnection(fd);
+
+	LOG(">>> RESPONSE BUILT:");
+	LOG(response);
+	
+	size_t totalSent = 0;
+	while (totalSent < response.size()) {
+		ssize_t sent = send(fd, response.c_str() + totalSent, response.size() - totalSent, 0);
+		
+		LOG("Bytes sent: " << sent);
+			
+		if (sent <= 0) {
+			closeConnection(fd);
+			return;
+		}
+		totalSent += sent;
+	}
+
+	closeConnection(fd);
 
 }
 

@@ -42,6 +42,9 @@ void	WebServer::removePollFd(int fd){
 }
 
 void WebServer::closeConnection(int fd){
+	
+	LOG("Closing connection fd = " << fd);
+	
 	close(fd);
 
 	std::map<int, SocketClient*>::iterator it = _socketClients.find(fd);
@@ -63,6 +66,8 @@ void	WebServer::setPollOut(int fd){
 			break;
 		}
 	}
+
+	LOG("Switching fd " << fd << " to POLLOUT");
 }
 
 

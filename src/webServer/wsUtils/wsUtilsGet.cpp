@@ -20,6 +20,10 @@
 
 HttpResponse WebServer::handleDirectory(const SocketClient* client, const std::string& path){
 
+
+	LOG(">>> handleDirectory");
+
+
 	const ServerConfig* config = findMatchingConfig(client);
 	const LocationConfig* loc = findMatchingLocation(client);
 
@@ -36,10 +40,16 @@ HttpResponse WebServer::handleDirectory(const SocketClient* client, const std::s
 	else
 		autoindex = false;
 
+	
+	
 	// INDEX
     if (!indexes->empty()) {
+		LOG("Indexes size: " << indexes->size());
         for (size_t i = 0; i < indexes->size(); i++) {
             std::string fullPath = path;
+
+			LOG("Trying index: " << (*indexes)[i]);
+			LOG("Full path: " << fullPath);
 
             if (!fullPath.empty() && fullPath[fullPath.size() - 1] != '/')
                 fullPath += "/";
@@ -56,6 +66,7 @@ HttpResponse WebServer::handleDirectory(const SocketClient* client, const std::s
 
     // AUTOINDEX
     if (autoindex) {
+		LOG("Autoindex: " << autoindex);
         return generateListing(path);
     }
 
@@ -65,10 +76,44 @@ HttpResponse WebServer::handleDirectory(const SocketClient* client, const std::s
 
 
 
-std::string getMimeType(std::string path){
-	(void)path;
-	return "hello";
+std::string WebServer::getMimeType(std::string path){
+	size_t dot = path.find_last_of('.');
+    if (dot == std::string::npos)
+        return "application/octet-stream";
+
+    std::string ext = path.substr(dot);
+
+	if (ext == ".html" || ext == ".htm")
+        return "text/html";
+
+    if (ext == ".css")
+        return "text/css";
+
+    if (ext == ".js")
+        return "application/javascript";
+
+    if (ext == ".json")
+        return "application/json";
+
+    if (ext == ".png")
+        return "image/png";
+
+    if (ext == ".jpg" || ext == ".jpeg")
+        return "image/jpeg";
+
+    if (ext == ".gif")
+        return "image/gif";
+
+    if (ext == ".txt")
+        return "text/plain";
+
+    if (ext == ".pdf")
+        return "application/pdf";
+
+	return "application/octet-stream";
 }
+
+
 HttpResponse WebServer::serveFile(const SocketClient* client, const std::string& path, struct stat& st){
 	(void)client;
 	(void)st;
@@ -89,6 +134,8 @@ HttpResponse WebServer::serveFile(const SocketClient* client, const std::string&
 
 
 HttpResponse	WebServer::generateListing(const std::string &path){
+	LOG(">>> generateListing for " << path);LOG(">>> generateListing for " << path);
+
 	DIR* dir = opendir(path.c_str());
 	if (!dir)
 		return buildErrorResponse(403);

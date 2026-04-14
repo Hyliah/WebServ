@@ -53,6 +53,8 @@ void	WebServer::initPollStruct(){
 	for (size_t i = 0; i < _socketServers.size(); ++i){
 		int fd = _socketServers[i]->getFd();
 
+		LOG("SERVER FD ADDED: " << fd);
+
 		struct pollfd pfd;
 		pfd.fd = fd;
 		pfd.events = POLLIN; //changement ici

@@ -30,6 +30,19 @@
 #include "../http/HttpResponse.hpp"
 #include "../utils/utilsParsing.hpp"
 
+
+
+#define DEBUG 1
+
+#if DEBUG
+    #define LOG(x) std::cout << x << std::endl;
+#else
+    #define LOG(x)
+#endif
+
+
+
+
 #define MAX_REQUEST_SIZE 8192
 #define MAX_URI_SIZE 2048
 class WebServer{
@@ -79,8 +92,8 @@ class WebServer{
 
 		//UTILS RESPONSE -> dans le fichier wsResponse.cpp
 		HttpResponse	methodGet(SocketClient* client);
-		void	methodPost();
-		void	methodDelete();
+		HttpResponse	methodPost();
+		HttpResponse	methodDelete();
 
 		//UTILS GET -> dans le fichier wsUtilsGet.cpp
 		HttpResponse	handleDirectory(const SocketClient* client, const std::string& path);
@@ -99,6 +112,8 @@ class WebServer{
 		void		checkErrorPath(const std::string &path, int fd);
 		std::string findRoot(const SocketClient* client);
 		void		cleanFinalPath(std::string& root, std::string& finalPath);
+
+		std::string getMimeType(std::string path);
 
 		
 		//PAUL LOOP UTILS -> dans le fichier wsUtilsPollLoop.cpp

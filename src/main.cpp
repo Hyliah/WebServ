@@ -38,7 +38,7 @@ int main (int ac, char **av)
 	try {
 		ParserConfig parser;
 		parser.parse(av[1]);
-		testPrintParse();					//Parsing conf ALL GOOD
+		//testPrintParse();					//Parsing conf ALL GOOD
 
 		WebServer webserver(parser.getServers());
 		//webserver.testPrintSocket(); 		// creation socket ALL GOOD

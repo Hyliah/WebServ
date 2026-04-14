@@ -11,6 +11,7 @@
 /*****************************************************************************/
 
 #include "SocketClient.hpp"
+#include "WebServer.hpp"
 #include <sstream>
 #include "../utils/utilsParsing.hpp"
 #include "Exceptions.hpp"
@@ -41,6 +42,8 @@ void	SocketClient::addBytes(long bytes){ _bytesRead += bytes; }
 void	SocketClient::appendBuffer(const std::string& str){ _buffer += str; }
 
 void	SocketClient::parseRequest(){
+
+	LOG(">>> PARSING REQUEST");
 
 	// std::cout << "--- DEBUG BUFFER START ---" << std::endl;
     // std::cout << _buffer.substr(0, 100) << "..." << std::endl; // Affiche les 100 premiers caractères
@@ -122,6 +125,8 @@ void	SocketClient::parseFirstLine(std::string &buffer, size_t &position) {
 		throw ResponseException(_fd, 400);
 
 	position = line_end + 2;
+	
+	LOG("Parsing first line: " << firstLine);
 }
 
 void	SocketClient::parseHeaders(std::string &buffer, size_t &position) {
