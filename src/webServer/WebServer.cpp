@@ -51,6 +51,20 @@ WebServer::~WebServer(){
 // }
 
 
+
+
+// time_t now = std::time(NULL);
+
+// for (std::map<int, SocketClient*>::iterator it = _socketClients.begin(); it != _socketClients.end(); ++it) {
+//     SocketClient* client = it->second;
+
+//     if (now - client->_lastActivity > 10) { // 10 sec timeout
+//         LOG("Timeout client fd = " << client->getFd());
+//         closeConnection(client->getFd());
+//     }
+// }
+
+
 /* ************************************************** */
 /* PAUL LOOP			                              */
 /* ************************************************** */
@@ -72,54 +86,73 @@ void	WebServer::pollLoop(){
 			} else 
 				throw RunningException(std::string("Poll: ") + strerror(errno));
 		}
-		else if (ret == 0) 
+		
+		checkTimeouts();
+
+		if (ret == 0)
 			continue;
-		else  {
-			size_t size = _pollFds.size();
-			for (size_t i = 0; i < size; ++i){
 
-				LOG("Checking fd: " << _pollFds[i].fd  << " revents: " << _pollFds[i].revents);
-				
-				if (_pollFds[i].revents & (POLLHUP | POLLERR)) {
-    				closeConnection(_pollFds[i].fd);
-    				continue;
-				}
-				
-				if (_pollFds[i].revents & POLLIN){
-					int fd = _pollFds[i].fd;
-					LOG("POLLIN on fd " << fd); 
+		size_t size = _pollFds.size();
+		for (size_t i = 0; i < size; ++i){
 
-					if (isServerFd(fd)){
-						try { acceptClient(fd); }
-						catch (const ResponseException& e) {
-    						sendResponse(e.getFd(), e.getCode());
-						}
-					}
-					else {
-						try { handleRequest(fd); }
-						catch (const ResponseException& e) {
-							sendResponse(e.getFd(), e.getCode());
-						}
-					}
-				}
-				if (_pollFds[i].revents & POLLOUT){
-					int fd = _pollFds[i].fd;
-
-					LOG("POLLOUT on fd " << fd);
-					sendResponse(fd, 0);
-					// delete de la boucle de paul
-				}
+			LOG("Checking fd: " << _pollFds[i].fd  << " revents: " << _pollFds[i].revents);
 			
+			if (_pollFds[i].revents & (POLLHUP | POLLERR)) {
+				closeConnection(_pollFds[i].fd);
+				continue;
+			}
+			
+			if (_pollFds[i].revents & POLLIN){
+				int fd = _pollFds[i].fd;
+				LOG("POLLIN on fd " << fd); 
+
+				if (isServerFd(fd)){
+					try { acceptClient(fd); }
+					catch (const ResponseException& e) {
+						sendResponse(e.getFd(), e.getCode());
+					}
+				}
+				else {
+					try { handleRequest(fd); }
+					catch (const ResponseException& e) {
+						sendResponse(e.getFd(), e.getCode());
+					}
+				}
+			}
+			if (_pollFds[i].revents & POLLOUT){
+				int fd = _pollFds[i].fd;
+
+				LOG("POLLOUT on fd " << fd);
+				try { sendResponse(fd, 0); }
+				catch (...) { closeConnection(fd); }
 			}
 		}
-	//on doit clode le fd du accept ?
 	}
+}
+
+void WebServer::checkTimeouts() {
+    time_t now = std::time(NULL);
+
+    for (std::map<int, SocketClient*>::iterator it = _socketClients.begin();
+         it != _socketClients.end(); ) {
+
+        SocketClient* client = it->second;
+        int fd = it->first;
+
+        if (now - client->lastActivity > 10) {
+            LOG("Timeout client fd = " << fd);
+
+            closeConnection(fd);
+            it = _socketClients.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }
 
 void	WebServer::acceptClient(int serverFd){
 
 	LOG(">>> ACCEPT CLIENT on server fd " << serverFd);
-
 
 	struct sockaddr_storage addr;
 	socklen_t addrlen = sizeof(addr);
@@ -142,50 +175,54 @@ void	WebServer::acceptClient(int serverFd){
     if (!serverPtr)
         throw ResponseException(clientFd, 500);
 
+	
+	SocketClient* client = new SocketClient(clientFd, addr, serverPtr);
+	
+	client->lastActivity = std::time(NULL);
+
+    _socketClients[clientFd] = client;
+
 	struct pollfd pfd;
 	pfd.fd = clientFd;
-
-	LOG("New client fd = " << clientFd);
-
-
 	pfd.events = POLLIN;
 	pfd.revents = 0;
 	_pollFds.push_back(pfd);
-
-	SocketClient* client = new SocketClient(clientFd, addr, serverPtr);
-    _socketClients[clientFd] = client;
+	
+	LOG("New client fd = " << clientFd);
 }
 
 void	WebServer::handleRequest(int fd){
 	
 	LOG(">>> handleRequest fd = " << fd);
 
-	char buffer[4096]; //4KB -->> mettre dans un fichier ?????????????????
+	char buffer[4096];
 	ssize_t bytes = recv(fd, buffer, sizeof(buffer), 0);
+	
 	LOG("recv bytes = " << bytes);
+	
+	SocketClient* client = _socketClients[fd];
+	client->lastActivity = std::time(NULL);
 
 	if (bytes > 0) {
-		SocketClient* client = _socketClients[fd];
+
 		client->appendBuffer(std::string(buffer, bytes));
 
 		LOG("BUFFER NOW:\n" << client->getBuffer());
 
 
-		// if (client->getBuffer().size() > MAX_REQUEST_SIZE) {
-		// 	return throw ResponseException(fd, 500);
-		// }
+		if (client->getBuffer().size() > DEFAULT_MAX_BODY_SIZE) {
+			return throw ResponseException(fd, 413);
+		}
 
 		if (isHeaderComplete(client)) {
-			
-			LOG(">>> HEADER COMPLETE");
 			if (!client->headerParsed){
+				
+				LOG(">>> HEADER COMPLETE");
+				
 				client->parseRequest();
 				client->defineBodyType();
 				client->cleanBuffer();
-				// if (client->getRequest().getContentLength() > maxBodySize) //gestion du maxBodysize
-				// 	throw ResponseException(fd, 413);
 				
-				// faire une fonction pour vider le buffer jusqu a rnrn -- e le laisse pcq je sais pas si c est fait
 				client->headerParsed = true;
 
 				LOG("Method: " << client->getRequest().getMethod());
@@ -196,8 +233,6 @@ void	WebServer::handleRequest(int fd){
 			if (client->getRequest().getMethod() == "DELETE" || client->getRequest().getMethod() == "GET")
 				client->ignoreBody = true;
 			
-			
-
 			if (client->chunked)
 				client->parsingChunked();
 			else if (client->contentLength) 
@@ -226,21 +261,12 @@ void	WebServer::handleRequest(int fd){
 	else {
 		if (errno != EAGAIN && errno != EWOULDBLOCK)
 			closeConnection(fd);
-		// else {
-		// 	throw ResponseException(fd, 404);
-		// }
 	}
 }
-/*
-if (client.buffer.size() > MAX_REQUEST_SIZE)
-	→ 413 Payload Too Large
-
-*/
 
 void	WebServer::sendResponse(int fd, int codeError){
 
 	LOG(">>> sendResponse fd = " << fd);
-
 
 	SocketClient* client = _socketClients[fd];
 	
@@ -251,7 +277,7 @@ void	WebServer::sendResponse(int fd, int codeError){
 	HttpResponse res;
 
 	if (codeError != 0){
-		res = buildErrorResponse(codeError);
+		res = buildErrorResponse(codeError, client);
 	}
 
 	else {	

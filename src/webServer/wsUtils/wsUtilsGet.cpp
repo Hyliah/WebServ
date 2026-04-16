@@ -67,11 +67,11 @@ HttpResponse WebServer::handleDirectory(const SocketClient* client, const std::s
     // AUTOINDEX
     if (autoindex) {
 		LOG("Autoindex: " << autoindex);
-        return generateListing(path);
+        return generateListing(path, client);
     }
 
     // FORBIDDEN
-    return buildErrorResponse(403);
+    return buildErrorResponse(403, client);
 }
 
 
@@ -115,30 +115,29 @@ std::string WebServer::getMimeType(std::string path){
 
 
 HttpResponse WebServer::serveFile(const SocketClient* client, const std::string& path, struct stat& st){
-	(void)client;
 	(void)st;
 	
     std::ifstream file(path.c_str(), std::ios::binary);
     if (!file) {
-        return buildErrorResponse(500);
+        return buildErrorResponse(500, client);
     }
 	
 	std::ostringstream ss;
 	ss << file.rdbuf();
 	std::string body = ss.str();
 
-	HttpResponse res = fillResponseOK(body, body.size(), getMimeType(path));
+	HttpResponse res = fillResponseOK(body, body.size(), getMimeType(path), client);
 	return res;
 }
 
 
 
-HttpResponse	WebServer::generateListing(const std::string &path){
+HttpResponse	WebServer::generateListing(const std::string &path, const SocketClient* client){
 	LOG(">>> generateListing for " << path);LOG(">>> generateListing for " << path);
 
 	DIR* dir = opendir(path.c_str());
 	if (!dir)
-		return buildErrorResponse(403);
+		return buildErrorResponse(403, client);
 
 	std::stringstream body;
 
@@ -162,17 +161,20 @@ HttpResponse	WebServer::generateListing(const std::string &path){
 	closedir(dir);
 
 	std::string content = body.str();
-	return fillResponseOK(content, content.size(), "text/html");
+	return fillResponseOK(content, content.size(), "text/html", client);
 }
 
-HttpResponse	WebServer::fillResponseOK(std::string body, long size, std::string type){
+HttpResponse	WebServer::fillResponseOK(std::string body, long size, std::string type, const SocketClient* client){
 	HttpResponse res;
 
 	res.statusLine = "HTTP/1.1 200 OK";
 	res.body = body;
 	res.headers["Content-Length"] = longToString(size);
 	res.headers["Content-Type"] = type;
-	res.headers["Connection"] = "close"; //keep-alive
+	if (client->keepAlive)
+        res.headers["Connection"] = "keep-alive";
+	else 
+    	res.headers["Connection"] = "close";
 
 	return res;
 }

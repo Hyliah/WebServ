@@ -13,14 +13,16 @@
 #ifndef SOCKETCLIENT_HPP
 #define SOCKETCLIENT_HPP
 
-#define DEFAULT_MAX_BODY_SIZE 1048576 // 1 MB
-#define MAX_HEADER_SIZE 42 //faire mieux
-#define MAX_HEADER_LINE_SIZE 42
+
+#define MAX_HEADER_SIZE 8192 //8KB
+#define MAX_HEADER_COUNT 100 //BC WHY NOT -USUAL
+#define MAX_HEADER_LINE_SIZE 4096 //4KB
 
 #include <string>
 #include <unistd.h>
 #include <fcntl.h>
 #include <netdb.h>
+#include <ctime>
 #include "SocketServer.hpp"
 
 
@@ -46,23 +48,25 @@ class SocketClient {
 		std::string		_buffer; //recupéré avec recv() - attention en plusieurs fois
 		ChunkState		_chunkState;
 		SocketServer*	_server;
-
+		
 		HttpRequest _request;
-
+		
 		struct sockaddr_storage _addr; 
 		
 		SocketClient(const SocketClient& other);
 		SocketClient& operator=(const SocketClient& other);
 		
 		
-	public:
-	
+		public:
+		
 		bool		ignoreBody;
 		bool        headerParsed;
 		bool        requestCompleted;
 		bool        contentLength;
 		bool        chunked;
-
+		bool		keepAlive;
+		time_t		lastActivity;
+		
 		// construtor & destructors 
 		SocketClient();
 		SocketClient(int fd, struct sockaddr_storage addr, SocketServer* serverPtr);
@@ -71,7 +75,7 @@ class SocketClient {
 		void closeSocket();
 		
 		// Getters and setters
-		int					getFd();
+		int					getFd() const;
 		const HttpRequest&	getRequest() const;
 		const std::string&	getBuffer() const;
 		long				getBytes();
@@ -96,7 +100,8 @@ class SocketClient {
 		bool	isValidURI();
 		bool	isValidMethod();
 		bool	isValidVersion();
-		bool	isValidBody();
+		void	validateHeaders(int headerCount, size_t totalSize);
+		bool	isValidBody(std::string& chunk);
 		bool	isDone() const;
 
 		void	defineBodyType();

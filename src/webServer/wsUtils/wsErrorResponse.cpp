@@ -12,7 +12,7 @@
 
 #include "WebServer.hpp"
 
-HttpResponse WebServer::buildErrorResponse(int code) {
+HttpResponse WebServer::buildErrorResponse(int code, const SocketClient* client) {
     HttpResponse res;
 
     std::string statusText = "Error";
@@ -71,7 +71,10 @@ HttpResponse WebServer::buildErrorResponse(int code) {
     // Headers
     res.headers["Content-Length"] = longToString(res.body.size());
     res.headers["Content-Type"] = "text/html";
-    res.headers["Connection"] = "close";
+    if (client->keepAlive)
+        res.headers["Connection"] = "keep-alive";
+	else 
+    	res.headers["Connection"] = "close";
 
     return res;
 }

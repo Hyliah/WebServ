@@ -15,8 +15,15 @@
 #include <cstring>
 #include <map>
 
-#include "../http/HttpRequest.hpp"
+#include <sstream>
+#include <ctime>
+#include <unistd.h>
+
+//#include "../http/HttpRequest.hpp"
 #include "../utils/utilsParsing.hpp"
+#include "WebServer.hpp"
+#include "Exceptions.hpp"
+
 
 /* ************************************************** */
 /* construtor & destructors                           */
@@ -32,19 +39,40 @@ HttpRequest::~HttpRequest(){}
 const std::string& HttpRequest::getMethod() const { return (_method); }
 const std::string& HttpRequest::getUri() const { return (_uri); }
 const std::string& HttpRequest::getVersion() const { return (_version); }
-const std::string& HttpRequest::getBody() const { return(_body); }
+const std::string& HttpRequest::getBodyPath() const { return(_bodyFilePath); }
 long        HttpRequest::getContentLength() const { return(_contentLength); }
 const std::map<std::string, std::string>& HttpRequest::getHeaders() const { return (_headers); }
 
 void HttpRequest::setMethod(std::string str){ _method = str; }
 void HttpRequest::setUri(std::string str){ _uri = str; }
 void HttpRequest::setVersion(std::string str){ _version = str; }
-void HttpRequest::setBody(std::string str){ _body = str; }
+void HttpRequest::setBody(std::string str){ _bodyFilePath = str; }
 void HttpRequest::setContentLength(long length) { _contentLength = length; }
 void HttpRequest::setHeaders(const std::string& key, const std::string& value){
     _headers[toLower(key)] = value;
 }
 
-void HttpRequest::addBody(const std::string& str){
-    _body += str;
+void HttpRequest::writeBody(const std::string& str){
+    if (_bodyFile.is_open())
+        _bodyFile.write(str.c_str(), str.size());
+
+}
+
+void HttpRequest::closeBodyFile() {
+    if (_bodyFile.is_open())
+        _bodyFile.close();
+}
+
+std::string generateId() {
+    std::stringstream ss;
+    ss << getpid() << "_" << std::time(NULL);
+    return ss.str();
+}
+
+void HttpRequest::openBodyFile() {
+    _bodyFilePath = "/tmp/webserv_body_" + generateId();
+    _bodyFile.open(_bodyFilePath.c_str(), std::ios::binary);
+    if (!_bodyFile.is_open()) {
+        throw std::runtime_error("Failed to open body file"); // en attendant est ce que il faut envoyer un error 500
+    }
 }

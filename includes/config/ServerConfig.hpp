@@ -15,6 +15,8 @@
 
 #include "LocationConfig.hpp"
 
+#define DEFAULT_MAX_BODY_SIZE 5242880 // 5 MB
+
 class ServerConfig {
 public:
 	std::string					port; 		// str pour getadrinfo() pour eviter hton 

@@ -89,24 +89,25 @@ class WebServer{
 		void	cpyLinkConfig();
 		void	initSockets();
 		void	initPollStruct();
+		void 	checkTimeouts();
 
 		//UTILS RESPONSE -> dans le fichier wsResponse.cpp
-		HttpResponse	methodGet(SocketClient* client);
+		HttpResponse	methodGet(const SocketClient* client);
 		HttpResponse	methodPost();
 		HttpResponse	methodDelete();
 
 		//UTILS GET -> dans le fichier wsUtilsGet.cpp
 		HttpResponse	handleDirectory(const SocketClient* client, const std::string& path);
-		HttpResponse	generateListing(const std::string &path);
+		HttpResponse	generateListing(const std::string &path, const SocketClient* client);
 		HttpResponse	serveFile(const SocketClient* client, const std::string& path, struct stat& st);
-		HttpResponse	fillResponseOK(std::string body, long size, std::string type);
+		HttpResponse	fillResponseOK(std::string body, long size, std::string type, const SocketClient* client);
 		
 		const ServerConfig*		findMatchingConfig(const SocketClient* client) const;
 		const LocationConfig*	findMatchingLocation(const SocketClient* client);
 		
 		
 		//PATH -> dans le fichier wsPath.cpp
-		std::string	resolvePath(SocketClient* client);
+		std::string	resolvePath(const SocketClient* client);
 		std::string	decodePath(const std::string &path, int fd);
 		std::string	normalizePath(const std::string &path, int fd);
 		void		checkErrorPath(const std::string &path, int fd);
@@ -124,7 +125,7 @@ class WebServer{
 		void	removePollFd(int fd);
 		void	setPollOut(int fd);
 
-		HttpResponse buildErrorResponse(int code);
+		HttpResponse buildErrorResponse(int code, const SocketClient* client);
 };
 
 #endif

@@ -17,13 +17,13 @@
 /* UTILS RESPONSE.     		                          */
 /* ************************************************** */
 
-HttpResponse	WebServer::methodGet(SocketClient* client){
+HttpResponse	WebServer::methodGet(const SocketClient* client){
 
 	LOG(">>> methodGet");
 
 	//1. Max URI
 	if (client->getRequest().getUri().size() > MAX_URI_SIZE) // a mettre dans la verif au parsing
-		return buildErrorResponse(414);
+		return buildErrorResponse(414, client);
 	
 	LOG("URI: " << client->getRequest().getUri());
 	
@@ -35,11 +35,11 @@ HttpResponse	WebServer::methodGet(SocketClient* client){
 	struct stat st;
 	if (stat(path.c_str(), &st) < 0){
 		LOG("Calling stat on: " << path);
-		return buildErrorResponse(404);
+		return buildErrorResponse(404, client);
 	}
 	//3. Permission
 	if (access(path.c_str(), R_OK) != 0) {
-		return buildErrorResponse(403);
+		return buildErrorResponse(403, client);
 	}
 	
 	// 4. Directory → gérer index / autoindex

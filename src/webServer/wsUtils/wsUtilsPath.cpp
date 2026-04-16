@@ -12,7 +12,7 @@
 
 #include "WebServer.hpp"
 
-std::string WebServer::resolvePath(SocketClient* client) {
+std::string WebServer::resolvePath(const SocketClient* client) {
     const std::string& uri = client->getRequest().getUri();
     int fd = client->getFd();
 

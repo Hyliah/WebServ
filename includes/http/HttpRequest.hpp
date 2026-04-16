@@ -11,6 +11,7 @@
 /*****************************************************************************/
 
 #include <iostream>
+#include <fstream>
 #include <map>
 
 class HttpRequest
@@ -24,21 +25,23 @@ class HttpRequest
     //HEADERS
     long    _contentLength;
     std::map<std::string, std::string> _headers; //key : value
-
-    //BODY
-    std::string _body; // POST PUT et parfois DELETE -> GET PAS DE BODY /!/
-
+    
+    //BODY 
+    std::string _bodyFilePath;
+    std::ofstream _bodyFile;
+    
+    HttpRequest(const HttpRequest &other);
+    HttpRequest& operator=(const HttpRequest &other);
+    
     public :
 
     HttpRequest();
-    // HttpRequest(const HttpRequest &other) = delete;
-    // HttpRequest& operator=(const HttpRequest &other) = delete;
     ~HttpRequest();
 
     const std::string& getMethod() const;
     const std::string& getUri() const;
     const std::string& getVersion() const;
-    const std::string& getBody() const;
+    const std::string& getBodyPath() const;
     long               getContentLength() const;
     const std::map<std::string, std::string>& getHeaders() const;
 
@@ -49,7 +52,9 @@ class HttpRequest
     void setContentLength(long length);
     void setHeaders(const std::string& key, const std::string& value);
 
-    void addBody(const std::string& str);
+    void writeBody(const std::string& str);
+    void closeBodyFile();
+    void openBodyFile();
 };
 
 // METHOD space URI space VERSION

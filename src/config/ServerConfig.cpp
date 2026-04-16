@@ -22,7 +22,7 @@ ServerConfig::ServerConfig(){
 	serverName = "default_server";
 	root = "./www";
 	index.push_back("index.html");
-	maxBodySize = 100000; // 100ko par defaut
+	maxBodySize = DEFAULT_MAX_BODY_SIZE;
 	// les conteneur sont init vide pas defaut donc ok
 }
 ServerConfig::ServerConfig(const ServerConfig &other) {
