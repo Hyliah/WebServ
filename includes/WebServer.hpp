@@ -113,6 +113,8 @@ class WebServer{
 		void		checkErrorPath(const std::string &path, int fd);
 		std::string findRoot(const SocketClient* client);
 		void		cleanFinalPath(std::string& root, std::string& finalPath);
+		void		resolveQuery(const SocketClient* client, std::string path);
+		std::string UrlDecode(const SocketClient *client, std::string entry);
 
 		std::string getMimeType(std::string path);
 

@@ -22,6 +22,8 @@ class HttpRequest
     std::string _uri; // la target en gros
     std::string _version; // version du http
 
+    std::map<std::string, std::string> _query;
+
     //HEADERS
     long    _contentLength;
     std::map<std::string, std::string> _headers; //key : value
@@ -60,32 +62,31 @@ class HttpRequest
 // METHOD space URI space VERSION
 
 
-/*
-Query string
 
-GET /search?q=chatgpt&page=1 HTTP/1.1
+// Query string
 
-URI :
-/search?q=chatgpt&page=1
+// GET /search?q=chatgpt&page=1 HTTP/1.1
 
-Tu dois séparer :
+// URI :
+// /search?q=chatgpt&page=1
 
-path = /search
-query = q=chatgpt&page=1
+// Tu dois séparer :
 
-
-
-URL encoding
-/file%20name.txt
-
-→ %20 = espace
+// path = /search
+// query = q=chatgpt&page=1
 
 
 
+// URL encoding
+// /file%20name.txt
 
-dans les headers, que faire si y en a 2 les memes ?
+// → %20 = espace
 
-Erreur 400 bad request ! faire une fonction
-singleton : content length, host, content type, authorization, Transfer-Encoding:
 
-*/
+
+
+// dans les headers, que faire si y en a 2 les memes ?
+
+// Erreur 400 bad request ! faire une fonction
+// singleton : content length, host, content type, authorization, Transfer-Encoding:
+

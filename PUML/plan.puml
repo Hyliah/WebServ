@@ -1,0 +1,7 @@
+@startuml webserv_class
+
+!include ./sunlust.puml
+
+:Hello world;
+:This is defined on sevral **lines**;
+@enduml
