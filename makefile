@@ -15,9 +15,11 @@ SRCS = src/main.cpp \
 	   src/webServer/WebServer.cpp \
 	   src/webServer/wsUtils/wsResponse.cpp \
 	   src/webServer/wsUtils/wsUtilsGet.cpp \
+	   src/webServer/wsUtils/wsUtilsPost.cpp \
 	   src/webServer/wsUtils/wsUtilsInit.cpp \
 	   src/webServer/wsUtils/wsUtilsPath.cpp \
 	   src/webServer/wsUtils/wsUtilsPollLoop.cpp \
+	   src/webServer/wsUtils/wsUtilsResponse.cpp \
 	   src/webServer/wsUtils/wsErrorResponse.cpp \
 	   src/utils/utilsParsing.cpp
 OBJDIR = obj

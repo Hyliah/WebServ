@@ -93,8 +93,8 @@ class WebServer{
 
 		//UTILS RESPONSE -> dans le fichier wsResponse.cpp
 		HttpResponse	methodGet(SocketClient* client);
-		HttpResponse	methodPost();
-		HttpResponse	methodDelete();
+		HttpResponse	methodPost(SocketClient* client);
+		HttpResponse	methodDelete(SocketClient* client);
 
 		//UTILS GET -> dans le fichier wsUtilsGet.cpp
 		HttpResponse	handleDirectory(const SocketClient* client, const std::string& path);
@@ -102,6 +102,14 @@ class WebServer{
 		HttpResponse	serveFile(const SocketClient* client, const std::string& path, struct stat& st);
 		HttpResponse	fillResponseOK(std::string body, long size, std::string type, const SocketClient* client);
 		
+		//UTILS POST -> dans le fichier wsUtilsPost.cpp
+		bool	isCGI(const LocationConfig* location, const std::string& path);
+		HttpResponse	executeCGI(const SocketClient* client, const LocationConfig* location, const std::string& path);
+		HttpResponse	executeStatic(const SocketClient* client, const LocationConfig* location, const std::string& path);
+
+		const std::map<std::string, std::string> createEnvp(const SocketClient* client, const LocationConfig* location, const std::string& path);
+		char**			convertMapToChar(const std::map<std::string, std::string>&);
+		// 
 		const ServerConfig*		findMatchingConfig(const SocketClient* client) const;
 		const LocationConfig*	findMatchingLocation(const SocketClient* client) const;
 		

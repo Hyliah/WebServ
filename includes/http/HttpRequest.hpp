@@ -22,6 +22,9 @@ class HttpRequest
     std::string _uri; // la target en gros
     std::string _version; // version du http
 
+    std::string _originPath; // pas utile mais potentiellement, on verra la flemme
+    std::string _originQuery;
+
     std::string _path;
     std::map<std::string, std::string> _query;
 
@@ -46,6 +49,8 @@ class HttpRequest
     const   std::string& getVersion() const;
     const   std::string& getBodyPath() const;
     const   std::string& getPath() const;
+    const   std::string& getOriginPath() const;
+    const   std::string& getOriginQuery() const;
     const   std::map<std::string, std::string>& getHeaders() const;
     long    getContentLength() const;
 
@@ -58,6 +63,8 @@ class HttpRequest
     void    setHeaders(const std::string& key, const std::string& value);
     void    setQuery(std::map<std::string, std::string> query);
 
+    void    setOriginPath(std::string);
+    void    setOriginQuery(std::string);
 
     void    writeBody(const std::string& str);
     void    closeBodyFile();

@@ -39,7 +39,6 @@ HttpResponse WebServer::handleDirectory(const SocketClient* client, const std::s
 		autoindex = false;
 
 	
-	
 	// INDEX
     if (!indexes->empty()) {
 		LOG("Indexes size: " << indexes->size());
@@ -71,7 +70,6 @@ HttpResponse WebServer::handleDirectory(const SocketClient* client, const std::s
     // FORBIDDEN
     return buildErrorResponse(403, client);
 }
-
 
 
 std::string WebServer::getMimeType(std::string path){
@@ -177,62 +175,7 @@ HttpResponse	WebServer::fillResponseOK(std::string body, long size, std::string 
 	return res;
 }
 
-const ServerConfig* WebServer::findMatchingConfig(const SocketClient* client) const {
-    const std::vector<const ServerConfig*>& configs = client->getServer()->getServers();
 
-    std::string host;
-    const std::map<std::string, std::string>& headers = client->getRequest().getHeaders();
-
-    std::map<std::string, std::string>::const_iterator it = headers.find("host");
-    if (it != headers.end())
-        host = it->second;
-
-    for (size_t i = 0; i < configs.size(); i++) {
-        if (configs[i]->serverName == host)
-            return configs[i];
-    }
-
-    if (!configs.empty())
-        return configs[0];
-
-    return NULL;
-}
-
-const LocationConfig* WebServer::findMatchingLocation(const SocketClient* client) const {
-    
-    const ServerConfig* server = findMatchingConfig(client);
-    if (!server)
-        return NULL;
-
-    const std::string& uri = client->getRequest().getUri();
-
-    const LocationConfig* bestMatch = NULL;
-    size_t bestLen = 0;
-
-    for (size_t i = 0; i < server->locations.size(); ++i) {
-        const LocationConfig& loc = server->locations[i];
-        const std::string& locPath = loc.path;
-
-        if (locPath.empty())
-            continue;
-
-        if (uri.compare(0, locPath.size(), locPath) != 0)
-            continue;
-
-        if (uri.size() > locPath.size()) {
-            if (locPath[locPath.size() - 1] != '/' &&
-                uri[locPath.size()] != '/')
-                continue;
-        }
-
-        if (locPath.size() > bestLen) {
-            bestMatch = &loc;
-            bestLen = locPath.size();
-        }
-    }
-
-    return bestMatch;
-}
 
 /* ************************************************** */
 /* File							                      */

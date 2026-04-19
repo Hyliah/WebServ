@@ -51,8 +51,6 @@ WebServer::~WebServer(){
 // }
 
 
-
-
 // time_t now = std::time(NULL);
 
 // for (std::map<int, SocketClient*>::iterator it = _socketClients.begin(); it != _socketClients.end(); ++it) {
@@ -218,14 +216,11 @@ void	WebServer::handleRequest(int fd){
 		if (isHeaderComplete(client)) {
 			if (!client->headerParsed){
 				
-				LOG(">>> :-0 HEADER COMPLETE");
+				LOG(">>> HEADER COMPLETE");
 				
 				client->parseRequest();
-					LOG(">>> parseReq ok");
 				client->defineBodyType();
-					LOG(">>> define ok");
 				client->cleanBuffer();
-					LOG(">>> clean ok");
 				client->headerParsed = true;
 
 				LOG("Method: " << client->getRequest().getMethod());
@@ -243,8 +238,8 @@ void	WebServer::handleRequest(int fd){
 			else
 				client->parsingNoBody();
 
-			LOG(" :-( Chunked: " << client->chunked);
-			LOG(" :-) ContentLength: " << client->contentLength);
+			LOG("Chunked: " << client->chunked);
+			LOG("ContentLength: " << client->contentLength);
 
 			if (client->requestCompleted){
 
@@ -297,9 +292,9 @@ void	WebServer::sendResponse(int fd, int codeError){
 		//mettre le try and catch et recup le fd etcode derreur pour faire un res d errreur
 			res = methodGet(client);
 		else if (method == "POST")
-			res = methodPost(); //mettre en res mais ce sera pour plus tard
+			res = methodPost(client);
 		else if (method == "DELETE")
-			res = methodDelete(); //mettre en res mais ce sera pour plus tard
+			res = methodDelete(client);
 	}
     std::string response = res.ResponseToString();
 

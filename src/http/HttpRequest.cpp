@@ -43,8 +43,11 @@ const   std::string& HttpRequest::getBodyPath() const { return(_bodyFilePath); }
 const   std::string& HttpRequest::getPath() const { return(_path);}
 long    HttpRequest::getContentLength() const { return(_contentLength); }
 const	std::map<std::string, std::string>& HttpRequest::getHeaders() const { return (_headers); }
+const   std::string& HttpRequest::getOriginPath() const{ return(_originPath); }
+const   std::string& HttpRequest::getOriginQuery() const{ return(_originQuery); }
 
-
+void    HttpRequest::setOriginPath(std::string str){ _originPath = str; }
+void    HttpRequest::setOriginQuery(std::string str){ _originQuery = str; }
 void	HttpRequest::setMethod(std::string str){ _method = str; }
 void	HttpRequest::setUri(std::string str){ _uri = str; }
 void	HttpRequest::setVersion(std::string str){ _version = str; }

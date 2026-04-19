@@ -22,12 +22,12 @@ HttpResponse WebServer::buildErrorResponse(int code, const SocketClient* client)
 	if (code == 400){
 		statusText = "Bad Request";
 		//imagePath = "./doss";
-		comment = "";
+		comment = "bibibibb 400";
 	}
 	else if (code == 403){
 		statusText = "Forbidden";
 		//imagePath = "./doss";
-		comment = "";
+		comment = "FOR BI DEN bibibibibbi";
 	}
     else if (code == 404){
         statusText = "Not Found";
@@ -37,17 +37,27 @@ HttpResponse WebServer::buildErrorResponse(int code, const SocketClient* client)
 	else if (code == 413){
         statusText = "Payload too large";
 		//imagePath = "./doss";
-		comment = "";
+		comment = "413 bibibbibibi ";
 	}
 	else if (code == 414){
         statusText = "URI too long";
 		//imagePath = "./doss";
-		comment = "";
+		comment = "414 bibibibiibibibbi ";
+	}
+	else if (code == 415){
+        statusText = "Unsupported media type";
+		//imagePath = "./doss";
+		comment = "415 bibibibiibibibbi ";
 	}
 	else if (code == 418){
         statusText = "I am a teapot";
 		//imagePath = "./doss";
 		comment = "The Server refuses to brew Coffee because it is permanently a TeaPot";
+	}
+		else if (code == 431){
+        statusText = "Request Header fields too large";
+		//imagePath = "./doss";
+		comment = "431 bibibibiibibibbi ";
 	}
     else if (code == 500){
 		statusText = "Internal Server Error";

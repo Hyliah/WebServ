@@ -50,9 +50,7 @@ void	SocketClient::parseRequest(){
 
 	size_t position = 0;
 	parseFirstLine(_buffer, position);
-		LOG(">>> LINE FIRSAT OKKKKKKKKKK");
 	parseHeaders(_buffer, position);
-		LOG(">>> HEADERS OOKAKKAKAKAKAKKAKAKA");
 }
 
 void	SocketClient::defineBodyType(){
@@ -161,9 +159,7 @@ void SocketClient::parseHeaders(std::string &buffer, size_t &position) {
 		}
 
         std::string key = line.substr(0, colon);
-		LOG("------------------------ Key AVANT : " << key);
-		key = toLower(key);
-		LOG("------------------------ Key APRES : " << key);
+
         std::string value = line.substr(colon + 2);
 
         _request.setHeaders(key, value);
@@ -177,7 +173,7 @@ void SocketClient::parseHeaders(std::string &buffer, size_t &position) {
     validateHeaders(headerCount, totalHeaderSize);
 }
 
-void SocketClient::validateHeaders(int headerCount, size_t totalSize) { // --------------------------------------------------------------------------------------------
+void SocketClient::validateHeaders(int headerCount, size_t totalSize) {
 
     const std::map<std::string, std::string>& h = _request.getHeaders();
 

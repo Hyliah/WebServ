@@ -24,9 +24,14 @@ void WebServer::resolvePath(SocketClient* client) {
     if (pos == std::string::npos) {
         path = uri;
         queryStr = "";
+		client->getRequest().setOriginPath(uri);
+		client->getRequest().setOriginQuery(queryStr);
+
     } else {
         path = uri.substr(0, pos);
         queryStr = uri.substr(pos + 1);
+		client->getRequest().setOriginPath(uri);
+		client->getRequest().setOriginQuery("?" + queryStr);
     }
 
 		LOG("URI = [" << uri << "]");
