@@ -130,7 +130,8 @@ void	WebServer::pollLoop(){
 	}
 }
 
-void WebServer::checkTimeouts() {
+//lui trouver un dossier adéquat
+void	WebServer::checkTimeouts() {
     time_t now = std::time(NULL);
 
     for (std::map<int, SocketClient*>::iterator it = _socketClients.begin();
@@ -217,12 +218,14 @@ void	WebServer::handleRequest(int fd){
 		if (isHeaderComplete(client)) {
 			if (!client->headerParsed){
 				
-				LOG(">>> HEADER COMPLETE");
+				LOG(">>> :-0 HEADER COMPLETE");
 				
 				client->parseRequest();
+					LOG(">>> parseReq ok");
 				client->defineBodyType();
+					LOG(">>> define ok");
 				client->cleanBuffer();
-				
+					LOG(">>> clean ok");
 				client->headerParsed = true;
 
 				LOG("Method: " << client->getRequest().getMethod());
@@ -240,8 +243,8 @@ void	WebServer::handleRequest(int fd){
 			else
 				client->parsingNoBody();
 
-			LOG("Chunked: " << client->chunked);
-			LOG("ContentLength: " << client->contentLength);
+			LOG(" :-( Chunked: " << client->chunked);
+			LOG(" :-) ContentLength: " << client->contentLength);
 
 			if (client->requestCompleted){
 
@@ -262,17 +265,24 @@ void	WebServer::handleRequest(int fd){
 		if (errno != EAGAIN && errno != EWOULDBLOCK)
 			closeConnection(fd);
 	}
+
+	LOG(">>> ----  HANDLE REQUEST END COMPLETE");
 }
 
 void	WebServer::sendResponse(int fd, int codeError){
 
-	LOG(">>> sendResponse fd = " << fd);
+		LOG(">>> sendResponse fd = " << fd);
+		LOG(">>> code error = " << codeError);
 
 	SocketClient* client = _socketClients[fd];
-	
+
+	if (client->getRequest().getUri().size() > MAX_URI_SIZE)
+		throw ResponseException(fd, 414);
+	resolvePath(client);
+
 	std::string method = client->getRequest().getMethod();
 
-	LOG("Method = " << method);
+		LOG("Method = " << method);
 
 	HttpResponse res;
 
@@ -280,7 +290,9 @@ void	WebServer::sendResponse(int fd, int codeError){
 		res = buildErrorResponse(codeError, client);
 	}
 
-	else {	
+	else {
+		LOG("URI: " << client->getRequest().getUri());
+		
 		if (method == "GET")
 		//mettre le try and catch et recup le fd etcode derreur pour faire un res d errreur
 			res = methodGet(client);

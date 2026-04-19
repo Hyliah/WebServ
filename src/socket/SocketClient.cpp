@@ -31,10 +31,11 @@ SocketClient::~SocketClient(){}
 /* ************************************************** */
 
 int					SocketClient::getFd() const { return (_fd); }
+long				SocketClient::getBytes() { return (_bytesRead); }
 const HttpRequest&	SocketClient::getRequest() const { return (_request); }
+HttpRequest& 		SocketClient::getRequest() { return _request; }
 const std::string&	SocketClient::getBuffer() const{ return (_buffer); }
-long				SocketClient::getBytes(){ return (_bytesRead); }
-const SocketServer*		SocketClient::getServer() const { return (_server); }
+const SocketServer*	SocketClient::getServer() const { return (_server); }
 
 /* ************************************************** */
 /* parsing de la request du Paul                      */
@@ -49,7 +50,9 @@ void	SocketClient::parseRequest(){
 
 	size_t position = 0;
 	parseFirstLine(_buffer, position);
+		LOG(">>> LINE FIRSAT OKKKKKKKKKK");
 	parseHeaders(_buffer, position);
+		LOG(">>> HEADERS OOKAKKAKAKAKAKKAKAKA");
 }
 
 void	SocketClient::defineBodyType(){
@@ -90,43 +93,53 @@ void	SocketClient::defineBodyType(){
 /* parsing firstLine & Headers                        */
 /* ************************************************** */
 
-void	SocketClient::parseFirstLine(std::string &buffer, size_t &position) {
-	size_t line_end = buffer.find("\r\n", position);
-	std::string firstLine = buffer.substr(position, line_end - position);
+void SocketClient::parseFirstLine(std::string &buffer, size_t &position)
+{
+    size_t line_end = buffer.find("\r\n", position);
+    if (line_end == std::string::npos)
+        throw ResponseException(_fd, 400);
 
-	if (!firstLine.empty() && firstLine.back() == '\r')
-		firstLine.pop_back();
+    std::string firstLine = buffer.substr(position, line_end - position);
 
-	size_t start;
-	size_t pos;
+    if (!firstLine.empty() && firstLine.back() == '\r')
+        firstLine.pop_back();
 
-	start = 0;
-	pos = firstLine.find(' ', start);
-	_request.setMethod(firstLine.substr(start, pos - start));
-	if (!isValidMethod())
-		throw ResponseException(_fd, 400);
+    size_t start = 0;
+    size_t pos = firstLine.find(' ', start);
+    if (pos == std::string::npos)
+        throw ResponseException(_fd, 400);
 
-	start = pos + 1;
-	pos = firstLine.find(' ', start);
-	_request.setUri(firstLine.substr(start, pos - start));
-	if (!isValidURI())
-		throw ResponseException(_fd, 414);
+    std::string method = firstLine.substr(start, pos - start);
+    _request.setMethod(method);
+    if (!isValidMethod())
+        throw ResponseException(_fd, 400);
 
-	start = pos + 1;
-	_request.setVersion(firstLine.substr(start));
-	if (!isValidVersion())
-		throw ResponseException(_fd, 400);
+    start = pos + 1;
+    pos = firstLine.find(' ', start);
+    if (pos == std::string::npos)
+        throw ResponseException(_fd, 400);
 
-	position = line_end + 2;
-	
-	LOG("Parsing first line: " << firstLine);
+    std::string uri = firstLine.substr(start, pos - start);
+    _request.setUri(uri);
+    if (!isValidURI())
+        throw ResponseException(_fd, 414);
+
+    start = pos + 1;
+    std::string version = firstLine.substr(start);
+    _request.setVersion(version);
+    if (!isValidVersion())
+        throw ResponseException(_fd, 400);
+
+    position = line_end + 2;
+
+    LOG("Parsing first line: " << firstLine);
 }
 
 void SocketClient::parseHeaders(std::string &buffer, size_t &position) {
     size_t header_end = buffer.find("\r\n\r\n");
 	if (header_end == std::string::npos)
     	throw ResponseException(_fd, 400);
-    
+	
 	size_t start = position;
 
     int headerCount = 0;
@@ -143,10 +156,14 @@ void SocketClient::parseHeaders(std::string &buffer, size_t &position) {
             throw ResponseException(_fd, 431);
 
         size_t colon = line.find(':');
-        if (colon == std::string::npos)
+        if (colon == std::string::npos ){
             throw ResponseException(_fd, 400);
+		}
 
         std::string key = line.substr(0, colon);
+		LOG("------------------------ Key AVANT : " << key);
+		key = toLower(key);
+		LOG("------------------------ Key APRES : " << key);
         std::string value = line.substr(colon + 2);
 
         _request.setHeaders(key, value);
@@ -160,7 +177,7 @@ void SocketClient::parseHeaders(std::string &buffer, size_t &position) {
     validateHeaders(headerCount, totalHeaderSize);
 }
 
-void SocketClient::validateHeaders(int headerCount, size_t totalSize) {
+void SocketClient::validateHeaders(int headerCount, size_t totalSize) { // --------------------------------------------------------------------------------------------
 
     const std::map<std::string, std::string>& h = _request.getHeaders();
 
@@ -170,13 +187,16 @@ void SocketClient::validateHeaders(int headerCount, size_t totalSize) {
     if (totalSize > MAX_HEADER_SIZE)
         throw ResponseException(_fd, 431);
 
-    if (h.find("host") == h.end())
+    if (h.find("host") == h.end()){
         throw ResponseException(_fd, 400);
+	}
 
     std::map<std::string, std::string>::const_iterator it = h.find("content-length");
     if (it != h.end()) {
         if (it->second.find_first_not_of("0123456789") != std::string::npos)
+		{
             throw ResponseException(_fd, 400);
+		}
     }
 }
 

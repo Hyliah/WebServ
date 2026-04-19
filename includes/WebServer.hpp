@@ -92,7 +92,7 @@ class WebServer{
 		void 	checkTimeouts();
 
 		//UTILS RESPONSE -> dans le fichier wsResponse.cpp
-		HttpResponse	methodGet(const SocketClient* client);
+		HttpResponse	methodGet(SocketClient* client);
 		HttpResponse	methodPost();
 		HttpResponse	methodDelete();
 
@@ -103,17 +103,17 @@ class WebServer{
 		HttpResponse	fillResponseOK(std::string body, long size, std::string type, const SocketClient* client);
 		
 		const ServerConfig*		findMatchingConfig(const SocketClient* client) const;
-		const LocationConfig*	findMatchingLocation(const SocketClient* client);
+		const LocationConfig*	findMatchingLocation(const SocketClient* client) const;
 		
 		
 		//PATH -> dans le fichier wsPath.cpp
-		std::string	resolvePath(const SocketClient* client);
+		void		resolvePath(SocketClient* client);
 		std::string	decodePath(const std::string &path, int fd);
 		std::string	normalizePath(const std::string &path, int fd);
 		void		checkErrorPath(const std::string &path, int fd);
 		std::string findRoot(const SocketClient* client);
 		void		cleanFinalPath(std::string& root, std::string& finalPath);
-		void		resolveQuery(const SocketClient* client, std::string path);
+		void		resolveQuery(SocketClient* client, std::string path);
 		std::string UrlDecode(const SocketClient *client, std::string entry);
 
 		std::string getMimeType(std::string path);

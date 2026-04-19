@@ -11,6 +11,7 @@
 /*****************************************************************************/
 
 #include "utilsParsing.hpp"
+#include "WebServer.hpp"
 #include "Exceptions.hpp"
 
 /* ************************************************** */
@@ -87,21 +88,20 @@ int	stringToInt(const std::string &str){
 std::string toLower(const std::string& str){
     std::string res;
     for (size_t i = 0; i < str.size(); ++i) {
-        res[i] = std::tolower(str[i]);
+        res += std::tolower(str[i]);
     }
 	return res;
 }
 
+//attention fonction qui fait pas de verif
 bool isHex(char c) {
     return (
         (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f')
     );
 }
 
+//attention fonction qui fait pas de verif
 int hexValue(char c){
-	if (!isHex(c))
-		;
-		//error 400?
 	if (c >= '0' && c <= '9')
 		return (c - '0');
 	
@@ -113,7 +113,6 @@ int hexValue(char c){
 
 	return -1 ;
 } 
-
 
 size_t	parseSize(const std::string &str){
 	if (str.empty()) return 0;

@@ -20,9 +20,7 @@
 
 HttpResponse WebServer::handleDirectory(const SocketClient* client, const std::string& path){
 
-
 	LOG(">>> handleDirectory");
-
 
 	const ServerConfig* config = findMatchingConfig(client);
 	const LocationConfig* loc = findMatchingLocation(client);
@@ -200,7 +198,8 @@ const ServerConfig* WebServer::findMatchingConfig(const SocketClient* client) co
     return NULL;
 }
 
-const LocationConfig* WebServer::findMatchingLocation(const SocketClient* client) {
+const LocationConfig* WebServer::findMatchingLocation(const SocketClient* client) const {
+    
     const ServerConfig* server = findMatchingConfig(client);
     if (!server)
         return NULL;

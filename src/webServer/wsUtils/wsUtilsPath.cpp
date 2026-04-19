@@ -12,23 +12,43 @@
 
 #include "WebServer.hpp"
 
-std::string WebServer::resolvePath(const SocketClient* client) {
+void WebServer::resolvePath(SocketClient* client) {
     const std::string& uri = client->getRequest().getUri();
     int fd = client->getFd();
 
     size_t pos = uri.find('?');
-    std::string path = uri.substr(0, pos);
-	//resolveQuery(client, uri.substr(pos, uri.end()));
 
+    std::string path;
+    std::string queryStr;
+
+    if (pos == std::string::npos) {
+        path = uri;
+        queryStr = "";
+    } else {
+        path = uri.substr(0, pos);
+        queryStr = uri.substr(pos + 1);
+    }
+
+		LOG("URI = [" << uri << "]");
+		LOG("PATH = [" << path << "]");
+		LOG("QUERY = [" << queryStr << "]");
+
+    // parse query
+    resolveQuery(client, queryStr);
+
+    // traitement du path
     std::string finalPath = decodePath(path, fd);
     finalPath = normalizePath(finalPath, fd);
     checkErrorPath(finalPath, fd);
-	std::string root = findRoot(client);
 
-	cleanFinalPath(root, finalPath);
+    std::string root = findRoot(client);
+    cleanFinalPath(root, finalPath);
+
     finalPath = root + finalPath;
 
-    return finalPath;
+	LOG("FINAL PATH = [" << finalPath << "]");
+
+    client->getRequest().setPath(finalPath);
 }
 
 std::string	WebServer::decodePath(const std::string &path, int fd){
@@ -56,8 +76,7 @@ std::string	WebServer::decodePath(const std::string &path, int fd){
 			output += decoded;
 			i += 2;
 		}
-		// else if (path[i] == '+')
-        //     output += ' ';
+
 		else 
 			output += path[i];
 	}
@@ -118,6 +137,7 @@ void WebServer::cleanFinalPath(std::string& root, std::string& finalPath) {
 }
 
 std::string WebServer::findRoot(const SocketClient* client){
+	
 	const std::vector<const ServerConfig*>& conf = client->getServer()->getServers();
     const HttpRequest& req = client->getRequest();
     const std::map<std::string, std::string>& headers = req.getHeaders();
@@ -141,7 +161,6 @@ std::string WebServer::findRoot(const SocketClient* client){
 	return recupRoot;
 }
 
-//voir d ou elle part pour voir comment on renvoi l erreur : buildErrorResponse(403);
 void	WebServer::checkErrorPath(const std::string &path, int fd){
 	if (path.find("%") != std::string::npos)
 		throw ResponseException(fd, 403);
@@ -159,47 +178,44 @@ void	WebServer::checkErrorPath(const std::string &path, int fd){
 }
 
 
-void	WebServer::resolveQuery(const SocketClient* client, std::string path){
-	
-	std::map<std::string, std::string> query;
+void WebServer::resolveQuery(SocketClient* client, std::string queryStr) {
 
-	int posStart = 0;
+    std::map<std::string, std::string> query;
 
-	while (posStart < path.length()){
-		
-		size_t posEnd = path.find('&', posStart);
-		
-		if (posEnd == std::string::npos){
-			posEnd = path.length();
-		}
+    size_t posStart = 0;
 
-		std::string chunk = path.substr(posStart, posEnd - posStart);
+    while (posStart < queryStr.length()) {
 
-		size_t equalPos = chunk.find('=');
+        size_t posEnd = queryStr.find('&', posStart);
+        if (posEnd == std::string::npos)
+            posEnd = queryStr.length();
 
-		std::string key;
-		std::string value;
+        std::string chunk = queryStr.substr(posStart, posEnd - posStart);
 
-		if (equalPos == std::string::npos){ 
-			key = chunk;
-			value = "";
-		}
+        size_t equalPos = chunk.find('=');
 
-		key = chunk.substr(equalPos);
-		value = chunk.substr(equalPos + 1);
+        std::string key;
+        std::string value;
 
-		key = UrlDecode(client, key);
-		value = UrlDecode(client, value);
+        if (equalPos == std::string::npos) {
+            key = chunk;
+            value = "";
+        } else {
+            key = chunk.substr(0, equalPos);
+            value = chunk.substr(equalPos + 1);
+        }
 
-		if (!key.empty())
-			query[key] = value;
+        key = UrlDecode(client, key);
+        value = UrlDecode(client, value);
 
-		posStart = posEnd + 1;
+        if (!key.empty())
+            query[key] = value;
 
-	}
-					
-	client->getRequest().setQuery = query;
+        posStart = posEnd + 1;
+    }
 
+    client->getRequest().setQuery(query);
+}
 
 	//test?key1=val1&key2=val2 -> key1 = "val1"     key2 = "val2"
 	//test?key1=&key2=val2 -> key1 = ""     key2 = "val2"
@@ -212,39 +228,36 @@ void	WebServer::resolveQuery(const SocketClient* client, std::string path){
 	// faire gestion generale des % par contre si pas hexa -> badrequest -> hexToChar(dejac codee) 
 	// si \0 bad request
 
-}
+std::string WebServer::UrlDecode(const SocketClient *client, std::string entry) {
+    std::string result;
 
-std::string WebServer::UrlDecode(const SocketClient *client, std::string entry){
-	std::string result;
+    for (size_t i = 0; i < entry.length(); i++) {
 
-	for (size_t i = 0; i < entry.length(); i++){
+        if (entry[i] == '%') {
+            if (i + 2 >= entry.size())
+                throw ResponseException(client->getFd(), 400);
 
-		if (entry[i] == '%"'){
-			if (i + 2 >= entry.size())
-				throw ResponseException(client->getFd(), 400);
+            char c1 = entry[i + 1];
+            char c2 = entry[i + 2];
 
-			char c1 = entry[i + 1];
-			char c2 = entry[i + 2];
+            if (!isHex(c1) || !isHex(c2))
+                throw ResponseException(client->getFd(), 400);
 
-			if (c1 == '0' && c2 == '0')
-				throw ResponseException(client->getFd(), 400);
+            char decoded = hexToChar(c1, c2);
 
-			if (!isHex(c1) || !(isHex(c2)))
-				throw ResponseException(client->getFd(), 400);
+            if (decoded == '\0')
+                throw ResponseException(client->getFd(), 400);
 
-			char decoded = hexToChar(c1, c2);
+            result += decoded;
+            i += 2;
+        }
+        else if (entry[i] == '+') {
+            result += ' ';
+        }
+        else {
+            result += entry[i];
+        }
+    }
 
-			result += decoded;
-			i += 2;
-		}
-
-		else if (entry[i] == '+'){
-			result += " ";
-		}
-
-		else {
-			result += entry[i];
-		}
-
-	}
+    return result;
 }

@@ -17,18 +17,15 @@
 /* UTILS RESPONSE.     		                          */
 /* ************************************************** */
 
-HttpResponse	WebServer::methodGet(const SocketClient* client){
+HttpResponse	WebServer::methodGet(SocketClient* client){
 
 	LOG(">>> methodGet");
 
 	//1. Max URI
-	if (client->getRequest().getUri().size() > MAX_URI_SIZE) // a mettre dans la verif au parsing
-		return buildErrorResponse(414, client);
-	
-	LOG("URI: " << client->getRequest().getUri());
-	
 	//2. Résolution du Path
-	std::string path = resolvePath(client);
+	// changé pour mettre a l 'étape d avant car on l utilise pas que pour le get :)
+	
+	std::string path = client->getRequest().getPath();
 
 	LOG("Resolved path: " << path);
 
@@ -55,14 +52,11 @@ HttpResponse	WebServer::methodGet(const SocketClient* client){
 
 	LOG("Serving file: " << path);
 	
-	
 	/*
 	- fonction send : send(fd, response.c_str(), response.size(), 0);
 	- closeConnection(fd);
 	*/
 }
-
-
 
 HttpResponse	WebServer::methodPost(){
 	HttpResponse res;

@@ -22,6 +22,7 @@ class HttpRequest
     std::string _uri; // la target en gros
     std::string _version; // version du http
 
+    std::string _path;
     std::map<std::string, std::string> _query;
 
     //HEADERS
@@ -40,23 +41,27 @@ class HttpRequest
     HttpRequest();
     ~HttpRequest();
 
-    const std::string& getMethod() const;
-    const std::string& getUri() const;
-    const std::string& getVersion() const;
-    const std::string& getBodyPath() const;
-    long               getContentLength() const;
-    const std::map<std::string, std::string>& getHeaders() const;
+    const   std::string& getMethod() const;
+    const   std::string& getUri() const;
+    const   std::string& getVersion() const;
+    const   std::string& getBodyPath() const;
+    const   std::string& getPath() const;
+    const   std::map<std::string, std::string>& getHeaders() const;
+    long    getContentLength() const;
 
-    void setMethod(std::string);
-    void setUri(std::string);
-    void setVersion(std::string);
-    void setBody(std::string);
-    void setContentLength(long length);
-    void setHeaders(const std::string& key, const std::string& value);
+    void    setMethod(std::string);
+    void    setUri(std::string);
+    void    setVersion(std::string);
+    void    setBodyPath(std::string);
+    void    setPath(std::string);
+    void    setContentLength(long length);
+    void    setHeaders(const std::string& key, const std::string& value);
+    void    setQuery(std::map<std::string, std::string> query);
 
-    void writeBody(const std::string& str);
-    void closeBodyFile();
-    void openBodyFile();
+
+    void    writeBody(const std::string& str);
+    void    closeBodyFile();
+    void    openBodyFile();
 };
 
 // METHOD space URI space VERSION

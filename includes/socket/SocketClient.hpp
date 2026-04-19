@@ -77,6 +77,7 @@ class SocketClient {
 		// Getters and setters
 		int					getFd() const;
 		const HttpRequest&	getRequest() const;
+		HttpRequest& 		getRequest();
 		const std::string&	getBuffer() const;
 		long				getBytes();
 		const SocketServer*	getServer() const;
