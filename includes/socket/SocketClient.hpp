@@ -37,6 +37,17 @@ enum ChunkState {
     CHUNK_ERROR
 };
 
+enum RequestState {
+    READING,
+    HEADERS_PARSED,
+    BODY_READING,
+    READY,
+    PROCESSING,
+    RESPONDING,
+    DONE,
+    ERROR
+};
+
 
 class SocketClient {
 
@@ -59,13 +70,15 @@ class SocketClient {
 		
 		public:
 		
-		bool		ignoreBody;
-		bool        headerParsed;
-		bool        requestCompleted;
-		bool        contentLength;
-		bool        chunked;
-		bool		keepAlive;
-		time_t		lastActivity;
+		bool			ignoreBody;
+		bool        	headerParsed;
+		bool        	requestCompleted;
+		bool        	contentLength;
+		bool        	chunked;
+		bool			keepAlive;
+		int				errorCode;
+		time_t			lastActivity;
+		RequestState 	state;
 		
 		// construtor & destructors 
 		SocketClient();

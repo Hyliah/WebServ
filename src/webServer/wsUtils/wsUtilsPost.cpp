@@ -14,6 +14,8 @@
 #include "../utils/utilsParsing.hpp"
 
 bool WebServer::isCGI(const LocationConfig* location, const std::string& path){
+    (void)location;
+    (void)path;
     //coder un truc
 
     //aller chercher dans le parsinf du fichier de conf de la loc si on a des formats correspondant
@@ -22,6 +24,10 @@ bool WebServer::isCGI(const LocationConfig* location, const std::string& path){
 }
 
 HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationConfig* location, const std::string& path) {
+
+    (void)client;
+    (void)location;
+    (void)path;
     //1) faire des verif de chmod et existe
         // if (access(path.c_str(), F_OK) == -1)
             // return buildResponseError(404);
@@ -89,6 +95,10 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
 
 
 HttpResponse	WebServer::executeStatic(const SocketClient* client, const LocationConfig* location, const std::string& path) {
+    (void)client;
+    (void)location;
+    (void)path;
+   
     //faire des verif de chmod ici ou ailleurs ??? -> 405 acccess denied ???
     //ou checker si post dans method ?
 
@@ -109,6 +119,11 @@ HttpResponse	WebServer::executeStatic(const SocketClient* client, const Location
 
 
 const std::map<std::string, std::string> WebServer::createEnvp(const SocketClient* client, const LocationConfig* location, const std::string& path){
+    
+    (void)client;
+    (void)location;
+    (void)path;
+    
     std::map<std::string, std::string> map;
 
     // creer un tableau avec les infos pour que ce soit transformer en 2e partie en char** pour le exeve minishell way
@@ -129,8 +144,9 @@ const std::map<std::string, std::string> WebServer::createEnvp(const SocketClien
     return map;
 }
 
-char**			WebServer::convertMapToChar(const std::map<std::string, std::string>&){
-    char** tab;
+char**			WebServer::convertMapToChar(const std::map<std::string, std::string>& map){
+    (void)map;
+    char** tab = NULL;
     // map ti char fonction a faire avec un super malloc
     //attention aux unfructuousmallocs 
     return tab;

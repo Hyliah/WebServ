@@ -84,6 +84,8 @@ class WebServer{
 		void	sendResponse(int fd, int codeError);
 		
 
+		void	parseBody(SocketClient* client);
+
 
 		//INIT -> dans le fichier wsUntilsInit.cpp
 		void	cpyLinkConfig();
@@ -103,7 +105,7 @@ class WebServer{
 		HttpResponse	fillResponseOK(std::string body, long size, std::string type, const SocketClient* client);
 		
 		//UTILS POST -> dans le fichier wsUtilsPost.cpp
-		bool	isCGI(const LocationConfig* location, const std::string& path);
+		bool			isCGI(const LocationConfig* location, const std::string& path);
 		HttpResponse	executeCGI(const SocketClient* client, const LocationConfig* location, const std::string& path);
 		HttpResponse	executeStatic(const SocketClient* client, const LocationConfig* location, const std::string& path);
 

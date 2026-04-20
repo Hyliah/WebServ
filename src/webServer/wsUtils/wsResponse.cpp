@@ -59,29 +59,35 @@ HttpResponse	WebServer::methodGet(SocketClient* client){
 }
 
 HttpResponse	WebServer::methodPost(SocketClient* client){
+	(void)client;
+
+// 	const LocationConfig* location = findMatchingLocation(client);
+// 	if (!location)
+// 		return buildErrorResponse(404, client);
+
+// 	std::string path = client->getRequest().getPath(); //mettre en const si ca hurle (url)
 
 
-	const LocationConfig* location = findMatchingLocation(client);
-	if (!location)
-		return buildErrorResponse(404, client);
+// 	if (isCGI(location, path))
+// 		return (executeCGI(client, location, path));
+// 	else
+// 		return (executeStatic(client, location, path));
 
-	std::string path = client->getRequest().getPath(); //mettre en const si ca hurle (url)
-
-
-	if (isCGI(location, path))
-		return (executeCGI(client, location, path));
-	else
-		return (executeStatic(client, location, path));
-
-	// defini si on traite en cgi ou non
-		// if CGI
-		// else
+// 	// defini si on traite en cgi ou non
+// 		// if CGI
+// 		// else
 	
 
-// A FAIRE
+// // A FAIRE
+
+
+
+	HttpResponse res;
+	return res;
 }
 
 HttpResponse	WebServer::methodDelete(SocketClient* client){
+	(void)client;
 	HttpResponse res;
 	return res;
 // A FAIRE

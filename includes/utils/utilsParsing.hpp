@@ -24,5 +24,6 @@ std::string	toLower(const std::string& str);
 bool        isHex(char c);
 int         hexValue(char c);
 char        hexToChar(char a, char b);
+std::string trim(const std::string& s);
 
 #endif

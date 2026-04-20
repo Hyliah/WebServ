@@ -70,7 +70,7 @@ WebServer::~WebServer(){
 void	WebServer::pollLoop(){
 	initPollStruct();
 
-	LOG("---- NEW POLL LOOP ----");
+	LOG("---- NEW POLL LOOP ----"); // --------------------
 
 	while (_running){
 
@@ -119,8 +119,7 @@ void	WebServer::pollLoop(){
 			}
 			if (_pollFds[i].revents & POLLOUT){
 				int fd = _pollFds[i].fd;
-
-				LOG("POLLOUT on fd " << fd);
+				LOG("POLLOUT on fd " << fd); // --------------------
 				try { sendResponse(fd, 0); }
 				catch (...) { closeConnection(fd); }
 			}
@@ -139,8 +138,7 @@ void	WebServer::checkTimeouts() {
         int fd = it->first;
 
         if (now - client->lastActivity > 10) {
-            LOG("Timeout client fd = " << fd);
-
+            LOG("Timeout client fd = " << fd); // --------------------
             closeConnection(fd);
             it = _socketClients.erase(it);
         } else {
@@ -151,7 +149,7 @@ void	WebServer::checkTimeouts() {
 
 void	WebServer::acceptClient(int serverFd){
 
-	LOG(">>> ACCEPT CLIENT on server fd " << serverFd);
+	LOG(">>> ACCEPT CLIENT on server fd " << serverFd); // --------------------
 
 	struct sockaddr_storage addr;
 	socklen_t addrlen = sizeof(addr);
@@ -187,134 +185,125 @@ void	WebServer::acceptClient(int serverFd){
 	pfd.revents = 0;
 	_pollFds.push_back(pfd);
 	
-	LOG("New client fd = " << clientFd);
+	LOG("New client fd = " << clientFd); // --------------------
 }
 
 void	WebServer::handleRequest(int fd){
 	
-	LOG(">>> handleRequest fd = " << fd);
-
-	char buffer[4096];
-	ssize_t bytes = recv(fd, buffer, sizeof(buffer), 0);
-	
-	LOG("recv bytes = " << bytes);
-	
+	LOG(">>> handleRequest fd = " << fd); // --------------------
 	SocketClient* client = _socketClients[fd];
-	client->lastActivity = std::time(NULL);
 
-	if (bytes > 0) {
-
-		client->appendBuffer(std::string(buffer, bytes));
-
-		LOG("BUFFER NOW:\n" << client->getBuffer());
-
-
-		if (client->getBuffer().size() > DEFAULT_MAX_BODY_SIZE) {
-			return throw ResponseException(fd, 413);
-		}
-
-		if (isHeaderComplete(client)) {
-			if (!client->headerParsed){
-				
-				LOG(">>> HEADER COMPLETE");
-				
-				client->parseRequest();
-				client->defineBodyType();
-				client->cleanBuffer();
-				client->headerParsed = true;
-
-				LOG("Method: " << client->getRequest().getMethod());
-				LOG("URI: " << client->getRequest().getUri());
-
-			}
-			
-			if (client->getRequest().getMethod() == "DELETE" || client->getRequest().getMethod() == "GET")
-				client->ignoreBody = true;
-			
-			if (client->chunked)
-				client->parsingChunked();
-			else if (client->contentLength) 
-				client->parsingContentLength();	
-			else
-				client->parsingNoBody();
-
-			LOG("Chunked: " << client->chunked);
-			LOG("ContentLength: " << client->contentLength);
-
-			if (client->requestCompleted){
-
-				LOG(">>> REQUEST COMPLETE");
-				
-				setPollOut(fd);
-			}
-		}
-		else
-			LOG("Header NOT complete yet");
-	}
-
-	else if (bytes == 0) {
-		closeConnection(fd);
-	}
-
-	else {
-		if (errno != EAGAIN && errno != EWOULDBLOCK)
+	try {
+		char buffer[4096];
+		ssize_t bytes = recv(fd, buffer, sizeof(buffer), 0);
+		LOG("recv bytes = " << bytes); // --------------------
+		
+		if (bytes == 0) {
 			closeConnection(fd);
-	}
+			return ;
+		}
+		if (bytes < 0) {
+			if (errno != EAGAIN && errno != EWOULDBLOCK)
+			throw ResponseException(fd, 500);
+			return;
+		}
+		
+		client->appendBuffer(std::string(buffer, bytes));
+		client->lastActivity = std::time(NULL);
+		LOG("BUFFER NOW:\n" << client->getBuffer()); // --------------------
 
-	LOG(">>> ----  HANDLE REQUEST END COMPLETE");
+		if (client->state == READING)
+            client->parseRequest();
+		
+		if (client->state == BODY_READING)
+            parseBody(client);
+
+		if (client->state == READY) {
+            client->state = PROCESSING;
+            setPollOut(fd);
+        }
+	}
+    catch (const ResponseException& e)
+    {
+        client->errorCode = e.getCode();
+        client->state = ERROR;
+        setPollOut(fd);
+    }
+	
+	LOG(">>> ----  HANDLE REQUEST END COMPLETE"); // --------------------
+}
+
+void WebServer::parseBody(SocketClient* client)
+{
+	if (client->getRequest().getMethod() == "DELETE" || client->getRequest().getMethod() == "GET")
+		client->ignoreBody = true;
+
+    if (client->chunked)
+        client->parsingChunked();
+
+    else if (client->contentLength)
+        client->parsingContentLength();
+
+    else
+        client->parsingNoBody();
+
+    if (client->requestCompleted)
+        client->state = READY;
 }
 
 void	WebServer::sendResponse(int fd, int codeError){
 
-		LOG(">>> sendResponse fd = " << fd);
-		LOG(">>> code error = " << codeError);
+	LOG(">>> sendResponse fd = " << fd); // --------------------
+	LOG(">>> code error = " << codeError); // --------------------
 
 	SocketClient* client = _socketClients[fd];
 
-	if (client->getRequest().getUri().size() > MAX_URI_SIZE)
-		throw ResponseException(fd, 414);
-	resolvePath(client);
+	try {
+		HttpResponse res;
 
-	std::string method = client->getRequest().getMethod();
+		if (client->state == ERROR) {
+            res = buildErrorResponse(client->errorCode, client);
+        }
 
-		LOG("Method = " << method);
+		else {
+			resolvePath(client);
 
-	HttpResponse res;
+			std::string method = client->getRequest().getMethod();
+			LOG("Method = " << method);  // --------------------
 
-	if (codeError != 0){
-		res = buildErrorResponse(codeError, client);
-	}
-
-	else {
-		LOG("URI: " << client->getRequest().getUri());
-		
-		if (method == "GET")
-		//mettre le try and catch et recup le fd etcode derreur pour faire un res d errreur
-			res = methodGet(client);
-		else if (method == "POST")
-			res = methodPost(client);
-		else if (method == "DELETE")
-			res = methodDelete(client);
-	}
-    std::string response = res.ResponseToString();
-
-	LOG(">>> RESPONSE BUILT:");
-	LOG(response);
-	
-	size_t totalSent = 0;
-	while (totalSent < response.size()) {
-		ssize_t sent = send(fd, response.c_str() + totalSent, response.size() - totalSent, 0);
-		
-		LOG("Bytes sent: " << sent);
-			
-		if (sent <= 0) {
-			closeConnection(fd);
-			return;
+			if (method == "GET")
+                res = methodGet(client);
+            else if (method == "POST")
+                res = methodPost(client);
+            else if (method == "DELETE")
+                res = methodDelete(client);
 		}
-		totalSent += sent;
+		
+		std::string response = res.ResponseToString();
+		LOG(">>> RESPONSE BUILT:"); // ---------------------
+		LOG(response); // ---------------------
+		LOG("URI: " << client->getRequest().getUri()); // ---------------------
+
+		size_t totalSent = 0;
+		while (totalSent < response.size()) {
+			ssize_t sent = send(fd, response.c_str() + totalSent, response.size() - totalSent, 0);
+			
+			LOG("Bytes sent: " << sent);
+				
+			if (sent <= 0) {
+				closeConnection(fd);
+				return;
+			}
+			totalSent += sent;
+		}
+		
+		client->state = DONE;
+		closeConnection(fd);
 	}
 
-	closeConnection(fd);
+	    catch (...) {
+        closeConnection(fd);
+    }
 
 }
 

@@ -42,9 +42,15 @@ void WebServer::resolvePath(SocketClient* client) {
     resolveQuery(client, queryStr);
 
     // traitement du path
-    std::string finalPath = decodePath(path, fd);
-    finalPath = normalizePath(finalPath, fd);
-    checkErrorPath(finalPath, fd);
+	std::string finalPath;
+	try {
+		finalPath = decodePath(path, fd);
+		finalPath = normalizePath(finalPath, fd);
+		checkErrorPath(finalPath, fd);
+	}
+	catch (...) {
+		throw ResponseException(fd, 400);
+	}
 
     std::string root = findRoot(client);
     cleanFinalPath(root, finalPath);
@@ -176,8 +182,8 @@ void	WebServer::checkErrorPath(const std::string &path, int fd){
 	if (path.find("..") != std::string::npos)
 		throw ResponseException(fd, 403);
 
-	for (size_t i = 0 ; i < path.size() ; i++){
-		if (path[i] < ' ' && path[i] > '~')
+	for (size_t i = 0 ; i < path.size() ; i++){ //voir si mieux avec && ou || pcq bibi n est pas sure
+		if (path[i] < ' ' || path[i] > '~')
 			throw ResponseException(fd, 403);
 	}
 }
