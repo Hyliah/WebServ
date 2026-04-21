@@ -203,7 +203,6 @@ void	WebServer::handleRequest(int fd){
 			return ;
 		}
 		if (bytes < 0) {
-			if (errno != EAGAIN && errno != EWOULDBLOCK)
 			throw ResponseException(fd, 500);
 			return;
 		}
@@ -301,11 +300,9 @@ void	WebServer::sendResponse(int fd, int codeError){
 		client->state = DONE;
 		closeConnection(fd);
 	}
-
 	    catch (...) {
         closeConnection(fd);
     }
-
 }
 
 

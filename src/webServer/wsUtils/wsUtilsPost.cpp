@@ -13,6 +13,21 @@
 #include "WebServer.hpp"
 #include "../utils/utilsGeneral.hpp"
 
+//headers[key].push_back(value);
+
+// void addHeader(std::map<std::string, std::vector<std::string> >& headers,
+//                const std::string& line)
+// {
+//     size_t pos = line.find(':');
+//     if (pos == std::string::npos)
+//         return;
+
+//     std::string key = trim(line.substr(0, pos));
+//     std::string value = trim(line.substr(pos + 1));
+
+//     headers[key].push_back(value);
+// }
+
 bool WebServer::isCGI(const LocationConfig* location, const std::string& path){
     (void)location;
     (void)path;
@@ -73,7 +88,7 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
 
     while (true){
         pid_t result = waitpid(pid, &status, WNOHANG);
-        if ( result = pid)
+        if ( result == pid)
             break;
         if (difftime(time(NULL), start) > MAX_WAIT)
         {
@@ -116,7 +131,7 @@ HttpResponse	WebServer::createCGIResponse(const SocketClient* client, std::strin
     std::string headers = raw.substr(0, pos);
     std::string body = raw.substr(pos + sep_len);
 
-    std::vector<std::string> lines = splitLines(headers); //coder splitlines bibi
+    std::vector<std::string> lines = splitLines(headers); //il est sexy
 
     for (size_t i = 0; i < lines.size(); i++)
     {
@@ -139,10 +154,10 @@ HttpResponse	WebServer::createCGIResponse(const SocketClient* client, std::strin
     }
 
     if (res.statusLine.empty())
-        res.statusLine = 200;
+        res.statusLine = "200";
 
     res.body = body;
-    
+
     return res;
 }
 
@@ -171,35 +186,62 @@ HttpResponse	WebServer::executeStatic(const SocketClient* client, const Location
 
 
 const std::map<std::string, std::string> WebServer::createEnvp(const SocketClient* client, const LocationConfig* location, const std::string& path){
-    
-    (void)client;
     (void)location;
-    (void)path;
-    
-    std::map<std::string, std::string> map;
+
+    std::map<std::string, std::string> env;
 
     // creer un tableau avec les infos pour que ce soit transformer en 2e partie en char** pour le exeve minishell way
 
     // recuperer la request dans le client
 
-    // env["REQUEST_METHOD"] = request.method
-    // env["QUERY_STRING"] = request.query   // ?a=1&b=2
-    // env["CONTENT_LENGTH"] = request.headers["Content-Length"]
-    // env["CONTENT_TYPE"] = request.headers["Content-Type"]
+    std::string contentType;
 
-    // env["SCRIPT_NAME"] = route.path
-    // env["PATH_INFO"] = extract_path_info(request.path, route)
+    std::map<std::string, std::vector<std::string> > headers = client->getRequest().getHeaders(); //changer mettre plus en string string mais en string map
+    std::map<std::string, std::vector<std::string> >::iterator it = headers.find("content-type");
+    if (it != headers.end() && !it->second.empty())
+        contentType = it->second[0];
 
-    // env["SERVER_PROTOCOL"] = "HTTP/1.1"
-    // env["GATEWAY_INTERFACE"] = "CGI/1.1"
+    env["REQUEST_METHOD"] = client->getRequest().getMethod();
+    env["QUERY_STRING"] = client->getRequest().getOriginQuery();   // ?a=1&b=2 faire verif que c est bien sur ce format la avec le ? normalement bon
+    env["CONTENT_LENGTH"] = client->getRequest().getContentLength();
+    env["CONTENT_TYPE"] =   contentType; //trouver le content type la dedans.
 
-    return map;
+
+    env["SCRIPT_NAME"] = path;
+    // env["PATH_INFO"] = extract_path_info(request.path, route) //Faire la fonction qui extract les infos
+
+    env["SERVER_PROTOCOL"] = "HTTP/1.1";
+    env["GATEWAY_INTERFACE"] = "CGI/1.1";
+
+    return env;
 }
 
-char**			WebServer::convertMapToChar(const std::map<std::string, std::string>& map){
-    (void)map;
-    char** tab = NULL;
-    // map ti char fonction a faire avec un super malloc
-    //attention aux unfructuousmallocs 
-    return tab;
+char**			WebServer::convertMapToChar(const std::map<std::string, std::vector<std::string> >& env){
+
+    char** res = new char*[env.size() + 1];
+
+    size_t i = 0;
+
+    for (std::map<std::string, std::vector<std::string> >::const_iterator it = env.begin(); it != env.end(); ++it)
+    {
+        std::string line = it->first + "=";
+
+        const std::vector<std::string>& values = it->second;
+
+        for (size_t j = 0; j < values.size(); j++)
+        {
+            line += values[j];
+            if (j + 1 < values.size())
+                line += ", ";
+        }
+
+        res[i] = strdup(line.c_str());
+        i++;
+    }
+    res[i] = NULL;
+
+    return res;
 }
+
+
+//faire une fonction qui coupe le path en bout chouettes : URI: /cgi/script.py/foo/bar : SCRIPT_NAME → /cgi/script.py : PATH_INFO   → /foo/bar

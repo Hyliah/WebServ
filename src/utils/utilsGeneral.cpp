@@ -173,7 +173,7 @@ void	*freePtr(void **ptr)
 	return (NULL);
 }
 
-void	freeMidTab(char ***tab, int i)
+void	freeMidTab(char ***tab, int i) // supprimer partout
 {
 	if (!tab && !*tab)
 		return ;
@@ -186,26 +186,39 @@ void	freeMidTab(char ***tab, int i)
 	*tab = NULL;
 }
 
-void	freeTab(char ***tab)
+void freeTab(char*** envp)
 {
-	int	i;
+    for (int i = 0; (*envp)[i]; i++)
+        free((*envp)[i]);
 
-	i = 0;
-	if (!tab || !*tab)
-		return ;
-	while ((*tab)[i])
-	{
-		freePtr((void **)&((*tab)[i]));
-		i++;
-	}
-	free(*tab);
-	*tab = NULL;
+    delete[] *envp;
+    *envp = NULL;
 }
 
 std::vector<std::string> splitLines(std::string str){
 	std::vector<std::string> ret;
+	
+	size_t posStart = 0;
+    size_t pos;
+	
+	while((pos = str.find('\n', posStart)) != std::string::npos){
+	
+		std::string line = str.substr(posStart, pos - posStart);
+		if (!line.empty() && line[line.size() - 1] == '\r')
+            line.erase(line.size() - 1);
 
-	//coder des shits 
+        ret.push_back(line);
+        posStart = pos + 1;
+    }
+
+    if (posStart < str.size())
+    {
+        std::string line = str.substr(posStart);
+        if (!line.empty() && line[line.size() - 1] == '\r')
+            line.erase(line.size() - 1);
+
+        ret.push_back(line);
+    }
 
 	return ret;
 }
