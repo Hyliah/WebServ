@@ -280,6 +280,7 @@ void	WebServer::sendResponse(int fd, int codeError){
 		}
 		
 		std::string response = res.ResponseToString();
+		
 		LOG(">>> RESPONSE BUILT:"); // ---------------------
 		LOG(response); // ---------------------
 		LOG("URI: " << client->getRequest().getUri()); // ---------------------
