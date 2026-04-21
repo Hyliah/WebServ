@@ -53,7 +53,6 @@ HttpResponse	WebServer::methodGet(SocketClient* client){
 	LOG("Serving file: " << path);
 	
 	/*
-	- fonction send : send(fd, response.c_str(), response.size(), 0);
 	- closeConnection(fd);
 	*/
 }
@@ -61,29 +60,16 @@ HttpResponse	WebServer::methodGet(SocketClient* client){
 HttpResponse	WebServer::methodPost(SocketClient* client){
 	(void)client;
 
-// 	const LocationConfig* location = findMatchingLocation(client);
-// 	if (!location)
-// 		return buildErrorResponse(404, client);
+	const LocationConfig* location = findMatchingLocation(client);
+	if (!location)
+		return buildErrorResponse(404, client);
 
-// 	std::string path = client->getRequest().getPath(); //mettre en const si ca hurle (url)
+	std::string path = client->getRequest().getPath(); //mettre en const si ca hurle (url)
 
-
-// 	if (isCGI(location, path))
-// 		return (executeCGI(client, location, path));
-// 	else
-// 		return (executeStatic(client, location, path));
-
-// 	// defini si on traite en cgi ou non
-// 		// if CGI
-// 		// else
-	
-
-// // A FAIRE
-
-
-
-	HttpResponse res;
-	return res;
+	if (isCGI(location, path))
+		return (executeCGI(client, location, path));
+	else
+		return (executeStatic(client, location, path));
 }
 
 HttpResponse	WebServer::methodDelete(SocketClient* client){

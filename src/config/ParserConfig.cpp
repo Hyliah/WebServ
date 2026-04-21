@@ -12,7 +12,7 @@
 
 #include "ServerConfig.hpp"
 #include "ParserConfig.hpp"
-#include "utilsParsing.hpp"
+#include "utilsGeneral.hpp"
 #include "Exceptions.hpp"
 #include <iostream>
 #include <sstream>

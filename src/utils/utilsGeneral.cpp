@@ -10,9 +10,10 @@
 /*                                                                           */
 /*****************************************************************************/
 
-#include "utilsParsing.hpp"
+#include "utilsGeneral.hpp"
 #include "WebServer.hpp"
 #include "Exceptions.hpp"
+
 
 /* ************************************************** */
 /* Conversion					                      */
@@ -146,4 +147,65 @@ std::string trim(const std::string& s)
         end--;
 
     return s.substr(start, end - start);
+}
+
+/* ************************************************** */
+/* Close and free				                      */
+/* ************************************************** */
+
+
+void	safeClose(int *fd){
+	if (!*fd || !fd)
+		return;
+	if (*fd != -1){
+		close(*fd);
+		*fd = -1;
+	}
+}
+
+void	*freePtr(void **ptr)
+{
+	if (*ptr && ptr)
+	{
+		free(*ptr);
+		*ptr = NULL;
+	}
+	return (NULL);
+}
+
+void	freeMidTab(char ***tab, int i)
+{
+	if (!tab && !*tab)
+		return ;
+	while (i > 0)
+	{
+		i--;
+		freePtr((void **)&((*tab)[i]));
+	}
+	free(*tab);
+	*tab = NULL;
+}
+
+void	freeTab(char ***tab)
+{
+	int	i;
+
+	i = 0;
+	if (!tab || !*tab)
+		return ;
+	while ((*tab)[i])
+	{
+		freePtr((void **)&((*tab)[i]));
+		i++;
+	}
+	free(*tab);
+	*tab = NULL;
+}
+
+std::vector<std::string> splitLines(std::string str){
+	std::vector<std::string> ret;
+
+	//coder des shits 
+
+	return ret;
 }

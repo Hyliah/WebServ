@@ -22,13 +22,15 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <fstream>
+#include <time.h>
+#include <signal.h>
 
 #include "SocketClient.hpp"
 #include "SocketServer.hpp"
 #include "ServerConfig.hpp"
 #include "Exceptions.hpp"
 #include "../http/HttpResponse.hpp"
-#include "../utils/utilsParsing.hpp"
+#include "../utils/utilsGeneral.hpp"
 
 
 
@@ -108,6 +110,7 @@ class WebServer{
 		bool			isCGI(const LocationConfig* location, const std::string& path);
 		HttpResponse	executeCGI(const SocketClient* client, const LocationConfig* location, const std::string& path);
 		HttpResponse	executeStatic(const SocketClient* client, const LocationConfig* location, const std::string& path);
+		HttpResponse	createCGIResponse(const SocketClient* client, std::string output);
 
 		const std::map<std::string, std::string> createEnvp(const SocketClient* client, const LocationConfig* location, const std::string& path);
 		char**			convertMapToChar(const std::map<std::string, std::string>&);

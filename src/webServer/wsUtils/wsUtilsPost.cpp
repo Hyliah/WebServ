@@ -11,7 +11,7 @@
 /*****************************************************************************/
 
 #include "WebServer.hpp"
-#include "../utils/utilsParsing.hpp"
+#include "../utils/utilsGeneral.hpp"
 
 bool WebServer::isCGI(const LocationConfig* location, const std::string& path){
     (void)location;
@@ -24,75 +24,127 @@ bool WebServer::isCGI(const LocationConfig* location, const std::string& path){
 }
 
 HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationConfig* location, const std::string& path) {
+    if (access(path.c_str(), F_OK) == -1)
+        return buildErrorResponse(404, client);
+    
+    if (access(path.c_str(), X_OK) == -1)
+        return buildErrorResponse(403, client);
+    
+    int bodyFd = open(client->getRequest().getBodyPath().c_str(), O_RDONLY);
+    if (bodyFd == -1)
+        return buildErrorResponse(500, client);
 
-    (void)client;
-    (void)location;
-    (void)path;
-    //1) faire des verif de chmod et existe
-        // if (access(path.c_str(), F_OK) == -1)
-            // return buildResponseError(404);
-        // if (access(path.c_str(), X_OK) == -1)
-            // return buildResponseError(403);
+    std::map<std::string, std::string> map = createEnvp(client, location, path);
+    char** envp = convertMapToChar(map);
+
+    int pipeFd[2] = {-1};
     
-    //2) creation du ENVP 
-        //creation du envp
-        //convert to char**
-    
-    
-    //3) faire des pipes stdin et stdout 
-        // int pipe_in[2] = {-1};   // parent → child
-        // int pipe_out[2] = {-1};  // child → parent
-        // pipe(fd) -> fd[0] et fd[1]
-        // if pipe == -1 -> return code erreur 500
+    if (pipe(pipeFd) == -1){
+        freeTab(&envp);
+        return buildErrorResponse(500, client);
+    }
+
+    pid_t pid = fork();
+    if (pid == -1){
+        safeClose(&pipeFd[0]); safeClose(&pipeFd[1]);
+        freeTab(&envp);
+        return buildErrorResponse(500, client);
+    }
+
+    if (pid == 0){
+        dup2(bodyFd, STDIN_FILENO);
+        dup2(pipeFd[1], STDOUT_FILENO);
+
+        safeClose(&bodyFd);
+        safeClose(&pipeFd[0]); safeClose(&pipeFd[1]);
+
+        char* argv[] = { const_cast<char*>(path.c_str()), NULL }; // creation d un tableau *[] pour mettre en tab[0] le paht et tab[1] NULL
+        execve(path.c_str(), argv, envp);
         
-    //4) faire des fork()
-        //pid_t pid = fork()
+        exit(1);
+    }
 
-        //if (pid == -1)
-        // safeClose(pipe_in[0]); safeClose(pipe_in[1]);
-        // safeClose(pipe_out[0]); safeClose(pipe_out[1]);
-        // freeEnvp(&(*envp));
-        // return buildErrorResponse(500, client);
+    close(bodyFd);
+    close(pipeFd[1]);
+    
+    int status;
+    time_t start = time(NULL);
+    const int MAX_WAIT = 5;
 
-        //if (pid == 0)
-            // dup2(pipe_in[0], STDIN_FILENO);
-            // dup2(pipe_out[1], STDOUT_FILENO);
-            // safeClose(pipe_in[0]); safeClose(pipe_in[1]);
-            // safeClose(pipe_out[0]); safeClose(pipe_out[1]);
+    while (true){
+        pid_t result = waitpid(pid, &status, WNOHANG);
+        if ( result = pid)
+            break;
+        if (difftime(time(NULL), start) > MAX_WAIT)
+        {
+            kill(pid, SIGKILL);
+            close(pipeFd[0]);
+            freeTab(&envp);
+            return buildErrorResponse(504, client);
+        }
+        usleep(1000);
+    }
+    
+    std::string output;
+    char buffer[4096];
+    ssize_t bytes;
 
-            // char* argv[] = { const_cast<char*>(path.c_str()), NULL }; creation d un tableau *[] pour mettre en tab[0] le paht et tab[1] NULL
-            // execve(path.c_str(), argv, envp); 
-            
-            // gestion de sortie si fail -> quel code d erreur ? 500 ? -> exit(1);
-        
-        //else
+    while ((bytes = read(pipeFd[0], buffer, sizeof(buffer))) > 0)
+        output.append(buffer, bytes);
 
-            // close(pipe_in[0]); close(pipe_out[1]);
-            
-            // recuperation des infos du child
-                // write(fd[1], body.c_str(), body.size()); -> est ce que on met dans le ficheir body plus qu une string
-                //close(pipe_in[1]);
-            
-           
-            
-            // wait ? creation d un timeout ? -> si timeout quelle erreur ?
-                // int status;
-                // int timeout = 0;
-                // const int MAX_WAIT = 5;
-
-                //if (timeout) {
-                //     kill(pid, SIGKILL);
-                //     return 504; 
-                // }
-
-            
-            // return crea_d_une_response_special_cgi(), free le tab?
-
-    HttpResponse res;
-    return res;
+    close(pipeFd[0]);
+    freeTab(&envp);
+    
+    return createCGIResponse(client, output);
 }
 
+HttpResponse	WebServer::createCGIResponse(const SocketClient* client, std::string raw){
+    HttpResponse res;
 
+    size_t pos = raw.find("\r\n\r\n");
+    size_t sep_len = 4;
+
+    if (pos == std::string::npos)
+    {
+        pos = raw.find("\n\n");
+        sep_len = 2;
+    }
+
+    if (pos == std::string::npos)
+        return buildErrorResponse(500, client);
+
+    std::string headers = raw.substr(0, pos);
+    std::string body = raw.substr(pos + sep_len);
+
+    std::vector<std::string> lines = splitLines(headers); //coder splitlines bibi
+
+    for (size_t i = 0; i < lines.size(); i++)
+    {
+        if (lines[i].empty())
+            continue;
+
+        size_t colon = lines[i].find(':');
+        if (colon == std::string::npos)
+            continue;
+
+        std::string key = trim(lines[i].substr(0, colon));
+        std::string value = trim(lines[i].substr(colon + 1));
+
+        if (key == "Status"){
+            res.statusLine = atoi(value.c_str());
+        }
+        else{
+            res.headers[key] = value;
+        }
+    }
+
+    if (res.statusLine.empty())
+        res.statusLine = 200;
+
+    res.body = body;
+    
+    return res;
+}
 
 HttpResponse	WebServer::executeStatic(const SocketClient* client, const LocationConfig* location, const std::string& path) {
     (void)client;

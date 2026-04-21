@@ -17,11 +17,18 @@
 #include <map>
 
 class HttpResponse {
+	private:
+		// HttpResponse(const HttpResponse& other);
+		// HttpResponse& operator=(const HttpResponse& other);
+	
 	public:
 		std::string statusLine;
 		std::map<std::string,std::string> headers;
 		std::string body;
 
 		std::string ResponseToString() const;
+
+		HttpResponse();
+		~HttpResponse();
 
 };

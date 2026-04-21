@@ -11,7 +11,7 @@
 /*****************************************************************************/
 
 #include "WebServer.hpp"
-#include "../utils/utilsParsing.hpp"
+#include "../utils/utilsGeneral.hpp"
 
 const LocationConfig* WebServer::findMatchingLocation(const SocketClient* client) const {
     

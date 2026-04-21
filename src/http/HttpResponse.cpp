@@ -12,6 +12,9 @@
 
 #include "../http/HttpResponse.hpp"
 
+HttpResponse::HttpResponse(){}
+HttpResponse::~HttpResponse(){}
+
 std::string HttpResponse::ResponseToString() const {
 	std::stringstream ss;
 	ss << statusLine << "\r\n";
@@ -22,3 +25,4 @@ std::string HttpResponse::ResponseToString() const {
 	ss << "\r\n" << body;
 	return ss.str();
 }
+
