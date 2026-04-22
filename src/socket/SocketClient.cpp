@@ -66,16 +66,16 @@ void	SocketClient::parseRequest(){
 
 void	SocketClient::defineBodyType(){
 
-	const std::map<std::string, std::string>& headers = _request.getHeaders();
+	const std::map<std::string, std::vector<std::string> >& headers = _request.getHeaders();
 
 	//Content Length
-	std::map<std::string, std::string>::const_iterator itCL;
+	std::map<std::string, std::vector<std::string> >::const_iterator itCL;
 	itCL = headers.find("content-length");
 	if (itCL != headers.end()){
 		contentLength = true;
 		// peut etre faire une verif avant pour pas changer la fonction stringToLong
 		// attention gerer les 400 ou 413 ou quoi si le string n est pas un noombre correct genre 10M
-		_request.setContentLength(stringToLong(itCL->second.c_str()));
+		_request.setContentLength(stringToLong(itCL->second[0].c_str()));
 		if (_request.getContentLength() > DEFAULT_MAX_BODY_SIZE)
 			throw ResponseException(_fd, 413); //CHANGER LE NUMERO QUAND JE LE CONNAITRAI !!!!!!!!!!!!!!!!!!!!!!
 	}
@@ -86,10 +86,10 @@ void	SocketClient::defineBodyType(){
 
 	//chunked
 	chunked = false;
-	std::map<std::string, std::string>::const_iterator itTE;
+	std::map<std::string, std::vector<std::string> >::const_iterator itTE;
 	itTE = headers.find("transfer-encoding");
 	if (itTE != headers.end()){
-		std::string value = toLower(itTE->second);
+		std::string value = toLower(itTE->second[0]);
 		if (value.find("chunked") != std::string::npos)
 			chunked = true;
 	}
@@ -187,7 +187,7 @@ void SocketClient::parseHeaders(std::string &buffer, size_t &pos)
 
 void SocketClient::validateHeaders(int headerCount, size_t totalSize) {
 
-    const std::map<std::string, std::string>& h = _request.getHeaders();
+    const std::map<std::string, std::vector<std::string> >& header = _request.getHeaders();
 
     if (headerCount > MAX_HEADER_COUNT)
         throw ResponseException(_fd, 431);
@@ -195,13 +195,13 @@ void SocketClient::validateHeaders(int headerCount, size_t totalSize) {
     if (totalSize > MAX_HEADER_SIZE)
         throw ResponseException(_fd, 431);
 
-    if (h.find("host") == h.end()){
+    if (header.find("host") == header.end()){
         throw ResponseException(_fd, 400);
 	}
 
-    std::map<std::string, std::string>::const_iterator it = h.find("content-length");
-    if (it != h.end()) {
-        if (it->second.find_first_not_of("0123456789") != std::string::npos)
+    std::map<std::string, std::vector<std::string> >::const_iterator it = header.find("content-length");
+    if (it != header.end()) {
+        if (it->second[0].find_first_not_of("0123456789") != std::string::npos)
 		{
             throw ResponseException(_fd, 400);
 		}
@@ -335,14 +335,14 @@ bool	SocketClient::isValidVersion(){
 
 bool	SocketClient::isValidBody(std::string& chunk){
 
-    const std::map<std::string, std::string>& headers = _request.getHeaders();
-    std::map<std::string, std::string>::const_iterator it = headers.find("content-type");
+    const std::map<std::string, std::vector<std::string> >& headers = _request.getHeaders();
+    std::map<std::string, std::vector<std::string> >::const_iterator it = headers.find("content-type");
 
     // pas de content-type → on accepte
     if (it == headers.end())
         return true;
 
-    std::string type = it->second;
+    std::string type = it->second[0];
 
     // TEXT ONLY
     if (type.find("text") != std::string::npos ||

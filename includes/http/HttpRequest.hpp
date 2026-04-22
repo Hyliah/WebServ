@@ -26,11 +26,11 @@ class HttpRequest
     std::string _originQuery;
 
     std::string _path;
-    std::map<std::string, std::string> _query;
+    std::map<std::string, std::vector<std::string> > _query;
 
     //HEADERS
     long    _contentLength;
-    std::map<std::string, std::string> _headers; //key : value
+    std::map<std::string, std::vector<std::string> > _headers;
     
     //BODY 
     std::string _bodyFilePath;
@@ -51,7 +51,7 @@ class HttpRequest
     const   std::string& getPath() const;
     const   std::string& getOriginPath() const;
     const   std::string& getOriginQuery() const;
-    const   std::map<std::string, std::string>& getHeaders() const;
+    const   std::map<std::string, std::vector < std::string> >& getHeaders() const;
     long    getContentLength() const;
 
     void    setMethod(std::string);
@@ -61,7 +61,7 @@ class HttpRequest
     void    setPath(std::string);
     void    setContentLength(long length);
     void    setHeaders(const std::string& key, const std::string& value);
-    void    setQuery(std::map<std::string, std::string> query);
+    void    setQuery(std::map<std::string, std::vector <std::string> > query);
 
     void    setOriginPath(std::string);
     void    setOriginQuery(std::string);

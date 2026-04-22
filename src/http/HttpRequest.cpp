@@ -41,7 +41,7 @@ const	std::string& HttpRequest::getVersion() const { return (_version); }
 const   std::string& HttpRequest::getBodyPath() const { return(_bodyFilePath); }
 const   std::string& HttpRequest::getPath() const { return(_path);}
 long    HttpRequest::getContentLength() const { return(_contentLength); }
-const	std::map<std::string, std::string>& HttpRequest::getHeaders() const { return (_headers); }
+const	std::map<std::string, std::vector<std::string> >& HttpRequest::getHeaders() const { return (_headers); }
 const   std::string& HttpRequest::getOriginPath() const{ return(_originPath); }
 const   std::string& HttpRequest::getOriginQuery() const{ return(_originQuery); }
 
@@ -54,9 +54,9 @@ void	HttpRequest::setBodyPath(std::string str){ _bodyFilePath = str; }
 void	HttpRequest::setPath(std::string str){ _path = str; }
 void	HttpRequest::setContentLength(long length) { _contentLength = length; }
 void	HttpRequest::setHeaders(const std::string& key, const std::string& value){
-	_headers[toLower(key)] = value;
+	_headers[toLower(key)].push_back(value);
 }
-void    HttpRequest::setQuery(std::map<std::string, std::string> query){ _query = query; }
+void    HttpRequest::setQuery(std::map<std::string, std::vector <std::string> > query){ _query = query; }
 
 void	HttpRequest::writeBody(const std::string& str){
 	if (_bodyFile.is_open())

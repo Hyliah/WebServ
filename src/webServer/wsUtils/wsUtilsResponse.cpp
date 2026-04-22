@@ -62,11 +62,11 @@ const ServerConfig* WebServer::findMatchingConfig(const SocketClient* client) co
     const std::vector<const ServerConfig*>& configs = client->getServer()->getServers();
 
     std::string host;
-    const std::map<std::string, std::string>& headers = client->getRequest().getHeaders();
+    const std::map<std::string, std::vector<std::string> >& headers = client->getRequest().getHeaders();
 
-    std::map<std::string, std::string>::const_iterator it = headers.find("host");
+    std::map<std::string, std::vector<std::string> >::const_iterator it = headers.find("host");
     if (it != headers.end())
-        host = it->second;
+        host = it->second[0];
     
     std::string cleanHost = host.substr(0, host.find(':'));
 

@@ -112,7 +112,7 @@ class WebServer{
 		HttpResponse	executeStatic(const SocketClient* client, const LocationConfig* location, const std::string& path);
 		HttpResponse	createCGIResponse(const SocketClient* client, std::string output);
 
-		const std::map<std::string, std::string> createEnvp(const SocketClient* client, const LocationConfig* location, const std::string& path);
+		std::map<std::string, std::vector<std::string> > createEnvp(const SocketClient* client, const LocationConfig* location, const std::string& path);
 		char**			convertMapToChar(const std::map<std::string, std::vector<std::string> >& env);
 		// 
 		const ServerConfig*		findMatchingConfig(const SocketClient* client) const;
