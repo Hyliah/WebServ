@@ -29,13 +29,26 @@
 // }
 
 bool WebServer::isCGI(const LocationConfig* location, const std::string& path){
-    (void)location;
-    (void)path;
-    //coder un truc
-
     //aller chercher dans le parsinf du fichier de conf de la loc si on a des formats correspondant
     // depend soit d une extension soit d un flag en config. Faut il y avoir les 2 ou tout fonctionne ? 
-    return true;
+	// ( de memoire on avait dit juste extension )
+
+	// Check si le CGI est activé pour cette location
+    if (!location->cgiEnabled)
+        return false;
+
+    // Trouver l'extension du fichier (on cherche le dernier '.')
+    size_t lastDot = path.find_last_of('.'); // ok cpp98 si jamais j'ai check
+    if (lastDot == std::string::npos)
+        return false;
+
+    std::string ext = path.substr(lastDot); // Récupère ".py" par exemple
+
+    // Vérifier si cette extension est enregistrée dans cgiInfo
+    if (location->cgiInfo.find(ext) != location->cgiInfo.end())
+        return true;
+
+    return false;
 }
 
 HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationConfig* location, const std::string& path) {

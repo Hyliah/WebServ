@@ -20,6 +20,7 @@ LocationConfig::LocationConfig(){
 	root = ""; // si location.root est vide, utilise server.root par defaut ?? a checker 
 	autoindex = false;
 	index.push_back("index.html");
+	returnCode = 0;
 	returnUrl = "";
 	uploadStore = "";
 	maxBodySize = 100000; // 100ko par defaut
@@ -37,6 +38,7 @@ LocationConfig::LocationConfig(const LocationConfig &other) {
 	methods = other.methods;
 	autoindex = other.autoindex;
 	index = other.index;
+	returnCode = other.returnCode;
 	returnUrl = other.returnUrl;
 	uploadStore = other.uploadStore;
 	cgiInfo = other.cgiInfo;
@@ -50,6 +52,7 @@ LocationConfig& LocationConfig::operator=(const LocationConfig &other) {
 		methods = other.methods;
 		autoindex = other.autoindex;
 		index = other.index;
+		returnCode = other.returnCode;
 		returnUrl = other.returnUrl;
 		uploadStore = other.uploadStore;
 		cgiInfo = other.cgiInfo;

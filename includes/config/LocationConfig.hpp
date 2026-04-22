@@ -27,6 +27,7 @@ public:
 	bool					autoindex;     // si on ou off pour savoir sin on affiche le listing du dossier ou pas
 	std::vector<std::string> index;         // Fichier par défaut (index.html)
 
+	int						returnCode;
 	std::string				returnUrl;    // Pour les redirections (301) - a checker 
 
 	std::string				uploadStore;  // Dossier pour les uploads

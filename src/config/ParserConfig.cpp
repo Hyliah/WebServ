@@ -190,24 +190,6 @@ void	ParserConfig::parseLocation(std::vector<std::string>::iterator &it, ServerC
 /*  HANDLERS SERVER                                    */
 /* *************************************************** */ 
 
-	// ajouter plein de truc ici en fait c'est pas du tout suffisant 
-	// check avec host:port  ex: "127.0.0.1:8080"
-	// check si empty ? ou alors apres avec :
-	// check si port est un nombre et dans la plage 0-65535 ( verifyconfig ? )
-	// check port only 
-
-// Version initiale 
-// void	ParserConfig::handleListen(std::vector<std::string>::iterator &it, ServerConfig &server){
-// 	it++;
-// 	if (!validateValue(it)) {	
-// 		throw ParseException(CONF, "'listen' directive needs a value (e.g., 80 or 127.0.0.1:80)");
-// 	}
-// 	server.port = *it;
-// 	it++;
-// 	checkSemicolon(it);
-// }
-
-// version plus complete 
 void ParserConfig::handleListen(std::vector<std::string>::iterator &it, ServerConfig &server)
 {
     it++;
@@ -301,7 +283,6 @@ void	ParserConfig::handleIndex(std::vector<std::string>::iterator &it, ServerCon
 	checkSemicolon(it);
 }
 
-
 /* *************************************************** */
 /*  HANDLERS LOCATION                                  */
 /* *************************************************** */ 
@@ -373,12 +354,19 @@ void	ParserConfig::handleMaxBodySize(std::vector<std::string>::iterator &it, Loc
 }
 
 void	ParserConfig::handleReturn(std::vector<std::string>::iterator &it, LocationConfig &location){
-	it++;
-	if (!validateValue(it))
-		throw ParseException(CONF, "Return needs a value");
-	location.returnUrl = *it;
-	it++;
-	checkSemicolon(it);
+    it++;
+    if (!validateValue(it))
+        throw ParseException(CONF, "return needs a code and/or URL");
+
+    if (isdigit((*it)[0])) {
+        location.returnCode = stringToInt(*it);
+        it++;
+    }
+    if (validateValue(it) && *it != ";") {
+        location.returnUrl = *it;
+        it++;
+    }
+    checkSemicolon(it);
 }
 
 void	ParserConfig::handleUploadStore(std::vector<std::string>::iterator &it, LocationConfig &location){
@@ -448,11 +436,46 @@ void	ParserConfig::checkBracketsBalance(const std::string &content){
 /* *************************************************** */
 /*  FINAL VERIF'                                       */
 /* *************************************************** */ 
-// void	ParserConfig::verifyConfig(){
-// 	// verifie que chaque serveur a au moins un port et une location, et qu'il n'y a pas de doublons de ports
-// 	// faire ici toutes les verif specifiques par ex verifi specifique au port ( 0 - 65535) ...
-//	// etc ... 
-// }
+
+void	ParserConfig::verifyConfig(){
+	// verifie que chaque serveur a au moins un port et une location, et qu'il n'y a pas de doublons de ports
+	// etc ... 
+	if (_servers.empty())
+        throw ParseException(CONF, "No server block found");
+
+    // Check doublons host:port
+    for (size_t i = 0; i < _servers.size(); i++) {
+        for (size_t j = i + 1; j < _servers.size(); j++) {
+            if (_servers[i].host == _servers[j].host && 
+                _servers[i].port == _servers[j].port)
+                throw ParseException(CONF, "Duplicate host:port: " 
+                    + _servers[i].host + ":" + _servers[i].port);
+        }
+    }
+    for (size_t i = 0; i < _servers.size(); i++) {
+        ServerConfig &s = _servers[i];
+
+        // Port obligatoire (même si tu as une valeur par défaut)
+        if (s.port.empty())
+            throw ParseException(CONF, "Server missing 'listen' directive");
+
+        // Root obligatoire
+        if (s.root.empty())
+            throw ParseException(CONF, "Server missing 'root' directive");
+
+        // Vérif locations
+        for (size_t j = 0; j < s.locations.size(); j++) {
+            LocationConfig &loc = s.locations[j];
+
+            if (loc.path.empty() || loc.path[0] != '/')
+                throw ParseException(CONF, "Location path must start with '/'");
+
+            // Si CGI activé, vérifier que les extensions ont bien un exécutable
+            if (loc.cgiEnabled && loc.cgiInfo.empty())
+                throw ParseException(CONF, "CGI enabled but no cgi_info defined");
+        }
+    }
+}
 
 
 // ------------------------------ Prise de note vrac ------------------------------
