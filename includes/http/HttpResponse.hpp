@@ -23,7 +23,7 @@ class HttpResponse {
 	
 	public:
 		std::string statusLine;
-		std::map<std::string,std::string> headers;
+		std::map<std::string, std::vector<std::string> > headers;
 		std::string body;
 
 		std::string ResponseToString() const;

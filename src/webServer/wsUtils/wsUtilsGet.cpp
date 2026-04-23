@@ -113,6 +113,8 @@ std::string WebServer::getMimeType(std::string path){
 HttpResponse WebServer::serveFile(const SocketClient* client, const std::string& path, struct stat& st){
 	(void)st;
 	
+	LOG(">>> SERVE FILE ");
+
     std::ifstream file(path.c_str(), std::ios::binary);
     if (!file) {
         return buildErrorResponse(500, client);
@@ -121,7 +123,7 @@ HttpResponse WebServer::serveFile(const SocketClient* client, const std::string&
 	std::ostringstream ss;
 	ss << file.rdbuf();
 	std::string body = ss.str();
-
+	LOG("\n >>> MID SERVE "); //----------------
 	HttpResponse res = fillResponseOK(body, body.size(), getMimeType(path), client);
 	return res;
 }
@@ -129,7 +131,7 @@ HttpResponse WebServer::serveFile(const SocketClient* client, const std::string&
 
 
 HttpResponse	WebServer::generateListing(const std::string &path, const SocketClient* client){
-	LOG(">>> generateListing for " << path);LOG(">>> generateListing for " << path);
+	LOG(">>> generateListing for " << path); // ---------------------
 
 	DIR* dir = opendir(path.c_str());
 	if (!dir)
@@ -163,15 +165,19 @@ HttpResponse	WebServer::generateListing(const std::string &path, const SocketCli
 HttpResponse	WebServer::fillResponseOK(std::string body, long size, std::string type, const SocketClient* client){
 	HttpResponse res;
 
+	LOG("\n >>> FILL RESPONSE OK "); //----------------
+	
 	res.statusLine = "HTTP/1.1 200 OK";
 	res.body = body;
-	res.headers["Content-Length"] = longToString(size);
-	res.headers["Content-Type"] = type;
-	if (client->keepAlive)
-        res.headers["Connection"] = "keep-alive";
-	else 
-    	res.headers["Connection"] = "close";
 
+	std::string sizeStr = longToString(size);
+
+	res.headers["Content-Length"].push_back(sizeStr);
+	res.headers["Content-Type"].push_back(type);
+	if (client && client->keepAlive)
+        res.headers["Connection"].push_back("keep-alive");
+	else 
+    	res.headers["Connection"].push_back("close");
 	return res;
 }
 

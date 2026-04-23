@@ -151,12 +151,12 @@ std::string WebServer::findRoot(const SocketClient* client){
 	
 	const std::vector<const ServerConfig*>& conf = client->getServer()->getServers();
     const HttpRequest& req = client->getRequest();
-    const std::map<std::string, std::string>& headers = req.getHeaders();
+    const std::map<std::string, std::vector<std::string> > & headers = req.getHeaders();
 
     std::string host;
-    std::map<std::string,std::string>::const_iterator it = headers.find("host");
+    std::map<std::string, std::vector<std::string> >::const_iterator it = headers.find("host");
     if (it != headers.end())
-        host = it->second;
+        host = it->second[0];
 
     std::string recupRoot;
     for (size_t i = 0; i < conf.size(); ++i) {
@@ -191,7 +191,7 @@ void	WebServer::checkErrorPath(const std::string &path, int fd){
 
 void WebServer::resolveQuery(SocketClient* client, std::string queryStr) {
 
-    std::map<std::string, std::string> query;
+    std::map<std::string, std::vector<std::string> > query;
 
     size_t posStart = 0;
 
@@ -220,7 +220,7 @@ void WebServer::resolveQuery(SocketClient* client, std::string queryStr) {
         value = UrlDecode(client, value);
 
         if (!key.empty())
-            query[key] = value;
+            query[key].push_back(value);
 
         posStart = posEnd + 1;
     }

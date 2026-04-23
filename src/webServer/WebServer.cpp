@@ -270,14 +270,18 @@ void	WebServer::sendResponse(int fd, int codeError){
 			std::string method = client->getRequest().getMethod();
 			LOG("Method = " << method);  // --------------------
 
-			if (method == "GET")
-                res = methodGet(client);
+			if (method == "GET"){
+				res = methodGet(client);
+				std::cout << "ALL GOOD DANS METHOD GET" << std::endl;
+			}
             else if (method == "POST")
                 res = methodPost(client);
             else if (method == "DELETE")
                 res = methodDelete(client);
 		}
-		
+
+		std::cout << "\napres le method get\n" << std::endl;
+
 		std::string response = res.ResponseToString();
 		
 		LOG(">>> RESPONSE BUILT:"); // ---------------------

@@ -19,42 +19,29 @@
 
 HttpResponse	WebServer::methodGet(SocketClient* client){
 
-	LOG(">>> methodGet");
+	LOG(">>> methodGet"); // ---------------------------------
 
-	//1. Max URI
-	//2. Résolution du Path
-	// changé pour mettre a l 'étape d avant car on l utilise pas que pour le get :)
-	
 	std::string path = client->getRequest().getPath();
-
-	LOG("Resolved path: " << path);
+	LOG("Resolved path: " << path); // ---------------------------------
 
 	struct stat st;
 	if (stat(path.c_str(), &st) < 0){
-		LOG("Calling stat on: " << path);
+		LOG("Calling stat on: " << path); // -----------------------
 		return buildErrorResponse(404, client);
 	}
 	//3. Permission
 	if (access(path.c_str(), R_OK) != 0) {
 		return buildErrorResponse(403, client);
 	}
-	
 	// 4. Directory → gérer index / autoindex
 	if (st.st_mode & S_IFDIR){
-
-		LOG("IS DIRECTORY");
-		
+		LOG("IS DIRECTORY"); // ---------------------------------
 		return handleDirectory(client, path);
 	}
-	
 	//5. File
+	LOG("Serving file: " << path); // ---------------------------
 	return serveFile(client, path, st);
 
-	LOG("Serving file: " << path);
-	
-	/*
-	- closeConnection(fd);
-	*/
 }
 
 HttpResponse	WebServer::methodPost(SocketClient* client){

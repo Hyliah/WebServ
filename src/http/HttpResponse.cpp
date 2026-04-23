@@ -16,13 +16,23 @@ HttpResponse::HttpResponse(){}
 HttpResponse::~HttpResponse(){}
 
 std::string HttpResponse::ResponseToString() const {
-	std::stringstream ss;
-	ss << statusLine << "\r\n";
-	for (std::map<std::string,std::string>::const_iterator it = headers.begin();
-			it != headers.end(); ++it) {
-		ss << it->first << ": " << it->second << "\r\n";
-	}
-	ss << "\r\n" << body;
-	return ss.str();
+    std::stringstream ss;
+
+    ss << statusLine << "\r\n";
+
+    for (std::map<std::string, std::vector<std::string> >::const_iterator it = headers.begin(); it != headers.end(); ++it) {
+        const std::string& key = it->first;
+        const std::vector<std::string>& values = it->second;
+
+        if (values.empty())
+            continue;
+        for (size_t i = 0; i < values.size(); ++i){
+            ss << key << ": " << values[i] << "\r\n";
+        }
+    }
+    ss << "\r\n";
+    ss << body;
+
+    return ss.str();
 }
 
