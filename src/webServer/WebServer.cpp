@@ -67,89 +67,79 @@ WebServer::~WebServer(){
 /* PAUL LOOP			                              */
 /* ************************************************** */
 
-void	WebServer::pollLoop(){
-	initPollStruct();
+void WebServer::pollLoop() {
+    initPollStruct();
+    LOG("---- NEW POLL LOOP ----"); //------------------------------------------
 
-	LOG("---- NEW POLL LOOP ----"); // --------------------
+    while (_running) {
 
-	while (_running){
+        int ret = poll(&_pollFds[0], _pollFds.size(), 1000);
+        LOG("poll() ret = " << ret); //-----------------------------------------
 
-		int ret = poll(&_pollFds[0], _pollFds.size(), 10000); //timeout de 1seconde ou 10 ?? changer peut etre
-		LOG("poll() ret = " << ret);
+        if (ret == -1) {
+            if (errno == EINTR) {
+                _running = false;
+                break;
+            } else {
+                throw RunningException(std::string("Poll: ") + strerror(errno));
+            }
+        }
 
-		if (ret == -1) {
-			if (errno == EINTR) {
-				_running = false;
-				break;
-			} else 
-				throw RunningException(std::string("Poll: ") + strerror(errno));
-		}
-		
-		checkTimeouts();
+        checkTimeouts();
 
-		if (ret == 0)
-			continue;
+        if (ret == 0)
+            continue;
 
-		size_t size = _pollFds.size();
-		for (size_t i = 0; i < size; ++i){
+        for (size_t i = 0; i < _pollFds.size(); ) {
 
-			LOG("Checking fd: " << _pollFds[i].fd  << " revents: " << _pollFds[i].revents);
-			
-			if (_pollFds[i].revents & (POLLHUP | POLLERR)) {
-				closeConnection(_pollFds[i].fd);
-				continue;
-			}
-			
-			if (_pollFds[i].revents & POLLIN){
-				int fd = _pollFds[i].fd;
-				LOG("POLLIN on fd " << fd); 
+            int fd = _pollFds[i].fd;
+            short revents = _pollFds[i].revents;
 
-				if (isServerFd(fd)){
-					try { acceptClient(fd); }
-					catch (const ResponseException& e) {
-						sendResponse(e.getFd(), e.getCode());
-					}
-				}
-				else {
-					try { handleRequest(fd); }
-					catch (const ResponseException& e) {
-						sendResponse(e.getFd(), e.getCode());
-					}
-				}
-			}
-			if (_pollFds[i].revents & POLLOUT){
-				int fd = _pollFds[i].fd;
-				LOG("POLLOUT on fd " << fd); // --------------------
-				try { sendResponse(fd, 0); }
-				catch (...) { closeConnection(fd); }
-			}
-		}
-	}
-}
+            LOG("Checking fd: " << fd << " revents: " << revents); //-----------
 
-//lui trouver un dossier adéquat
-void	WebServer::checkTimeouts() {
-    time_t now = std::time(NULL);
+            if (revents & (POLLHUP | POLLERR)) {
+                LOG("POLLHUP/POLLERR on fd " << fd); //-------------------------
+                closeConnection(fd);
+                continue;
+            }
 
-    for (std::map<int, SocketClient*>::iterator it = _socketClients.begin();
-         it != _socketClients.end(); ) {
+            if (revents & POLLIN) {
+                LOG("POLLIN on fd " << fd); //----------------------------------
 
-        SocketClient* client = it->second;
-        int fd = it->first;
+                if (isServerFd(fd)) {
+                    try {
+                        acceptClient(fd);
+                    } catch (const ResponseException& e) {
+                        sendResponse(e.getFd(), e.getCode());
+                    }
+                } else {
+                    try {
+                        handleRequest(fd);
+                    } catch (const ResponseException& e) {
+                        sendResponse(e.getFd(), e.getCode());
+                    }
+                }
+            }
 
-        if (now - client->lastActivity > 10) {
-            LOG("Timeout client fd = " << fd); // --------------------
-            closeConnection(fd);
-            it = _socketClients.erase(it);
-        } else {
-            ++it;
+            if (revents & POLLOUT) {
+                LOG("POLLOUT on fd " << fd); //---------------------------------
+
+                try {
+                    sendResponse(fd, 0);
+                } catch (...) {
+                    closeConnection(fd);
+                    continue;
+                }
+            }
+
+            i++;
         }
     }
 }
 
 void	WebServer::acceptClient(int serverFd){
 
-	LOG(">>> ACCEPT CLIENT on server fd " << serverFd); // --------------------
+	LOG(">>> ACCEPT CLIENT on server fd " << serverFd); // ---------------------
 
 	struct sockaddr_storage addr;
 	socklen_t addrlen = sizeof(addr);
@@ -185,18 +175,18 @@ void	WebServer::acceptClient(int serverFd){
 	pfd.revents = 0;
 	_pollFds.push_back(pfd);
 	
-	LOG("New client fd = " << clientFd); // --------------------
+	LOG("New client fd = " << clientFd); // ------------------------------------
 }
 
 void	WebServer::handleRequest(int fd){
 	
-	LOG(">>> handleRequest fd = " << fd); // --------------------
+	LOG(">>> handleRequest fd = " << fd); // -----------------------------------
 	SocketClient* client = _socketClients[fd];
 
 	try {
 		char buffer[4096];
 		ssize_t bytes = recv(fd, buffer, sizeof(buffer), 0);
-		LOG("recv bytes = " << bytes); // --------------------
+		LOG("recv bytes = " << bytes); // --------------------------------------
 		
 		if (bytes == 0) {
 			closeConnection(fd);
@@ -209,7 +199,7 @@ void	WebServer::handleRequest(int fd){
 		
 		client->appendBuffer(std::string(buffer, bytes));
 		client->lastActivity = std::time(NULL);
-		LOG("BUFFER NOW:\n" << client->getBuffer()); // --------------------
+		LOG("BUFFER NOW:\n" << client->getBuffer()); // ------------------------
 
 		if (client->state == READING)
             client->parseRequest();
@@ -229,7 +219,7 @@ void	WebServer::handleRequest(int fd){
         setPollOut(fd);
     }
 	
-	LOG(">>> ----  HANDLE REQUEST END COMPLETE"); // --------------------
+	LOG(">>> ----  HANDLE REQUEST END COMPLETE"); // ---------------------------
 }
 
 void WebServer::parseBody(SocketClient* client)
@@ -252,8 +242,8 @@ void WebServer::parseBody(SocketClient* client)
 
 void	WebServer::sendResponse(int fd, int codeError){
 
-	LOG(">>> sendResponse fd = " << fd); // --------------------
-	LOG(">>> code error = " << codeError); // --------------------
+	LOG(">>> sendResponse fd = " << fd); // ------------------------------------
+	LOG(">>> code error = " << codeError); // ----------------------------------
 
 	SocketClient* client = _socketClients[fd];
 
@@ -268,7 +258,7 @@ void	WebServer::sendResponse(int fd, int codeError){
 			resolvePath(client);
 
 			std::string method = client->getRequest().getMethod();
-			LOG("Method = " << method);  // --------------------
+			LOG("Method = " << method);  // -------------------------------------
 
 			if (method == "GET"){
 				res = methodGet(client);
@@ -284,9 +274,9 @@ void	WebServer::sendResponse(int fd, int codeError){
 
 		std::string response = res.ResponseToString();
 		
-		LOG(">>> RESPONSE BUILT:"); // ---------------------
-		LOG(response); // ---------------------
-		LOG("URI: " << client->getRequest().getUri()); // ---------------------
+		LOG(">>> RESPONSE BUILT:"); // -----------------------------------------
+		LOG(response); // ------------------------------------------------------
+		LOG("URI: " << client->getRequest().getUri()); // ----------------------
 
 		size_t totalSent = 0;
 		while (totalSent < response.size()) {
@@ -294,7 +284,7 @@ void	WebServer::sendResponse(int fd, int codeError){
 			
 			LOG("Bytes sent: " << sent);
 				
-			if (sent <= 0) {
+			if (sent <= 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
 				closeConnection(fd);
 				return;
 			}

@@ -94,6 +94,7 @@ class WebServer{
 		void	initSockets();
 		void	initPollStruct();
 		void 	checkTimeouts();
+		bool	isTimedOut(const SocketClient* client) const;
 
 		//UTILS RESPONSE -> dans le fichier wsResponse.cpp
 		HttpResponse	methodGet(SocketClient* client);

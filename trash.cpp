@@ -10,6 +10,8 @@
 /*                                                                           */
 /*****************************************************************************/
 
+
+
 // Ici on peut faire comme avant et stocker toutes les fonctions de test
 // qu'on utilise plus mais pour les avoir en back up si jamais 
 
@@ -192,4 +194,92 @@
 //     } // end SocketServer loop
 
 //     std::cout << "\n=== End of WebServer Info ===" << std::endl;
+// }
+
+
+
+
+
+// void	WebServer::pollLoop(){
+// 	initPollStruct();
+// 	LOG("---- ANCIENNE POLL LOOP ----"); // --------------------
+
+// 	while (_running){
+
+// 		int ret = poll(&_pollFds[0], _pollFds.size(), 1000);
+// 		LOG("poll() ret = " << ret);
+
+// 		if (ret == -1) {
+// 			if (errno == EINTR) {
+// 				_running = false;
+// 				break;
+// 			} else 
+// 				throw RunningException(std::string("Poll: ") + strerror(errno));
+// 		}
+		
+// 		checkTimeouts();
+
+// 		if (ret == 0)
+// 			continue;
+
+// 		size_t size = _pollFds.size();
+// 		for (size_t i = 0; i < size; ++i){
+
+// 			LOG("Checking fd: " << _pollFds[i].fd  << " revents: " << _pollFds[i].revents);
+			
+// 			if (_pollFds[i].revents & (POLLHUP | POLLERR)) {
+// 				closeConnection(_pollFds[i].fd);
+// 				//--i; //---------------------------------------------------------------------
+// 				continue;
+// 			}
+			
+// 			if (_pollFds[i].revents & POLLIN){
+// 				int fd = _pollFds[i].fd;
+// 				LOG("POLLIN on fd " << fd); 
+
+// 				if (isServerFd(fd)){
+// 					try { acceptClient(fd); }
+// 					catch (const ResponseException& e) {
+// 						sendResponse(e.getFd(), e.getCode());
+// 					}
+// 				}
+// 				else {
+// 					try { handleRequest(fd); }
+// 					catch (const ResponseException& e) {
+// 						sendResponse(e.getFd(), e.getCode());
+// 					}
+// 				}
+// 			}
+// 			if (_pollFds[i].revents & POLLOUT){
+// 				int fd = _pollFds[i].fd;
+// 				LOG("POLLOUT on fd " << fd); // --------------------
+// 				try { sendResponse(fd, 0); }
+// 				catch (...) { closeConnection(fd); }
+// 			}
+// 		}
+// 	}
+// }
+
+
+
+
+
+//lui trouver un dossier adéquat
+// void	WebServer::checkTimeouts() {
+//     time_t now = std::time(NULL);
+
+//     for (std::map<int, SocketClient*>::iterator it = _socketClients.begin();
+//          it != _socketClients.end(); ) {
+
+//         SocketClient* client = it->second;
+//         int fd = it->first;
+
+//         if (now - client->lastActivity > 10) {
+//             LOG("Timeout client fd = " << fd); // --------------------
+//             closeConnection(fd);
+//             it = _socketClients.erase(it);
+//         } else {
+//             ++it;
+//         }
+//     }
 // }

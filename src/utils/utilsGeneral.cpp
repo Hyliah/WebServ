@@ -188,7 +188,7 @@ void	freeMidTab(char ***tab, int i) // supprimer partout
 
 void freeTab(char*** envp)
 {
-    for (int i = 0; (*envp)[i]; i++)
+    for (int i = 0; (*envp)[i] != NULL; i++)
         free((*envp)[i]);
 
     delete[] *envp;

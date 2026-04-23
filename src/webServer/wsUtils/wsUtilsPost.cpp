@@ -64,16 +64,20 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
 
     std::map<std::string, std::vector<std::string> > map = createEnvp(client, location, path);
     char** envp = convertMapToChar(map);
+    if (envp == NULL)
+        return buildErrorResponse(500, client);
 
     int pipeFd[2] = {-1};
     
     if (pipe(pipeFd) == -1){
+        safeClose(&bodyFd);
         freeTab(&envp);
         return buildErrorResponse(500, client);
     }
 
     pid_t pid = fork();
     if (pid == -1){
+        safeClose(&bodyFd);
         safeClose(&pipeFd[0]); safeClose(&pipeFd[1]);
         freeTab(&envp);
         return buildErrorResponse(500, client);
@@ -92,8 +96,8 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
         exit(1);
     }
 
-    close(bodyFd);
-    close(pipeFd[1]);
+    safeClose(&bodyFd);
+    safeClose(&pipeFd[1]);
     
     int status;
     time_t start = time(NULL);
@@ -106,7 +110,7 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
         if (difftime(time(NULL), start) > MAX_WAIT)
         {
             kill(pid, SIGKILL);
-            close(pipeFd[0]);
+            safeClose(&pipeFd[0]);
             freeTab(&envp);
             return buildErrorResponse(504, client);
         }
@@ -120,7 +124,7 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
     while ((bytes = read(pipeFd[0], buffer, sizeof(buffer))) > 0)
         output.append(buffer, bytes);
 
-    close(pipeFd[0]);
+    safeClose(&pipeFd[0]);
     freeTab(&envp);
     
     return createCGIResponse(client, output);
@@ -160,7 +164,7 @@ HttpResponse	WebServer::createCGIResponse(const SocketClient* client, std::strin
         std::string value = trim(lines[i].substr(colon + 1));
 
         if (key == "status"){
-            res.statusLine = atoi(value.c_str());
+            res.statusLine = "HTTP/1.1 " + value;
         }
         else{
             res.headers[key].push_back(value);
@@ -232,7 +236,11 @@ std::map<std::string, std::vector<std::string> > WebServer::createEnvp(const Soc
 }
 
 char**          WebServer::convertMapToChar(const std::map<std::string, std::vector<std::string> >& env){
-    char** res = new char*[env.size() + 1]; 
+    char** res = new char*[env.size() + 1];
+
+    for (size_t i = 0 ; i <= env.size(); ++i){
+        res[i] = NULL;
+    }
     
     size_t i = 0; 
     
@@ -244,7 +252,12 @@ char**          WebServer::convertMapToChar(const std::map<std::string, std::vec
                 if (j + 1 < values.size())
                     line += ", ";
             } 
-        res[i] = strdup(line.c_str()); i++; 
+        res[i] = strdup(line.c_str());
+        if (res[i] == NULL){
+            freeTab(&res);
+            return NULL;
+        }
+        i++;
     }
     res[i] = NULL; 
     return res; 

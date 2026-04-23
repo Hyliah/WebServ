@@ -106,7 +106,7 @@ std::string WebServer::getMimeType(std::string path){
     if (ext == ".pdf")
         return "application/pdf";
 
-	return "application/octet-stream";
+	return "application/octet-stream"; // standard par defaut
 }
 
 

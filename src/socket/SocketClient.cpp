@@ -19,10 +19,9 @@
 /* construtor & destructors                           */
 /* ************************************************** */
 
-SocketClient::SocketClient() : _fd(-1), _bytesRead(0), _bytesPending(0), _buffer(""), _chunkState(CHUNK_SIZE), _server(NULL), ignoreBody(false), headerParsed(false), requestCompleted(false), contentLength(false), chunked(false), keepAlive(true), state(READING) {
-	lastActivity = std::time(NULL);
+SocketClient::SocketClient() : _fd(-1), _bytesRead(0), _bytesPending(0), _buffer(""), _chunkState(CHUNK_SIZE), _server(NULL), ignoreBody(false), headerParsed(false), requestCompleted(false), contentLength(false), chunked(false), keepAlive(true), errorCode(0), lastActivity(std::time(NULL)), state(READING){
 }
-SocketClient::SocketClient(int fd, struct sockaddr_storage addr, SocketServer* serverPtr) : _fd(fd), _bytesRead(0), _bytesPending(0), _buffer(""), _chunkState(CHUNK_SIZE), _server(serverPtr), _addr(addr), ignoreBody(false), headerParsed(false), requestCompleted(false), contentLength(false), chunked(false), state(READING) {}
+SocketClient::SocketClient(int fd, struct sockaddr_storage addr, SocketServer* serverPtr) : _fd(fd), _bytesRead(0), _bytesPending(0), _buffer(""), _chunkState(CHUNK_SIZE), _server(serverPtr), _addr(addr), ignoreBody(false), headerParsed(false), requestCompleted(false), contentLength(false), chunked(false), keepAlive(true), errorCode(0), lastActivity(std::time(NULL)), state(READING){}
 SocketClient::~SocketClient(){}
 
 /* ************************************************** */
@@ -77,7 +76,7 @@ void	SocketClient::defineBodyType(){
 		// attention gerer les 400 ou 413 ou quoi si le string n est pas un noombre correct genre 10M
 		_request.setContentLength(stringToLong(itCL->second[0].c_str()));
 		if (_request.getContentLength() > DEFAULT_MAX_BODY_SIZE)
-			throw ResponseException(_fd, 413); //CHANGER LE NUMERO QUAND JE LE CONNAITRAI !!!!!!!!!!!!!!!!!!!!!!
+			throw ResponseException(_fd, 413); //probleme ici, ne revoit pas 413 mais 403 donc faire la veirf avant ou je sais pas 
 	}
 	else {
 		contentLength = false;

@@ -62,3 +62,33 @@ void	WebServer::initPollStruct(){
 		_pollFds.push_back(pfd);	
 	}
 }
+
+void WebServer::checkTimeouts() {
+    for (size_t i = 0; i < _pollFds.size(); ) {
+
+        int fd = _pollFds[i].fd;
+
+        if (!isServerFd(fd)) {
+            SocketClient* client = _socketClients[fd];
+
+            if (client && isTimedOut(client)) {
+                LOG("Timeout client fd = " << fd);
+                closeConnection(fd);
+                continue;
+            }
+        }
+
+        i++;
+    }
+}
+
+bool WebServer::isTimedOut(const SocketClient* client) const {
+    if (!client)
+        return false;
+
+    const int TIMEOUT = 30; // secondes (à adapter)
+
+    time_t now = time(NULL);
+
+    return (difftime(now, client->lastActivity) > TIMEOUT);
+}
