@@ -33,8 +33,13 @@ bool WebServer::isCGI(const LocationConfig* location, const std::string& path){
     // depend soit d une extension soit d un flag en config. Faut il y avoir les 2 ou tout fonctionne ? 
 	// ( de memoire on avait dit juste extension )
     LOG("\n>>> IS CGI ");
+    
+    if (!location)
+        return false;
+    
     LOG("CGI infos de base = " << location->cgiEnabled); 
 	// Check si le CGI est activé pour cette location
+
     if (location->cgiInfo.empty()){
         LOG("CGI est faux 1"); 
         return false;
@@ -43,7 +48,6 @@ bool WebServer::isCGI(const LocationConfig* location, const std::string& path){
     // Trouver l'extension du fichier (on cherche le dernier '.')
     size_t lastDot = path.find_last_of('.'); // ok cpp98 si jamais j'ai check
     if (lastDot == std::string::npos){
-        LOG("CGI est faux 2");
         return false;
     }
 
@@ -51,29 +55,45 @@ bool WebServer::isCGI(const LocationConfig* location, const std::string& path){
 
     // Vérifier si cette extension est enregistrée dans cgiInfo
     if (location->cgiInfo.find(ext) != location->cgiInfo.end()){
-        LOG("CGI est true 3");
         return true;
     }
 
-    LOG("CGI est faux 4");
     return false;
-
-// (void)location;
-// (void)path;
-//     return true;
 }
 
 HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationConfig* location, const std::string& path) {
     LOG("\n>>> EXECUTE CGI ");
     if (access(path.c_str(), F_OK) == -1)
         return buildErrorResponse(404, client);
-    
+
     if (access(path.c_str(), X_OK) == -1)
         return buildErrorResponse(403, client);
-    
-    int bodyFd = open(client->getRequest().getBodyPath().c_str(), O_RDONLY);
+
+    // std::string bodypath = client->getRequest().getBodyPath(); //pour debug
+    // LOG("body path =  " << bodypath);
+
+    // int bodyFd = open(client->getRequest().getBodyPath().c_str(), O_RDONLY);
+    // if (bodyFd == -1)
+    //     return buildErrorResponse(500, client);
+
+
+
+
+    std::string bodypath = "./www/cgi-bin/test.py"; //pour debug
+    LOG("body path =  " << bodypath);
+
+    int bodyFd = open(bodypath.c_str(), O_RDONLY);
     if (bodyFd == -1)
         return buildErrorResponse(500, client);
+
+
+
+
+
+
+
+
+
 
     std::map<std::string, std::vector<std::string> > map = createEnvp(client, location, path);
     LOG("map crée ");

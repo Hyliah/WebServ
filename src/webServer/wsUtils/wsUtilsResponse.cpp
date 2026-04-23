@@ -19,7 +19,7 @@ const LocationConfig* WebServer::findMatchingLocation(const SocketClient* client
     if (!server)
         return NULL;
 
-    const std::string& uri = client->getRequest().getPath();
+    const std::string& uri = client->getRequest().getOriginPath();
 
     const LocationConfig* bestMatch = NULL;
     size_t bestLen = 0;

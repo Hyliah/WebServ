@@ -94,6 +94,9 @@ void	SocketClient::defineBodyType(){
 	}
 	if (chunked)
 		contentLength = false;
+
+	if (chunked || contentLength)
+		_request.openBodyFile();
 }
 
 /* ************************************************** */

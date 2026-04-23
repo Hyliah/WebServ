@@ -59,9 +59,10 @@ void	HttpRequest::setHeaders(const std::string& key, const std::string& value){
 void    HttpRequest::setQuery(std::map<std::string, std::vector <std::string> > query){ _query = query; }
 
 void	HttpRequest::writeBody(const std::string& str){
-	if (_bodyFile.is_open())
-		_bodyFile.write(str.c_str(), str.size());
+    if (!_bodyFile.is_open())
+        openBodyFile();
 
+    _bodyFile.write(str.c_str(), str.size());
 }
 
 void	HttpRequest::closeBodyFile() {
@@ -76,7 +77,11 @@ std::string generateId() {
 }
 
 void	HttpRequest::openBodyFile() {
+	if (_bodyFile.is_open())
+        return;
+
 	_bodyFilePath = "/tmp/webserv_body_" + generateId();
+	LOG(" --------------------------- le body path au moment de sa divine creation : " << _bodyFilePath);
 	_bodyFile.open(_bodyFilePath.c_str(), std::ios::binary);
 	if (!_bodyFile.is_open()) {
 		throw std::runtime_error("Failed to open body file"); // en attendant est ce que il faut envoyer un error 500

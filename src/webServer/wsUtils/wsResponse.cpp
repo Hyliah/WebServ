@@ -21,8 +21,6 @@ HttpResponse	WebServer::methodGet(SocketClient* client){
 
 	LOG(">>> methodGet"); // ---------------------------------
 
-
-	
     const LocationConfig* location = findMatchingLocation(client);
     std::string path = client->getRequest().getPath();
 
@@ -30,8 +28,6 @@ HttpResponse	WebServer::methodGet(SocketClient* client){
         LOG(">>> CGI DETECTED");
         return executeCGI(client, location, path);
     }
-
-
 
 	//std::string path = client->getRequest().getPath();
 	LOG("Resolved path: " << path); // ---------------------------------

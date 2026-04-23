@@ -225,14 +225,20 @@ void WebServer::parseBody(SocketClient* client)
 	if (client->getRequest().getMethod() == "DELETE" || client->getRequest().getMethod() == "GET")
 		client->ignoreBody = true;
 
-    if (client->chunked)
+    if (client->chunked){
+		LOG("CA PASSSE PAR CHUNCKED ICI");
         client->parsingChunked();
+	}
 
-    else if (client->contentLength)
+    else if (client->contentLength){
+		LOG("CA PASSSE PAR CL ICI");
         client->parsingContentLength();
+	}
 
-    else
+    else{
+		LOG("CA PASSSE PAs ICI");
         client->parsingNoBody();
+	}
 
     if (client->requestCompleted)
         client->state = READY;
