@@ -23,7 +23,6 @@ const LocationConfig* WebServer::findMatchingLocation(const SocketClient* client
 
     const LocationConfig* bestMatch = NULL;
     size_t bestLen = 0;
-
     for (size_t i = 0; i < server->locations.size(); ++i) {
         const LocationConfig& loc = server->locations[i];
         const std::string& locPath = loc.path;
@@ -34,23 +33,43 @@ const LocationConfig* WebServer::findMatchingLocation(const SocketClient* client
         if (uri.compare(0, locPath.size(), locPath) != 0)
             continue;
 
-        if (uri.size() > locPath.size()) {
-            if (locPath[locPath.size() - 1] != '/' &&
-                uri[locPath.size()] != '/')
-                continue;
-        }
+        if (uri.size() > locPath.size() &&
+            locPath.back() != '/' &&
+            uri[locPath.size()] != '/')
+            continue;
 
         if (locPath.size() > bestLen) {
             bestMatch = &loc;
             bestLen = locPath.size();
         }
     }
+    // for (size_t i = 0; i < server->locations.size(); ++i) {
+    //     const LocationConfig& loc = server->locations[i];
+    //     const std::string& locPath = loc.path;
+
+    //     if (locPath.empty())
+    //         continue;
+
+    //     if (uri.compare(0, locPath.size(), locPath) != 0)
+    //         continue;
+
+    //     if (uri.size() > locPath.size()) {
+    //         if (locPath[locPath.size() - 1] != '/' &&
+    //             uri[locPath.size()] != '/')
+    //             continue;
+    //     }
+
+    //     if (locPath.size() > bestLen) {
+    //         bestMatch = &loc;
+    //         bestLen = locPath.size();
+    //     }
+    // }
 
     if (!bestMatch)
     {
         for (size_t i = 0; i < server->locations.size(); ++i) {
             if (server->locations[i].path == "/")
-                return &server->locations[i];
+                bestMatch = &server->locations[i]; // changé qqc ici
         }
     }
 

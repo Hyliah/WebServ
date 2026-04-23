@@ -1,0 +1,14 @@
+#!/usr/bin/env python3
+
+import os
+
+print("Status: 200 OK")
+print("Content-Type: text/html")
+print()
+
+print("<html><body>")
+print("<h1>CGI WORKS 🎉</h1>")
+print("<p>Method:", os.environ.get("REQUEST_METHOD"), "</p>")
+print("<p>Query:", os.environ.get("QUERY_STRING"), "</p>")
+print("<p>Path Info:", os.environ.get("PATH_INFO"), "</p>")
+print("</body></html>")

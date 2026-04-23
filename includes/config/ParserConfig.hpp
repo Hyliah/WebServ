@@ -51,6 +51,7 @@ class ParserConfig {
 		void						handleReturn(std::vector<std::string>::iterator &it, LocationConfig &location);
 		void						handleUploadStore(std::vector<std::string>::iterator &it, LocationConfig &location);
 		void						handleCgi(std::vector<std::string>::iterator &it, LocationConfig &location);
+		void						handleCgiEnabled(std::vector<std::string>::iterator &it, LocationConfig &location);
 
 		// CHECK					
 		bool						validateValue(std::vector<std::string>::iterator &it);

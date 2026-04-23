@@ -13,6 +13,7 @@
 #include "ServerConfig.hpp"
 #include "ParserConfig.hpp"
 #include "utilsGeneral.hpp"
+#include "WebServer.hpp"
 #include "Exceptions.hpp"
 #include <iostream>
 #include <sstream>
@@ -177,6 +178,8 @@ void	ParserConfig::parseLocation(std::vector<std::string>::iterator &it, ServerC
 			handleUploadStore(it, newLocation);
 		else if (*it == "cgi_info")
 			handleCgi(it, newLocation);
+		else if (*it == "cgi_enabled")
+    		handleCgiEnabled(it, newLocation);
 		else	
 			throw ParseException(CONF, "Unknown directive: " + *it);
 	}
@@ -378,22 +381,60 @@ void	ParserConfig::handleUploadStore(std::vector<std::string>::iterator &it, Loc
 	checkSemicolon(it);
 }
 
-void	ParserConfig::handleCgi(std::vector<std::string>::iterator &it, LocationConfig &location){
-	it++; 
-	// recup l'extension (ex: .py)
-	if (!validateValue(it))
-		throw ParseException(CONF, "CGI directive needs an extension (e.g., .py)");
-	std::string ext = *it;
-	it++;
-	// récupère le chemin ex: /usr/bin/python3)
-	if (!validateValue(it))
-		throw ParseException(CONF, "CGI directive needs a path ");
-	std::string path = *it;
-	it++;
-	location.cgiInfo[ext] = path;
-	location.cgiEnabled = true;
-	checkSemicolon(it);
+void ParserConfig::handleCgi(std::vector<std::string>::iterator &it, LocationConfig &location){
+    it++;
+
+    if (!validateValue(it))
+        throw ParseException(CONF, "CGI directive needs an extension (e.g., .py)");
+    std::string ext = *it;
+	LOG("----------------extension : " << ext);
+    it++;
+
+    if (!validateValue(it))
+        throw ParseException(CONF, "CGI directive needs a path");
+    std::string path = *it;
+	LOG("----------------path : " << path);
+    it++;
+
+    location.cgiInfo[ext] = path;
+	std::cout << location.cgiInfo[ext] << std::endl;
+    location.cgiEnabled = true; // OK ici aussi, mais redondant si tu utilises empty()
+    checkSemicolon(it);
 }
+
+void ParserConfig::handleCgiEnabled(std::vector<std::string>::iterator &it, LocationConfig &location)
+{
+    it++;
+    if (!validateValue(it))
+        throw ParseException(CONF, "cgi_enabled needs on/off");
+
+    if (*it == "on")
+        location.cgiEnabled = true;
+    else if (*it == "off")
+        location.cgiEnabled = false;
+    else
+        throw ParseException(CONF, "cgi_enabled must be on/off");
+
+    it++;
+    checkSemicolon(it);
+}
+
+// void	ParserConfig::handleCgi(std::vector<std::string>::iterator &it, LocationConfig &location){
+// 	it++; 
+// 	// recup l'extension (ex: .py)
+// 	if (!validateValue(it))
+// 		throw ParseException(CONF, "CGI directive needs an extension (e.g., .py)");
+// 	std::string ext = *it;
+// 	it++;
+// 	// récupère le chemin ex: /usr/bin/python3)
+// 	if (!validateValue(it))
+// 		throw ParseException(CONF, "CGI directive needs a path ");
+// 	std::string path = *it;
+// 	it++;
+// 	location.cgiInfo[ext] = path;
+// 	location.cgiEnabled = !location.cgiInfo.empty();
+// 	checkSemicolon(it);
+// }
 
 
 /* *************************************************** */

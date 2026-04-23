@@ -50,7 +50,6 @@ WebServer::~WebServer(){
 // 	_socketClients[fd] = client;
 // }
 
-
 // time_t now = std::time(NULL);
 
 // for (std::map<int, SocketClient*>::iterator it = _socketClients.begin(); it != _socketClients.end(); ++it) {
@@ -61,7 +60,6 @@ WebServer::~WebServer(){
 //         closeConnection(client->getFd());
 //     }
 // }
-
 
 /* ************************************************** */
 /* PAUL LOOP			                              */

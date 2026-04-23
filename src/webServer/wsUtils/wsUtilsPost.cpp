@@ -32,26 +32,39 @@ bool WebServer::isCGI(const LocationConfig* location, const std::string& path){
     //aller chercher dans le parsinf du fichier de conf de la loc si on a des formats correspondant
     // depend soit d une extension soit d un flag en config. Faut il y avoir les 2 ou tout fonctionne ? 
 	// ( de memoire on avait dit juste extension )
-
+    LOG("\n>>> IS CGI ");
+    LOG("CGI infos de base = " << location->cgiEnabled); 
 	// Check si le CGI est activé pour cette location
-    if (!location->cgiEnabled)
+    if (location->cgiInfo.empty()){
+        LOG("CGI est faux 1"); 
         return false;
+    }
 
     // Trouver l'extension du fichier (on cherche le dernier '.')
     size_t lastDot = path.find_last_of('.'); // ok cpp98 si jamais j'ai check
-    if (lastDot == std::string::npos)
+    if (lastDot == std::string::npos){
+        LOG("CGI est faux 2");
         return false;
+    }
 
     std::string ext = path.substr(lastDot); // Récupère ".py" par exemple
 
     // Vérifier si cette extension est enregistrée dans cgiInfo
-    if (location->cgiInfo.find(ext) != location->cgiInfo.end())
+    if (location->cgiInfo.find(ext) != location->cgiInfo.end()){
+        LOG("CGI est true 3");
         return true;
+    }
 
+    LOG("CGI est faux 4");
     return false;
+
+// (void)location;
+// (void)path;
+//     return true;
 }
 
 HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationConfig* location, const std::string& path) {
+    LOG("\n>>> EXECUTE CGI ");
     if (access(path.c_str(), F_OK) == -1)
         return buildErrorResponse(404, client);
     
@@ -63,9 +76,11 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
         return buildErrorResponse(500, client);
 
     std::map<std::string, std::vector<std::string> > map = createEnvp(client, location, path);
+    LOG("map crée ");
     char** envp = convertMapToChar(map);
     if (envp == NULL)
         return buildErrorResponse(500, client);
+    LOG("map convertie en char **");
 
     int pipeFd[2] = {-1};
     
@@ -131,6 +146,7 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
 }
 
 HttpResponse	WebServer::createCGIResponse(const SocketClient* client, std::string raw){
+    LOG("\n>>> CREATE CGI RESPONSE ");
     HttpResponse res;
 
     size_t pos = raw.find("\r\n\r\n");
@@ -204,12 +220,13 @@ HttpResponse	WebServer::executeStatic(const SocketClient* client, const Location
 
 std::map<std::string, std::vector<std::string> > WebServer::createEnvp(const SocketClient* client, const LocationConfig* location, const std::string& path)
 {
+    LOG(">>> CREATE ENVP ");
     (void)location;
 
     std::map<std::string, std::vector<std::string> > env;
-
+    LOG("MAp envp faite");
     const HttpRequest& req = client->getRequest();
-
+    
     std::string contentType;
     std::map<std::string, std::vector<std::string> > headers = req.getHeaders();
     std::map<std::string, std::vector<std::string> >::iterator it = headers.find("content-type");
@@ -218,21 +235,45 @@ std::map<std::string, std::vector<std::string> > WebServer::createEnvp(const Soc
         contentType = it->second[0];
 
     env["REQUEST_METHOD"].push_back(req.getMethod());
+    LOG("REQUEST_METHOD " << req.getMethod()); //----------------------------------
+
     env["QUERY_STRING"].push_back(req.getOriginQuery());
+    LOG("QUERY_STRING " << req.getOriginQuery()); //----------------------------------
 
     env["CONTENT_LENGTH"].push_back( longToString(req.getContentLength()) );
+    LOG("CONTENT_LENGTH " << req.getContentLength()); //----------------------------------
 
     env["CONTENT_TYPE"].push_back(contentType);
+    LOG("CONTENT_TYPE " << contentType); //----------------------------------
 
     env["SCRIPT_NAME"].push_back(path);
+    LOG("SCRIPT_NAME " << path); //----------------------------------
 
-    // OPTIONNEL mais bien
-    // env["PATH_INFO"].push_back(extractPathInfo(...));
+    env["PATH_INFO"].push_back(extractPathInfo(path, req.getOriginPath()));
 
     env["SERVER_PROTOCOL"].push_back("HTTP/1.1");
+
     env["GATEWAY_INTERFACE"].push_back("CGI/1.1");
 
+
     return env;
+}
+
+std::string WebServer::extractPathInfo(const std::string& uri, const std::string& scriptPath)
+{
+    // scriptPath = "/cgi-bin/test.py"
+    // uri        = "/cgi-bin/test.py/foo/bar"
+    LOG(">>> EXTRACT PATH INFO ");
+    LOG("URI " << uri);
+    LOG("SCRIPT PATH " << scriptPath);
+
+    if (uri.size() <= scriptPath.size())
+        return "";
+
+    if (uri.compare(0, scriptPath.size(), scriptPath) != 0)
+        return "";
+
+    return uri.substr(scriptPath.size());
 }
 
 char**          WebServer::convertMapToChar(const std::map<std::string, std::vector<std::string> >& env){
