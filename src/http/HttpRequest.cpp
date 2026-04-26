@@ -63,6 +63,7 @@ void	HttpRequest::writeBody(const std::string& str){
         openBodyFile();
 
     _bodyFile.write(str.c_str(), str.size());
+	_bodyFile.flush(); 
 }
 
 void	HttpRequest::closeBodyFile() {

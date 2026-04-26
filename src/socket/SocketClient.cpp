@@ -318,6 +318,13 @@ void SocketClient::parsingContentLength() {
         requestCompleted = true;
         _request.closeBodyFile();
     }
+
+	LOG("DEBUG CL:");
+	LOG("buffer size = " << _buffer.size());
+	LOG("remaining = " << remaining);
+	LOG("bytesRead = " << _bytesRead);
+	LOG("contentLength = " << _request.getContentLength());
+	LOG("writing size = " << size);
 }
 
 /* ************************************************** */
