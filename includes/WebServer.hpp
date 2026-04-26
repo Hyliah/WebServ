@@ -110,7 +110,7 @@ class WebServer{
 		//UTILS POST -> dans le fichier wsUtilsPost.cpp
 		bool			isCGI(const LocationConfig* location, const std::string& path);
 		HttpResponse	executeCGI(const SocketClient* client, const LocationConfig* location, const std::string& path);
-		HttpResponse	executeStatic(const SocketClient* client, const LocationConfig* location, const std::string& path);
+		HttpResponse	executeStatic(const SocketClient* client, const std::string& path);
 		HttpResponse	createCGIResponse(const SocketClient* client, std::string output);
 		std::string		extractPathInfo(const std::string& uri, const std::string& scriptPath);
 

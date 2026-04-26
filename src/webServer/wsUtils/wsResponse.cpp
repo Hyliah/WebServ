@@ -68,7 +68,7 @@ HttpResponse	WebServer::methodPost(SocketClient* client){
 	}
 	else {
 		LOG("Ca c est du static"); // -------------------------------------------------------------
-		return (executeStatic(client, location, path));
+		return (executeStatic(client, path));
 	}
 }
 

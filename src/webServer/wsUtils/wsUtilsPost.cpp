@@ -13,20 +13,46 @@
 #include "WebServer.hpp"
 #include "../utils/utilsGeneral.hpp"
 
-//headers[key].push_back(value);
+/* ************************************************** */
+/* Static						                      */
+/* ************************************************** */
 
-// void addHeader(std::map<std::string, std::vector<std::string> >& headers,
-//                const std::string& line)
-// {
-//     size_t pos = line.find(':');
-//     if (pos == std::string::npos)
-//         return;
+HttpResponse	WebServer::executeStatic(const SocketClient* client, const std::string& path) {
+    LOG("\n>>> EXECUTE STATIC ");// --------------------------------------------------------------------------------------------
 
-//     std::string key = trim(line.substr(0, pos));
-//     std::string value = trim(line.substr(pos + 1));
+    if (path.find("/cgi-bin/") != std::string::npos){
+        LOG("erreur d ici ");// --------------------------------------------------------------------------------------------    
+        return buildErrorResponse(403, client);
+    }
+   
+    const HttpRequest& req = client->getRequest();
 
-//     headers[key].push_back(value);
-// }
+    if (req.getBodyPath().empty())
+        return buildErrorResponse(400, client);
+
+    std::ifstream src(req.getBodyPath().c_str(), std::ios::binary);
+    if (!src)
+        return buildErrorResponse(500, client);
+
+    LOG("le path passé :  " << path);// --------------------------------------------------------------------------------------------  
+    std::ofstream dst(path.c_str(), std::ios::binary);
+    if(!dst){
+        LOG("erreur de la ");// --------------------------------------------------------------------------------------------  
+        return buildErrorResponse(403, client);
+    }
+
+    dst << src.rdbuf();
+
+    HttpResponse res;
+    res.statusLine = "HTTP/1.1 201 OK"; // Created
+    res.headers["Content-Type"].push_back("text/plain");
+    res.body = "File uploaded\n";
+    return res;
+}
+
+/* ************************************************** */
+/* CGI  						                      */
+/* ************************************************** */
 
 bool WebServer::isCGI(const LocationConfig* location, const std::string& path){
     LOG("\n>>> IS CGI ");// --------------------------------------------------------------------------------------------
@@ -186,32 +212,10 @@ HttpResponse	WebServer::createCGIResponse(const SocketClient* client, std::strin
     }
 
     if (res.statusLine.empty())
-        res.statusLine = "200";
+        res.statusLine = "HTTP/1.1 200 OK";
 
     res.body = body;
 
-    return res;
-}
-
-HttpResponse	WebServer::executeStatic(const SocketClient* client, const LocationConfig* location, const std::string& path) {
-    (void)client;
-    (void)location;
-    (void)path;
-   
-    //faire des verif de chmod ici ou ailleurs ??? -> 405 acccess denied ???
-    //ou checker si post dans method ?
-
-    // verifier taille max again ?
-
-    // defnir le content type via le header du client
-    // contentType = client.getRequest().getHeaders(["Content-Type"])
-
-    //if MULTIPART : (contentType contient "multipart/form-data") -> "juste" apload un truc -> return handleUnFIle() - 201
-    //else if URLENCODED : (contentType == "application/x-www-form-urlencoded") -> parserUrl -> return handleTrucParse() -> httpResponse - 201
-    //else if JASON : contentType == "application/json" -> parseJason -> return handleTrucParse() -> HttpResponse - 201
-    //else return 415 unsupported media part 
-    
-    HttpResponse res;
     return res;
 }
 
