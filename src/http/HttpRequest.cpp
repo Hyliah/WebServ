@@ -40,10 +40,10 @@ const	std::string& HttpRequest::getUri() const { return (_uri); }
 const	std::string& HttpRequest::getVersion() const { return (_version); }
 const   std::string& HttpRequest::getBodyPath() const { return(_bodyFilePath); }
 const   std::string& HttpRequest::getPath() const { return(_path);}
-long    HttpRequest::getContentLength() const { return(_contentLength); }
 const	std::map<std::string, std::vector<std::string> >& HttpRequest::getHeaders() const { return (_headers); }
 const   std::string& HttpRequest::getOriginPath() const{ return(_originPath); }
 const   std::string& HttpRequest::getOriginQuery() const{ return(_originQuery); }
+long    HttpRequest::getContentLength() const { return(_contentLength); }
 
 void    HttpRequest::setOriginPath(std::string str){ _originPath = str; }
 void    HttpRequest::setOriginQuery(std::string str){ _originQuery = str; }

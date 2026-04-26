@@ -19,7 +19,7 @@
 
 HttpResponse	WebServer::methodGet(SocketClient* client){
 
-	LOG(">>> methodGet"); // ---------------------------------
+	LOG("\n>>> METHOD GET"); // ---------------------------------
 
     const LocationConfig* location = findMatchingLocation(client);
     std::string path = client->getRequest().getPath();
@@ -53,6 +53,7 @@ HttpResponse	WebServer::methodGet(SocketClient* client){
 }
 
 HttpResponse	WebServer::methodPost(SocketClient* client){
+	LOG("\n>>> METHOD POST "); // -------------------------------------------------------------
 	(void)client;
 
 	const LocationConfig* location = findMatchingLocation(client);
@@ -61,10 +62,14 @@ HttpResponse	WebServer::methodPost(SocketClient* client){
 
 	std::string path = client->getRequest().getPath(); //mettre en const si ca hurle (url)
 
-	if (isCGI(location, path))
+	if (isCGI(location, path)){
+		LOG("on part pour executer le CGI"); // -------------------------------------------------------------
 		return (executeCGI(client, location, path));
-	else
+	}
+	else {
+		LOG("Ca c est du static"); // -------------------------------------------------------------
 		return (executeStatic(client, location, path));
+	}
 }
 
 HttpResponse	WebServer::methodDelete(SocketClient* client){

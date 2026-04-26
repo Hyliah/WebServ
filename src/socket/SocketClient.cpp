@@ -43,18 +43,18 @@ void	SocketClient::addBytes(long bytes){ _bytesRead += bytes; }
 void	SocketClient::appendBuffer(const std::string& str){ _buffer += str; }
 
 void	SocketClient::parseRequest(){
-	LOG(">>> PARSING REQUEST"); // --------------------
+	LOG(">>> PARSING REQUEST"); // ----------------------------------------------------------------------------------
 
 	size_t position = 0;
 
 	parseFirstLine(_buffer, position);
 	parseHeaders(_buffer, position);
 
-	LOG(">>> HEADER COMPLETE"); // --------------------
-	LOG(".    Method: " << getRequest().getMethod()); // --------------------
-	LOG(".    URI: " << getRequest().getUri()); // --------------------
-	LOG(".    Chunked: " << chunked); // --------------------
-	LOG(".    ContentLength: " << contentLength); // --------------------
+	_buffer.erase(0, position);
+
+	LOG(">>> HEADER COMPLETE"); // ---------------------------------------------------------------------------------
+	LOG(".    Method: " << getRequest().getMethod()); // ----------------------------------------------------------------
+	LOG(".    URI: " << getRequest().getUri()); // ----------------------------------------------------------------
 
 	defineBodyType();
 
@@ -77,6 +77,8 @@ void	SocketClient::defineBodyType(){
 		_request.setContentLength(stringToLong(itCL->second[0].c_str()));
 		if (_request.getContentLength() > DEFAULT_MAX_BODY_SIZE)
 			throw ResponseException(_fd, 413); //probleme ici, ne revoit pas 413 mais 403 donc faire la veirf avant ou je sais pas 
+		LOG("..............  is requete ContentLength: " << contentLength); // -------------------------------------------------------------
+		LOG("..............  La length de la requete ContentLength: " << _request.getContentLength()); // ----------------------------------
 	}
 	else {
 		contentLength = false;
@@ -92,6 +94,9 @@ void	SocketClient::defineBodyType(){
 		if (value.find("chunked") != std::string::npos)
 			chunked = true;
 	}
+
+	LOG("..............  is requete Chuncked: " << chunked); // -------------------------------------------------------------
+
 	if (chunked)
 		contentLength = false;
 
@@ -220,7 +225,7 @@ void	SocketClient::parsingNoBody(){
 
 void SocketClient::parsingChunked() {
 	while (1) {
-
+		LOG("chunked est passé 1x de plus"); // ----------------------------------------------------------------------------
 		if (_chunkState == CHUNK_SIZE) {
 
 			size_t pos = _buffer.find("\r\n");
@@ -228,6 +233,7 @@ void SocketClient::parsingChunked() {
 				return; // attendre recv()
 			
 			std::string line = _buffer.substr(0, pos);
+			LOG("LINE en cours =  " << line); // ----------------------------------------------------------------------------
 
 			try { _bytesPending = hexToLong(line); } 
 			catch (...) {
@@ -237,6 +243,7 @@ void SocketClient::parsingChunked() {
 			_buffer.erase(0, pos + 2); // remove "size\r\n"
 
 			if (_bytesPending == 0) {
+				LOG("CHUNKED DONE"); // ----------------------------------------------------------------------------
 				_chunkState = CHUNK_DONE;
 				continue;
 			}
@@ -260,7 +267,8 @@ void SocketClient::parsingChunked() {
 
 			_bytesRead += _bytesPending;
 			_buffer.erase(0, _bytesPending);
-
+			
+			LOG("CHUNKED CRLF"); // ----------------------------------------------------------------------------
 			_chunkState = CHUNK_CRLF;
 		}
 
@@ -272,6 +280,7 @@ void SocketClient::parsingChunked() {
 			}
 			_buffer.erase(0, 2);
 
+			LOG("CHUNKED SIZE"); // ----------------------------------------------------------------------------
 			_chunkState = CHUNK_SIZE;
 		}
 

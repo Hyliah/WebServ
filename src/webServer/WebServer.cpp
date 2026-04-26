@@ -67,7 +67,7 @@ WebServer::~WebServer(){
 
 void WebServer::pollLoop() {
     initPollStruct();
-    LOG("---- NEW POLL LOOP ----"); //------------------------------------------
+    LOG("\n---- NEW POLL LOOP ----"); //------------------------------------------
 
     while (_running) {
 
@@ -125,6 +125,7 @@ void WebServer::pollLoop() {
                 try {
                     sendResponse(fd, 0);
                 } catch (...) {
+					LOG("ICI PB :( ?)"); // ----------------------------------------------------------------------------
                     closeConnection(fd);
                     continue;
                 }
@@ -137,7 +138,7 @@ void WebServer::pollLoop() {
 
 void	WebServer::acceptClient(int serverFd){
 
-	LOG(">>> ACCEPT CLIENT on server fd " << serverFd); // ---------------------
+	LOG("\n >>> ACCEPT CLIENT on server fd " << serverFd); // ---------------------
 
 	struct sockaddr_storage addr;
 	socklen_t addrlen = sizeof(addr);
@@ -177,7 +178,7 @@ void	WebServer::acceptClient(int serverFd){
 }
 
 void	WebServer::handleRequest(int fd){
-	
+	LOG("\n>>> HANDLE REQUEST "); // -------------------------------------------------------------
 	LOG(">>> handleRequest fd = " << fd); // -----------------------------------
 	SocketClient* client = _socketClients[fd];
 
@@ -217,11 +218,12 @@ void	WebServer::handleRequest(int fd){
         setPollOut(fd);
     }
 	
-	LOG(">>> ----  HANDLE REQUEST END COMPLETE"); // ---------------------------
+	LOG("HANDLE REQUEST END COMPLETE"); // ---------------------------
 }
 
 void WebServer::parseBody(SocketClient* client)
 {
+	LOG("\n>>> PARSE BODY "); // -------------------------------------------------------------
 	if (client->getRequest().getMethod() == "DELETE" || client->getRequest().getMethod() == "GET")
 		client->ignoreBody = true;
 
@@ -231,7 +233,7 @@ void WebServer::parseBody(SocketClient* client)
 	}
 
     else if (client->contentLength){
-		LOG("CA PASSSE PAR CL ICI");
+		LOG("CA PASSSE PAR CONTENT LENTGHT ICI");
         client->parsingContentLength();
 	}
 
@@ -245,6 +247,8 @@ void WebServer::parseBody(SocketClient* client)
 }
 
 void	WebServer::sendResponse(int fd, int codeError){
+
+	LOG("\n>>> SEND RESPONSE "); // -------------------------------------------------------------
 
 	LOG(">>> sendResponse fd = " << fd); // ------------------------------------
 	LOG(">>> code error = " << codeError); // ----------------------------------
@@ -274,13 +278,13 @@ void	WebServer::sendResponse(int fd, int codeError){
                 res = methodDelete(client);
 		}
 
-		std::cout << "\napres le method get\n" << std::endl;
-
 		std::string response = res.ResponseToString();
 		
 		LOG(">>> RESPONSE BUILT:"); // -----------------------------------------
 		LOG(response); // ------------------------------------------------------
 		LOG("URI: " << client->getRequest().getUri()); // ----------------------
+
+	
 
 		size_t totalSent = 0;
 		while (totalSent < response.size()) {

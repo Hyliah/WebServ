@@ -29,32 +29,28 @@
 // }
 
 bool WebServer::isCGI(const LocationConfig* location, const std::string& path){
-    //aller chercher dans le parsinf du fichier de conf de la loc si on a des formats correspondant
-    // depend soit d une extension soit d un flag en config. Faut il y avoir les 2 ou tout fonctionne ? 
-	// ( de memoire on avait dit juste extension )
-    LOG("\n>>> IS CGI ");
+    LOG("\n>>> IS CGI ");// --------------------------------------------------------------------------------------------
     
-    if (!location)
-        return false;
-    
-    LOG("CGI infos de base = " << location->cgiEnabled); 
-	// Check si le CGI est activé pour cette location
-
-    if (location->cgiInfo.empty()){
-        LOG("CGI est faux 1"); 
+    if (!location){
+        LOG("pas de location"); // -------------------------------------------------------------
         return false;
     }
-
-    // Trouver l'extension du fichier (on cherche le dernier '.')
+    
+    LOG("CGI infos de base = " << location->cgiEnabled); // --------------------------------------------------------------
+    
+    if (location->cgiInfo.empty()){
+        LOG("CGI est faux 1"); // --------------------------------------------------------------------------------------------
+        return false;
+    }
     size_t lastDot = path.find_last_of('.'); // ok cpp98 si jamais j'ai check
     if (lastDot == std::string::npos){
+        LOG("Log a la con."); // -------------------------------------------------------------
         return false;
     }
 
     std::string ext = path.substr(lastDot); // Récupère ".py" par exemple
-
-    // Vérifier si cette extension est enregistrée dans cgiInfo
     if (location->cgiInfo.find(ext) != location->cgiInfo.end()){
+        LOG("recup ext juste."); // -------------------------------------------------------------
         return true;
     }
 
@@ -62,45 +58,27 @@ bool WebServer::isCGI(const LocationConfig* location, const std::string& path){
 }
 
 HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationConfig* location, const std::string& path) {
-    LOG("\n>>> EXECUTE CGI ");
+    LOG("\n>>> EXECUTE CGI "); // -------------------------------------------------------------------------------------------------
     if (access(path.c_str(), F_OK) == -1)
         return buildErrorResponse(404, client);
 
     if (access(path.c_str(), X_OK) == -1)
         return buildErrorResponse(403, client);
 
-    // std::string bodypath = client->getRequest().getBodyPath(); //pour debug
-    // LOG("body path =  " << bodypath);
+    std::string bodypath = client->getRequest().getBodyPath();
+    LOG("body path =  " << bodypath); // ------------------------------------------------------------------------------------------
 
-    // int bodyFd = open(client->getRequest().getBodyPath().c_str(), O_RDONLY);
-    // if (bodyFd == -1)
-    //     return buildErrorResponse(500, client);
-
-
-
-
-    std::string bodypath = "./www/cgi-bin/test.py"; //pour debug
-    LOG("body path =  " << bodypath);
-
-    int bodyFd = open(bodypath.c_str(), O_RDONLY);
+    int bodyFd = open(client->getRequest().getBodyPath().c_str(), O_RDONLY);
     if (bodyFd == -1)
         return buildErrorResponse(500, client);
 
 
-
-
-
-
-
-
-
-
     std::map<std::string, std::vector<std::string> > map = createEnvp(client, location, path);
-    LOG("map crée ");
+    LOG("map crée "); // ---------------------------------------------------------------------------------------------------------
     char** envp = convertMapToChar(map);
     if (envp == NULL)
         return buildErrorResponse(500, client);
-    LOG("map convertie en char **");
+    LOG("map convertie en char **"); // ------------------------------------------------------------------------------------------
 
     int pipeFd[2] = {-1};
     
@@ -166,7 +144,7 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
 }
 
 HttpResponse	WebServer::createCGIResponse(const SocketClient* client, std::string raw){
-    LOG("\n>>> CREATE CGI RESPONSE ");
+    LOG("\n>>> CREATE CGI RESPONSE "); // --------------------------------------------------------------------------------
     HttpResponse res;
 
     size_t pos = raw.find("\r\n\r\n");
@@ -240,7 +218,7 @@ HttpResponse	WebServer::executeStatic(const SocketClient* client, const Location
 
 std::map<std::string, std::vector<std::string> > WebServer::createEnvp(const SocketClient* client, const LocationConfig* location, const std::string& path)
 {
-    LOG(">>> CREATE ENVP ");
+    LOG("\n>>> CREATE ENVP "); // -------------------------------------------------------------
     (void)location;
 
     std::map<std::string, std::vector<std::string> > env;
@@ -281,9 +259,7 @@ std::map<std::string, std::vector<std::string> > WebServer::createEnvp(const Soc
 
 std::string WebServer::extractPathInfo(const std::string& uri, const std::string& scriptPath)
 {
-    // scriptPath = "/cgi-bin/test.py"
-    // uri        = "/cgi-bin/test.py/foo/bar"
-    LOG(">>> EXTRACT PATH INFO ");
+    LOG("\n>>> EXTRACT PATH INFO "); // -------------------------------------------------------------
     LOG("URI " << uri);
     LOG("SCRIPT PATH " << scriptPath);
 
@@ -297,6 +273,7 @@ std::string WebServer::extractPathInfo(const std::string& uri, const std::string
 }
 
 char**          WebServer::convertMapToChar(const std::map<std::string, std::vector<std::string> >& env){
+    LOG("\n>>> CONVERT MAP TO CHAR "); // -------------------------------------------------------------
     char** res = new char*[env.size() + 1];
 
     for (size_t i = 0 ; i <= env.size(); ++i){
@@ -323,4 +300,3 @@ char**          WebServer::convertMapToChar(const std::map<std::string, std::vec
     res[i] = NULL; 
     return res; 
 }
-//faire une fonction qui coupe le path en bout chouettes : URI: /cgi/script.py/foo/bar : SCRIPT_NAME → /cgi/script.py : PATH_INFO   → /foo/bar

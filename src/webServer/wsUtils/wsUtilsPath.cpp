@@ -13,6 +13,7 @@
 #include "WebServer.hpp"
 
 void WebServer::resolvePath(SocketClient* client) {
+    LOG("\n>>> RESOLVE PATH "); // -------------------------------------------------------------
     const std::string& uri = client->getRequest().getUri();
     int fd = client->getFd();
 
@@ -63,6 +64,7 @@ void WebServer::resolvePath(SocketClient* client) {
 }
 
 std::string	WebServer::decodePath(const std::string &path, int fd){
+    LOG("\n>>> DECODE PATH "); // -------------------------------------------------------------
 	std::string output;
 
 	if (path.empty())
@@ -102,6 +104,7 @@ std::string	WebServer::decodePath(const std::string &path, int fd){
 }
 
 std::string	WebServer::normalizePath(const std::string &path, int fd){
+    LOG("\n>>> NORMALIZE PATH "); // -------------------------------------------------------------
 
 	std::vector<std::string> segmentPath;
 	std::stringstream ss(path);
@@ -132,6 +135,7 @@ std::string	WebServer::normalizePath(const std::string &path, int fd){
 }
 
 void WebServer::cleanFinalPath(std::string& root, std::string& finalPath) {
+    LOG("\n>>> CLEAN FINAL PATH "); // -------------------------------------------------------------
     if (root.empty())
         return;
 
@@ -148,6 +152,8 @@ void WebServer::cleanFinalPath(std::string& root, std::string& finalPath) {
 }
 
 std::string WebServer::findRoot(const SocketClient* client){
+
+    LOG("\n>>> FIND ROOT "); // -------------------------------------------------------------
 	
 	const std::vector<const ServerConfig*>& conf = client->getServer()->getServers();
     const HttpRequest& req = client->getRequest();
@@ -190,6 +196,7 @@ void	WebServer::checkErrorPath(const std::string &path, int fd){
 
 
 void WebServer::resolveQuery(SocketClient* client, std::string queryStr) {
+    LOG("\n>>> RESOLVE QUERY "); // -------------------------------------------------------------
 
     std::map<std::string, std::vector<std::string> > query;
 
@@ -240,6 +247,8 @@ void WebServer::resolveQuery(SocketClient* client, std::string queryStr) {
 	// si \0 bad request
 
 std::string WebServer::UrlDecode(const SocketClient *client, std::string entry) {
+    LOG("\n>>> URL DECODE "); // -------------------------------------------------------------
+    
     std::string result;
 
     for (size_t i = 0; i < entry.length(); i++) {
