@@ -72,10 +72,35 @@ HttpResponse	WebServer::methodPost(SocketClient* client){
 	}
 }
 
-HttpResponse	WebServer::methodDelete(SocketClient* client){
-	(void)client;
-	HttpResponse res;
-	return res;
-// A FAIRE
+HttpResponse WebServer::methodDelete(SocketClient* client)
+{
+    std::string path = client->getRequest().getPath();
+
+    if (path.find("/upload/") == std::string::npos)
+        return buildErrorResponse(403, client);
+
+    if (path.find("..") != std::string::npos)
+        return buildErrorResponse(403, client);
+
+    std::string dir = path.substr(0, path.find_last_of('/'));
+
+    if (access(dir.c_str(), W_OK) == -1)
+        return buildErrorResponse(403, client);
+
+    struct stat st;
+    if (stat(path.c_str(), &st) < 0)
+        return buildErrorResponse(404, client);
+
+    if (!S_ISREG(st.st_mode))
+        return buildErrorResponse(403, client);
+
+    if (remove(path.c_str()) != 0)
+        return buildErrorResponse(500, client);
+
+    HttpResponse res;
+    res.statusLine = "HTTP/1.1 204 No Content";
+    return res;
 }
+
+
 

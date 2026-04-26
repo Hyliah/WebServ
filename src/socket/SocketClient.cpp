@@ -45,12 +45,17 @@ void	SocketClient::appendBuffer(const std::string& str){ _buffer += str; }
 void	SocketClient::parseRequest(){
 	LOG(">>> PARSING REQUEST"); // ----------------------------------------------------------------------------------
 
+	size_t headerEnd = _buffer.find("\r\n\r\n");
+    if (headerEnd == std::string::npos)
+        return;
+
 	size_t position = 0;
 
 	parseFirstLine(_buffer, position);
 	parseHeaders(_buffer, position);
 
-	_buffer.erase(0, position);
+	_buffer.erase(0, headerEnd + 4);
+	LOG("Buffer after header erase: [" << _buffer << "]");
 
 	LOG(">>> HEADER COMPLETE"); // ---------------------------------------------------------------------------------
 	LOG(".    Method: " << getRequest().getMethod()); // ----------------------------------------------------------------
@@ -184,7 +189,8 @@ void SocketClient::parseHeaders(std::string &buffer, size_t &pos)
         count++;
         total += line.size();
 
-        pos = lineEnd + 2;
+        pos = lineEnd + 2 ; // +2 a la base
+		//pos = end + 2; // +2 a la base
     }
 
     validateHeaders(count, total);
