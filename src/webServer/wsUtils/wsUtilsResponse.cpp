@@ -33,9 +33,11 @@ const LocationConfig* WebServer::findMatchingLocation(const SocketClient* client
         if (uri.compare(0, locPath.size(), locPath) != 0)
             continue;
 
-        if (uri.size() > locPath.size() &&
-            locPath.back() != '/' &&
-            uri[locPath.size()] != '/')
+        // pas cpp98
+        // if (uri.size() > locPath.size() && locPath.back() != '/' && uri[locPath.size()] != '/')
+        //     continue;
+        
+        if (uri.size() > locPath.size() && !locPath.empty() && locPath[locPath.size() - 1] != '/' && uri[locPath.size()] != '/')
             continue;
 
         if (locPath.size() > bestLen) {

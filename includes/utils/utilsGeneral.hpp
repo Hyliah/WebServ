@@ -14,6 +14,7 @@
 #define UTILSPARSING_HPP
 
 #include <string>
+#include <vector>
 
 long		stringToLong(const std::string &str);
 long		hexToLong(const std::string& hex);

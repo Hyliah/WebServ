@@ -79,32 +79,32 @@ std::string WebServer::getMimeType(std::string path){
 
     std::string ext = path.substr(dot);
 
-	if (ext == ".html" || ext == ".htm")
-        return "text/html";
+	if (ext == ".html" || ext == ".htm"){
+        return "text/html";}
 
-    if (ext == ".css")
-        return "text/css";
+    if (ext == ".css"){
+        return "text/css";}
 
-    if (ext == ".js")
-        return "application/javascript";
+    if (ext == ".js"){
+        return "application/javascript";}
 
-    if (ext == ".json")
-        return "application/json";
+    if (ext == ".json"){
+        return "application/json";}
 
-    if (ext == ".png")
-        return "image/png";
+    if (ext == ".png"){
+        return "image/png";}
 
-    if (ext == ".jpg" || ext == ".jpeg")
-        return "image/jpeg";
+    if (ext == ".jpg" || ext == ".jpeg"){
+        return "image/jpeg";}
 
-    if (ext == ".gif")
-        return "image/gif";
+    if (ext == ".gif"){
+        return "image/gif";}
 
-    if (ext == ".txt")
-        return "text/plain";
+    if (ext == ".txt"){
+        return "text/plain";}
 
-    if (ext == ".pdf")
-        return "application/pdf";
+    if (ext == ".pdf"){
+        return "application/pdf";}
 
 	return "application/octet-stream"; // standard par defaut
 }

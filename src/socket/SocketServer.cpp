@@ -13,6 +13,7 @@
 	#include "SocketServer.hpp"
 	#include "Exceptions.hpp"
 	#include <iostream>
+	#include <cstring>
 	
 /* ************************************************** */
 /* construtor & destructors                           */
@@ -84,7 +85,7 @@ void    SocketServer::createSocket(){
 	}
 
 int SocketServer::initStructGetaddrinfo(struct addrinfo& hints, struct addrinfo** res){
-	memset(&hints, 0, sizeof(hints));
+	std::memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;

@@ -172,9 +172,10 @@ std::string WebServer::findRoot(const SocketClient* client){
             break;
         }
     }
-    if (recupRoot.empty() && !conf.empty())
+    if (recupRoot.empty() && !conf.empty()){
         recupRoot = conf[0]->root;
-
+    }
+    
 	return recupRoot;
 }
 

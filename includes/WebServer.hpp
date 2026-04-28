@@ -24,6 +24,8 @@
 #include <fstream>
 #include <time.h>
 #include <signal.h>
+#include <cstdlib>
+#include <sys/wait.h>
 
 #include "SocketClient.hpp"
 #include "SocketServer.hpp"

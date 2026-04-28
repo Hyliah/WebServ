@@ -15,6 +15,7 @@
 #include <cstring>
 #include <sstream>
 #include <map>
+#include <vector>
 
 class HttpResponse {
 	private:

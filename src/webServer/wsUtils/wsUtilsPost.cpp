@@ -132,7 +132,7 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
         char* argv[] = { const_cast<char*>(path.c_str()), NULL }; // creation d un tableau *[] pour mettre en tab[0] le paht et tab[1] NULL
         execve(path.c_str(), argv, envp);
         
-        exit(1);
+        std::exit(1);
     }
 
     safeClose(&bodyFd);
