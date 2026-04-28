@@ -19,15 +19,15 @@
 
 class ServerConfig {
 public:
-	std::string					port; 		// str pour getadrinfo() pour eviter hton 
-	std::string					host;         // par ex par defaut "0.0.0.0"
+	std::string					port;
+	std::string					host;
 	std::string					serverName;
 	std::string					root;
 	std::vector<std::string>	index;
 
 	size_t						maxBodySize;
 	
-	std::map<int, std::string>  errorPages;  // Code (404) -> Chemin du fichier
+	std::map<int, std::string>  errorPages;
 	std::vector<LocationConfig> locations;
 
 	ServerConfig();

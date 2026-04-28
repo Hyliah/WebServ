@@ -19,22 +19,22 @@
 
 class LocationConfig {
 public:
-	std::string				path;          // le chemin Ex: "/something"
-	std::string				root;          // Dossier physique
+	std::string				path;
+	std::string				root;
 
-	std::vector<std::string> methods;       // GET, POST, DELETE ( maybe bool pour savoir si c'est la ou pas ?)
+	std::vector<std::string> methods;
 
-	bool					autoindex;     // si on ou off pour savoir sin on affiche le listing du dossier ou pas
+	bool					autoindex;
 	std::vector<std::string> index;         // Fichier par défaut (index.html)
 
 	int						returnCode;
-	std::string				returnUrl;    // Pour les redirections (301) - a checker 
+	std::string				returnUrl;
 
-	std::string				uploadStore;  // Dossier pour les uploads
+	std::string				uploadStore;
 
 	size_t					maxBodySize;
 
-	std::map<std::string, std::string> cgiInfo; // Extension -> Chemin de l'exécutable
+	std::map<std::string, std::string> cgiInfo;
 
 	bool					cgiEnabled;
 

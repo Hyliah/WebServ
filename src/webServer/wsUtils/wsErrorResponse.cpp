@@ -36,6 +36,11 @@ HttpResponse WebServer::buildErrorResponse(int code, const SocketClient* client)
         imagePath = "/Assets/404.jpg";
         message = "Oups... page missing 🦖";
     }
+	else if (code == 405) {
+		statusText = "Method Not Allowed";
+		imagePath = "/Assets/405.jpg";
+		message = "You can't do that here 🛑";
+	}
     else if (code == 413) {
         statusText = "Payload Too Large";
         imagePath = "/Assets/413.jpg";
