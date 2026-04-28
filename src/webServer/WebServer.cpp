@@ -158,9 +158,9 @@ void	WebServer::acceptClient(int serverFd){
             break;
         }
     }
-    if (!serverPtr)
+    if (!serverPtr){
         throw ResponseException(clientFd, 500);
-
+	}
 	
 	SocketClient* client = new SocketClient(clientFd, addr, serverPtr);
 	

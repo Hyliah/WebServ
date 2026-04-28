@@ -46,10 +46,10 @@ void	SocketClient::parseRequest(){
 	LOG(">>> PARSING REQUEST"); // ----------------------------------------------------------------------------------
 
 	size_t headerEnd = _buffer.find("\r\n\r\n");
-    if (headerEnd == std::string::npos)
-        return;
-
 	size_t position = 0;
+    
+	if (headerEnd == std::string::npos)
+        return ;
 
 	parseFirstLine(_buffer, position);
 	parseHeaders(_buffer, position);

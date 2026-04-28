@@ -13,6 +13,7 @@
 #include "utilsGeneral.hpp"
 #include "WebServer.hpp"
 #include "Exceptions.hpp"
+#include <climits>
 
 
 /* ************************************************** */

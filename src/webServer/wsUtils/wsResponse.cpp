@@ -94,7 +94,7 @@ HttpResponse WebServer::methodDelete(SocketClient* client)
     if (!S_ISREG(st.st_mode))
         return buildErrorResponse(403, client);
 
-    if (remove(path.c_str()) != 0)
+    if (std::remove(path.c_str()) != 0)
         return buildErrorResponse(500, client);
 
     HttpResponse res;
