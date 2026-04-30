@@ -91,13 +91,16 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
     if (access(path.c_str(), X_OK) == -1)
         return buildErrorResponse(403, client);
 
-    std::string bodypath = client->getRequest().getBodyPath();
-    LOG("body path =  " << bodypath); // ------------------------------------------------------------------------------------------
+    int bodyFd = -1;
 
-    int bodyFd = open(client->getRequest().getBodyPath().c_str(), O_RDONLY);
-    if (bodyFd == -1)
+    std::string bodyPath = client->getRequest().getBodyPath();
+    if (!bodyPath.empty())
+    {
+        bodyFd = open(bodyPath.c_str(), O_RDONLY);
+        if (bodyFd == -1)
         return buildErrorResponse(500, client);
-
+    }
+    LOG("body path =  " << bodyPath); // ------------------------------------------------------------------------------------------
 
     std::map<std::string, std::vector<std::string> > map = createEnvp(client, location, path);
     LOG("map crée "); // ---------------------------------------------------------------------------------------------------------
@@ -123,13 +126,16 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
     }
 
     if (pid == 0){
-        dup2(bodyFd, STDIN_FILENO);
+        if (bodyFd != -1)
+            dup2(bodyFd, STDIN_FILENO);
+        else
+            close(STDIN_FILENO);
         dup2(pipeFd[1], STDOUT_FILENO);
 
         safeClose(&bodyFd);
         safeClose(&pipeFd[0]); safeClose(&pipeFd[1]);
 
-        char* argv[] = { const_cast<char*>(path.c_str()), NULL }; // creation d un tableau *[] pour mettre en tab[0] le paht et tab[1] NULL
+        char* argv[] = { const_cast<char*>(path.c_str()), NULL };
         execve(path.c_str(), argv, envp);
         
         std::exit(1);
@@ -144,7 +150,7 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
 
     while (true){
         pid_t result = waitpid(pid, &status, WNOHANG);
-        if ( result == pid)
+        if (result == pid)
             break;
         if (difftime(time(NULL), start) > MAX_WAIT)
         {

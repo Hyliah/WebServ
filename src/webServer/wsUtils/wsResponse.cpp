@@ -68,33 +68,37 @@ HttpResponse	WebServer::methodPost(SocketClient* client, const LocationConfig* l
 
 HttpResponse WebServer::methodDelete(SocketClient* client, const LocationConfig* location)
 {
-	(void) location;
     std::string path = client->getRequest().getPath();
+	//CGI
+	if (isCGI(location, path))
+    	return executeCGI(client, location, path);
+	//PAS CGI
+	else {
+		if (path.find("/upload/") == std::string::npos)
+			return buildErrorResponse(403, client);
 
-    if (path.find("/upload/") == std::string::npos)
-        return buildErrorResponse(403, client);
+		if (path.find("..") != std::string::npos)
+			return buildErrorResponse(403, client);
 
-    if (path.find("..") != std::string::npos)
-        return buildErrorResponse(403, client);
+		std::string dir = path.substr(0, path.find_last_of('/'));
 
-    std::string dir = path.substr(0, path.find_last_of('/'));
+		if (access(dir.c_str(), W_OK) == -1)
+			return buildErrorResponse(403, client);
 
-    if (access(dir.c_str(), W_OK) == -1)
-        return buildErrorResponse(403, client);
+		struct stat st;
+		if (stat(path.c_str(), &st) < 0)
+			return buildErrorResponse(404, client);
 
-    struct stat st;
-    if (stat(path.c_str(), &st) < 0)
-        return buildErrorResponse(404, client);
+		if (!S_ISREG(st.st_mode))
+			return buildErrorResponse(403, client);
 
-    if (!S_ISREG(st.st_mode))
-        return buildErrorResponse(403, client);
+		if (std::remove(path.c_str()) != 0)
+			return buildErrorResponse(500, client);
 
-    if (std::remove(path.c_str()) != 0)
-        return buildErrorResponse(500, client);
-
-    HttpResponse res;
-    res.statusLine = "HTTP/1.1 204 No Content";
-    return res;
+		HttpResponse res;
+		res.statusLine = "HTTP/1.1 204 No Content";
+		return res;
+	}
 }
 
 
