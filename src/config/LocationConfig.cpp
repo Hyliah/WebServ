@@ -23,10 +23,10 @@ LocationConfig::LocationConfig(){
 	returnCode = 0;
 	returnUrl = "";
 	uploadStore = "";
-	maxBodySize = 100000; // 100ko par defaut
+	maxBodySize = 100000;
 	cgiEnabled = false;
 
-	methods.push_back("GET"); // par defaut on autorise que GET
+	methods.push_back("GET");
 
 	hasGet = true;
 	hasPost = false;

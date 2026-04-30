@@ -40,7 +40,6 @@ ParserConfig::~ParserConfig() {}
 /* *************************************************** */
 /*  Fonction parse principale                          */
 /* *************************************************** */ 
-// VERSION CLEAN :
 void ParserConfig::parse(const std::string &configFilePath){
 	std::string content = readFile(configFilePath);
 	removeComments(content);
@@ -60,8 +59,6 @@ void ParserConfig::parse(const std::string &configFilePath){
 /* *************************************************** */
 /*  Read, clean file + tokenize                        */
 /* *************************************************** */ 
-// lire le fichier et retourner son contenu sous forme de string
-// fichier et non dossier ??? check si ok 
 std::string ParserConfig::readFile(const std::string &path) {
 	std::ifstream file(path.c_str());
 	if (!file.is_open()) {
@@ -90,7 +87,6 @@ void ParserConfig::removeComments(std::string &content) {
 	}
 }
 
-// TOKENIZEEEERRR
 void ParserConfig::tokenize(const std::string &content) {
 	std::string result;
 	for (size_t i = 0; i < content.size(); i++) {
@@ -113,7 +109,6 @@ void ParserConfig::tokenize(const std::string &content) {
 /* *************************************************** */
 /*  PARSE SERVEUR ET LOCATION                          */
 /* *************************************************** */ 
-// a changer pour eviter foret de if ? pointeur sur fonction ? check deja si tt marche ... 
 void	ParserConfig::parseServer(std::vector<std::string>::iterator &it){
 	it++;
 	if ( it == _tokens.end() || *it != "{")
@@ -192,7 +187,6 @@ void	ParserConfig::parseLocation(std::vector<std::string>::iterator &it, ServerC
 /* *************************************************** */
 /*  HANDLERS SERVER                                    */
 /* *************************************************** */ 
-
 void ParserConfig::handleListen(std::vector<std::string>::iterator &it, ServerConfig &server)
 {
     it++;
@@ -201,13 +195,10 @@ void ParserConfig::handleListen(std::vector<std::string>::iterator &it, ServerCo
 
     server.port = *it;
 
-    // verif que le port est bien un nombre
-    for (size_t i = 0; i < server.port.size(); i++)
-    {
+    for (size_t i = 0; i < server.port.size(); i++){
         if (!isdigit(server.port[i]))
             throw ParseException(CONF, "invalid port value: " + server.port);
     }
-    // verif que le port est dans la plage valide
     int port = stringToInt(server.port);
     if (port <= 0 || port > 65535)
         throw ParseException(CONF, "port out of range (1-65535): " + server.port);
@@ -237,19 +228,16 @@ void	ParserConfig::handleServerName(std::vector<std::string>::iterator &it, Serv
 void	ParserConfig::handleErrorPage(std::vector<std::string>::iterator &it, ServerConfig &server){
 	it++;
 	std::vector<int> codes;
-	// On récupère tous les nombres (les codes d'erreur)
 	while (it != _tokens.end() && isdigit((*it)[0])) {
 		codes.push_back(stringToInt(*it));
 		it++;
 	}
-	// verif qu'on a au moins un code et qu'il reste un token (le chemin)
 	if (codes.empty())
 		throw ParseException(CONF, "error_page needs at least one error code");
 	if (!validateValue(it))
 		throw ParseException(CONF, "error_page directive needs a file path after the codes");
-	std::string errorPath = *it; // Le token actuel est le chemin (ex: /404.html)
+	std::string errorPath = *it;
 	it++;
-	// remplit la map pour chaque code trouvé
 	for (size_t i = 0; i < codes.size(); i++) {
 		server.errorPages[codes[i]] = errorPath;
 	}
@@ -398,7 +386,7 @@ void ParserConfig::handleCgi(std::vector<std::string>::iterator &it, LocationCon
 
     location.cgiInfo[ext] = path;
 	std::cout << location.cgiInfo[ext] << std::endl;
-    location.cgiEnabled = true; // OK ici aussi, mais redondant si tu utilises empty()
+    location.cgiEnabled = true;
     checkSemicolon(it);
 }
 
@@ -440,9 +428,6 @@ void ParserConfig::handleCgiEnabled(std::vector<std::string>::iterator &it, Loca
 /* *************************************************** */
 /*  CHECKS AND UTILS                                   */
 /* *************************************************** */ 
-
-// finalement on fait une petite verif structurelle pour pas que la classe soit remplie avec de la daube
-// mais on check les trucs plus speficique ds la fonction finale de verif config 
 bool	ParserConfig::validateValue(std::vector<std::string>::iterator &it){
 	if (it == _tokens.end() || *it == ";" || *it == "{" || *it == "}") {
 		throw ParseException(CONF, "Unexpected token or missing value");
@@ -456,7 +441,6 @@ void	ParserConfig::checkSemicolon(std::vector<std::string>::iterator &it){
 	it++;
 }
 
-// ca aussi, petite verif structurelle aussi, meme si ds les fonctions on verifie les brracket pour voir leur contenu 
 void	ParserConfig::checkBracketsBalance(const std::string &content){
 	int balance = 0;
 	for (size_t i = 0; i < content.size(); ++i) {
@@ -477,14 +461,10 @@ void	ParserConfig::checkBracketsBalance(const std::string &content){
 /* *************************************************** */
 /*  FINAL VERIF'                                       */
 /* *************************************************** */ 
-
 void	ParserConfig::verifyConfig(){
-	// verifie que chaque serveur a au moins un port et une location, et qu'il n'y a pas de doublons de ports
-	// etc ... 
 	if (_servers.empty())
         throw ParseException(CONF, "No server block found");
 
-    // Check doublons host:port
     for (size_t i = 0; i < _servers.size(); i++) {
         for (size_t j = i + 1; j < _servers.size(); j++) {
             if (_servers[i].host == _servers[j].host && 
@@ -496,69 +476,20 @@ void	ParserConfig::verifyConfig(){
     for (size_t i = 0; i < _servers.size(); i++) {
         ServerConfig &s = _servers[i];
 
-        // Port obligatoire (même si tu as une valeur par défaut)
         if (s.port.empty())
             throw ParseException(CONF, "Server missing 'listen' directive");
 
-        // Root obligatoire
         if (s.root.empty())
             throw ParseException(CONF, "Server missing 'root' directive");
 
-        // Vérif locations
         for (size_t j = 0; j < s.locations.size(); j++) {
             LocationConfig &loc = s.locations[j];
 
             if (loc.path.empty() || loc.path[0] != '/')
                 throw ParseException(CONF, "Location path must start with '/'");
 
-            // Si CGI activé, vérifier que les extensions ont bien un exécutable
             if (loc.cgiEnabled && loc.cgiInfo.empty())
                 throw ParseException(CONF, "CGI enabled but no cgi_info defined");
         }
     }
 }
-
-
-// ------------------------------ Prise de note vrac ------------------------------
-// parser les blocs de config (server, location) 
-// et stocker les infos dans des classes serverConfig et locationConfig
-// donc si on croise server { on cree objet serverConfig et on parse jusqu'a la fin du bloc, pareil pour location
-// tant qu'on croise pas } on continue de parser et stocker les infos dans la struc correspondante
-
-// si oncroise location /path { on cree objet locationConfig et on parse jusqu'a la fin du bloc
-// tant qu'on croise pas } on continue de parser et stocker les infos dans la struc locationConfig
-
-// pour stocker les donnees on va utiliser conteneur vector ? 
-// chaque serverconfig va contenir les ports, nom de domaine, et le vecteur locationconfig
-// chaque locationconfig va contenir le path, methodes autorisees, les directives de location (root, index, etc), autoindex etc...
-
-// erreur de config exemple :
-// accolades bien fermees
-// validite des nombres pour les ports (0-65535)
-// validite des methodes (GET, POST, DELETE)
-// directives valides (root, index, autoindex, etc...)
-// quitter de maniere clean avec mess d'erreur clair si fichier pas bien formaté ou directives invaldies
-// -> ne pas lancer le serveur si la config est pourrie, obviously
-
-// PAR DEFAUT ??
-// Si non spécifié dans le config :
-// - `port` : 80
-// - `host` : 0.0.0.0
-// - `client_max_body_size` : 1M
-// - `index` : index.html
-// - `autoindex` : off
-// - `methods` : GET
-
-// POUR LOCATION ???
-// - Remplit les infos spécifiques à la route.
-// - Ajoute la `LocationConfig` au serveur en cours.
-
-// attention pour les locations, garder le match le plus long 
-// par ex :
-/*
-	/
-	/images
-	/images/icons
-*/
-// On va garder la 3eme option
-// donc parser en gardant ca en tete 

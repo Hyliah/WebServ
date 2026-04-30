@@ -17,13 +17,12 @@
 /*  Constructors, destructor, and assignment operator  */
 /* *************************************************** */ 
 ServerConfig::ServerConfig(){
-	port = "8080"; // standard pour test 
-	host = "0.0.0.0"; // ecoute sur toutes les interfaces 
+	port = "8080";
+	host = "0.0.0.0";
 	serverName = "default_server";
 	root = "./www";
 	index.push_back("index.html");
 	maxBodySize = DEFAULT_MAX_BODY_SIZE;
-	// les conteneur sont init vide pas defaut donc ok
 }
 ServerConfig::ServerConfig(const ServerConfig &other) {
 	port = other.port;
