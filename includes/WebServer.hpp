@@ -20,12 +20,14 @@
 #include <poll.h>
 #include <map>
 #include <sys/stat.h>
-#include <dirent.h>
 #include <fstream>
-#include <time.h>
+#include <time.h> //trouver une version cpp
 #include <signal.h>
+#include <cstdio>
 #include <cstdlib>
 #include <sys/wait.h>
+#include <dirent.h> //trouver une version cpp si y a 
+
 
 #include "SocketClient.hpp"
 #include "SocketServer.hpp"
@@ -122,6 +124,7 @@ class WebServer{
 		const ServerConfig*		findMatchingConfig(const SocketClient* client) const;
 		const LocationConfig*	findMatchingLocation(const SocketClient* client) const;
 		HttpResponse			buildRedirectResponse(int returnCode, const std::string& url, SocketClient* client);
+		bool					fullDelete(const std::string& path);
 		
 		//PATH -> dans le fichier wsPath.cpp
 		void		resolvePath(SocketClient* client);
