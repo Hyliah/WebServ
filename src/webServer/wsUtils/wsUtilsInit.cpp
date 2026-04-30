@@ -69,24 +69,53 @@ void WebServer::checkTimeouts() {
         int fd = _pollFds[i].fd;
 
         if (!isServerFd(fd)) {
-            SocketClient* client = _socketClients[fd];
 
-            if (client && isTimedOut(client)) {
-                LOG("Timeout client fd = " << fd);
-                closeConnection(fd);
-                continue;
+            std::map<int, SocketClient*>::iterator it = _socketClients.find(fd);
+            if (it != _socketClients.end()) {
+
+                SocketClient* client = it->second;
+
+                if (client && isTimedOut(client)) {
+                    LOG("Timeout client fd = " << fd);
+                    closeConnection(fd);
+                    continue;
+                }
             }
         }
-
         i++;
     }
 }
+
+// void WebServer::checkTimeouts() {
+//     for (size_t i = 0; i < _pollFds.size(); ) {
+
+//         int fd = _pollFds[i].fd;
+
+//         if (!isServerFd(fd)) {
+//             std::map<int, SocketClient*>::iterator it = _socketClients.find(fd);
+// 			if (it == _socketClients.end()) {
+// 				i++;
+// 				continue;
+// 			}
+
+// 		SocketClient* client = it->second;
+
+//             if (client && isTimedOut(client)) {
+//                 LOG("Timeout client fd = " << fd);
+//                 closeConnection(fd);
+//                 continue;
+//             }
+//         }
+
+//         i++;
+//     }
+// }
 
 bool WebServer::isTimedOut(const SocketClient* client) const {
     if (!client)
         return false;
 
-    const int TIMEOUT = 30; // secondes (à adapter)
+    const int TIMEOUT = 5; // secondes (à adapter)
 
     time_t now = time(NULL);
 

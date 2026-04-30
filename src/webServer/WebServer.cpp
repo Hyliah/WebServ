@@ -50,16 +50,6 @@ WebServer::~WebServer(){
 // 	_socketClients[fd] = client;
 // }
 
-// time_t now = std::time(NULL);
-
-// for (std::map<int, SocketClient*>::iterator it = _socketClients.begin(); it != _socketClients.end(); ++it) {
-//     SocketClient* client = it->second;
-
-//     if (now - client->_lastActivity > 10) { // 10 sec timeout
-//         LOG("Timeout client fd = " << client->getFd());
-//         closeConnection(client->getFd());
-//     }
-// }
 
 /* ************************************************** */
 /* PAUL LOOP			                              */
@@ -144,13 +134,24 @@ void	WebServer::acceptClient(int serverFd){
 	socklen_t addrlen = sizeof(addr);
 	int clientFd = accept(serverFd, (struct sockaddr*)&addr, &addrlen);
 	if (clientFd < 0)
-		throw ResponseException(clientFd, 500);
+		return ;
+	
+	if (_socketClients.size() >= 1024) {
+		LOG("Too many clients");
+		std::string res =
+			"HTTP/1.1 503 Service Unavailable\r\n"
+			"Content-Length: 0\r\n"
+			"Connection: close\r\n\r\n";
+
+		send(clientFd, res.c_str(), res.size(), 0);
+		close(clientFd);
+		return;
+	}
 
 	int flags = fcntl(clientFd, F_GETFL, 0);
 	if (fcntl(clientFd, F_SETFL, flags | O_NONBLOCK) < 0)
 		throw ResponseException(clientFd, 500);
 	
-
 	SocketServer* serverPtr = NULL;
     for (size_t i = 0; i < _socketServers.size(); ++i) {
         if (_socketServers[i]->getFd() == serverFd) {
@@ -192,8 +193,10 @@ void	WebServer::handleRequest(int fd){
 			return ;
 		}
 		if (bytes < 0) {
-			throw ResponseException(fd, 500);
-			return;
+			if (errno == EAGAIN || errno == EWOULDBLOCK)
+        		return; // est ce que on a droit au errno ici ? 
+    		closeConnection(fd);
+			return ;
 		}
 		
 		client->appendBuffer(std::string(buffer, bytes));
@@ -224,6 +227,9 @@ void	WebServer::handleRequest(int fd){
 void WebServer::parseBody(SocketClient* client)
 {
 	LOG("\n>>> PARSE BODY "); // -------------------------------------------------------------
+
+	client->lastActivity = std::time(NULL);
+
 	if (client->getRequest().getMethod() == "DELETE" || client->getRequest().getMethod() == "GET")
 		client->ignoreBody = true;
 
