@@ -257,10 +257,19 @@ void	WebServer::sendResponse(int fd, int codeError){
 
 	try {
 		HttpResponse res;
+		const LocationConfig* location = findMatchingLocation(client);
 
+		LOG("location name : " << location->returnUrl); // -------------------------------------------------------------
+		LOG("location return Code : " << location->returnCode); // -------------------------------------------------------------
+		
 		if (client->state == ERROR) {
-            res = buildErrorResponse(client->errorCode, client);
-        }
+			res = buildErrorResponse(client->errorCode, client); }
+
+		else if (!location){
+			res = buildErrorResponse(404, client); }
+
+		else if (location->returnCode){
+			res = buildRedirectResponse(location->returnCode, location->returnUrl, client); }
 
 		else {
 			resolvePath(client);
@@ -269,13 +278,13 @@ void	WebServer::sendResponse(int fd, int codeError){
 			LOG("Method = " << method);  // -------------------------------------
 
 			if (method == "GET"){
-				res = methodGet(client);
+				res = methodGet(client, location);
 				std::cout << "ALL GOOD DANS METHOD GET" << std::endl;
 			}
             else if (method == "POST")
-                res = methodPost(client);
+                res = methodPost(client, location);
             else if (method == "DELETE")
-                res = methodDelete(client);
+                res = methodDelete(client, location);
 		}
 
 		std::string response = res.ResponseToString();

@@ -99,9 +99,9 @@ class WebServer{
 		bool	isTimedOut(const SocketClient* client) const;
 
 		//UTILS RESPONSE -> dans le fichier wsResponse.cpp
-		HttpResponse	methodGet(SocketClient* client);
-		HttpResponse	methodPost(SocketClient* client);
-		HttpResponse	methodDelete(SocketClient* client);
+		HttpResponse	methodGet(SocketClient* client, const LocationConfig* location);
+		HttpResponse	methodPost(SocketClient* client, const LocationConfig* location);
+		HttpResponse	methodDelete(SocketClient* client, const LocationConfig* location);
 
 		//UTILS GET -> dans le fichier wsUtilsGet.cpp
 		HttpResponse	handleDirectory(const SocketClient* client, const std::string& path);
@@ -121,7 +121,7 @@ class WebServer{
 		// 
 		const ServerConfig*		findMatchingConfig(const SocketClient* client) const;
 		const LocationConfig*	findMatchingLocation(const SocketClient* client) const;
-		
+		HttpResponse			buildRedirectResponse(int returnCode, const std::string& url, SocketClient* client);
 		
 		//PATH -> dans le fichier wsPath.cpp
 		void		resolvePath(SocketClient* client);

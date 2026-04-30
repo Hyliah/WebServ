@@ -351,11 +351,14 @@ void	ParserConfig::handleReturn(std::vector<std::string>::iterator &it, Location
 
     if (isdigit((*it)[0])) {
         location.returnCode = stringToInt(*it);
+		LOG("return code : " << location.returnCode); // -------------------------------------------------------------
         it++;
     }
     if (validateValue(it) && *it != ";") {
+
         location.returnUrl = *it;
-        it++;
+        LOG("return url : " << location.returnUrl); // -------------------------------------------------------------
+		it++;
     }
     checkSemicolon(it);
 }

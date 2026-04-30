@@ -17,11 +17,10 @@
 /* UTILS RESPONSE.     		                          */
 /* ************************************************** */
 
-HttpResponse	WebServer::methodGet(SocketClient* client){
+HttpResponse	WebServer::methodGet(SocketClient* client, const LocationConfig* location){
 
 	LOG("\n>>> METHOD GET"); // ---------------------------------
 
-    const LocationConfig* location = findMatchingLocation(client);
     std::string path = client->getRequest().getPath();
 
     if (isCGI(location, path)) {
@@ -52,13 +51,8 @@ HttpResponse	WebServer::methodGet(SocketClient* client){
 
 }
 
-HttpResponse	WebServer::methodPost(SocketClient* client){
+HttpResponse	WebServer::methodPost(SocketClient* client, const LocationConfig* location){
 	LOG("\n>>> METHOD POST "); // -------------------------------------------------------------
-	(void)client;
-
-	const LocationConfig* location = findMatchingLocation(client);
-	if (!location)
-		return buildErrorResponse(404, client);
 
 	std::string path = client->getRequest().getPath(); //mettre en const si ca hurle (url)
 
@@ -72,8 +66,9 @@ HttpResponse	WebServer::methodPost(SocketClient* client){
 	}
 }
 
-HttpResponse WebServer::methodDelete(SocketClient* client)
+HttpResponse WebServer::methodDelete(SocketClient* client, const LocationConfig* location)
 {
+	(void) location;
     std::string path = client->getRequest().getPath();
 
     if (path.find("/upload/") == std::string::npos)
@@ -103,4 +98,25 @@ HttpResponse WebServer::methodDelete(SocketClient* client)
 }
 
 
+HttpResponse WebServer::buildRedirectResponse(int returnCode, const std::string& url, SocketClient* client){
+	LOG("\n>>> REDIRECT RESPONSE "); // -------------------------------------------------------------
+	HttpResponse res;
 
+	std::string status;
+	if (returnCode == 301)	status = "Moved Permanently";
+	else if (returnCode == 302)	status = "Found";
+	else if (returnCode == 307)	status = "Temporary Redirect";
+	else if (returnCode == 308)	status = "Permament Redirect";
+	else status = "Redirect";
+
+	res.statusLine = "HTTP/1.1 " + longToString((long)returnCode) + " " + status; //voir avec ces histoire de long si ca joue pas
+	res.headers["location"].push_back(url);
+	res.headers["content-length"].push_back("0");
+
+	if (client->keepAlive)
+		res.headers["connection"].push_back("keep-alive");
+	else
+		res.headers["connection"].push_back("close");
+
+	return res;
+}
