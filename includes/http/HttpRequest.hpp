@@ -66,9 +66,9 @@ class HttpRequest
     void    setOriginPath(std::string);
     void    setOriginQuery(std::string);
 
-    void    writeBody(const std::string& str);
+    void    writeBody(const std::string& str, int fd);
     void    closeBodyFile();
-    void    openBodyFile();
+    void    openBodyFile(int fd);
 };
 
 // METHOD space URI space VERSION

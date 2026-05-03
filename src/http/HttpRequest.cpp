@@ -58,9 +58,9 @@ void	HttpRequest::setHeaders(const std::string& key, const std::string& value){
 }
 void    HttpRequest::setQuery(std::map<std::string, std::vector <std::string> > query){ _query = query; }
 
-void	HttpRequest::writeBody(const std::string& str){
+void	HttpRequest::writeBody(const std::string& str, int fd){
     if (!_bodyFile.is_open())
-        openBodyFile();
+        openBodyFile(fd);
 
     _bodyFile.write(str.c_str(), str.size());
 	_bodyFile.flush(); 
@@ -71,20 +71,59 @@ void	HttpRequest::closeBodyFile() {
 		_bodyFile.close();
 }
 
-std::string generateId() {
-	std::stringstream ss;
-	ss << getpid() << "_" << std::time(NULL);
-	return ss.str();
+// std::string generateId() {
+// 	std::stringstream ss;
+// 	ss << getpid() << "_" << std::time(NULL);
+
+// 	// std::stringstream ss;
+// 	// ss << "/tmp/webserv_body_" << getpid() << "_" << time(NULL) << "_" << rand();
+
+// 	// static size_t counter = 0;
+// 	// std::stringstream ss;
+// 	// ss << "/tmp/webserv_body_" << getpid() << "_" << counter++;
+
+// 	return ss.str();
+// }
+
+// void	HttpRequest::openBodyFile() {
+// 	if (_bodyFile.is_open())
+//         return;
+
+// 	_bodyFilePath = "/tmp/webserv_body_" + generateId();
+// 	LOG(" --------------------------- le body path au moment de sa divine creation : " << _bodyFilePath);
+// 	_bodyFile.open(_bodyFilePath.c_str(), std::ios::binary);
+// 	if (!_bodyFile.is_open()) {
+// 		throw std::runtime_error("Failed to open body file"); // en attendant est ce que il faut envoyer un error 500
+// 	}
+// }
+
+#include <sstream>
+#include <unistd.h>
+#include <ctime>
+
+std::string generateId(int fd)
+{
+    static size_t counter = 0;
+
+    std::stringstream ss;
+    ss << getpid()
+       << "_" << fd
+       << "_" << std::time(NULL)
+       << "_" << counter++;
+
+    return ss.str();
 }
 
-void	HttpRequest::openBodyFile() {
-	if (_bodyFile.is_open())
+void HttpRequest::openBodyFile(int fd)
+{
+    if (_bodyFile.is_open())
         return;
 
-	_bodyFilePath = "/tmp/webserv_body_" + generateId();
-	LOG(" --------------------------- le body path au moment de sa divine creation : " << _bodyFilePath);
-	_bodyFile.open(_bodyFilePath.c_str(), std::ios::binary);
-	if (!_bodyFile.is_open()) {
-		throw std::runtime_error("Failed to open body file"); // en attendant est ce que il faut envoyer un error 500
-	}
+    _bodyFilePath = "/tmp/webserv_body_" + generateId(fd);
+
+    LOG("BODY FILE CREATED: " << _bodyFilePath);
+
+    _bodyFile.open(_bodyFilePath.c_str(), std::ios::binary);
+    if (!_bodyFile.is_open())
+        throw std::runtime_error("Failed to open body file");
 }

@@ -62,7 +62,7 @@ void WebServer::pollLoop() {
     while (_running) {
 
         int ret = poll(&_pollFds[0], _pollFds.size(), 1000);
-        LOG("poll() ret = " << ret); //-----------------------------------------
+        //LOG("poll() ret = " << ret); //-----------------------------------------
 
         if (ret == -1) {
             if (errno == EINTR) {
@@ -83,12 +83,10 @@ void WebServer::pollLoop() {
             int fd = _pollFds[i].fd;
             short revents = _pollFds[i].revents;
 
-            LOG("Checking fd: " << fd << " revents: " << revents); //-----------
-
-
+            //LOG("Checking fd: " << fd << " revents: " << revents); //-----------
 
             if (revents & POLLIN) {
-                LOG("POLLIN on fd " << fd); //----------------------------------
+                //LOG("POLLIN on fd " << fd); //----------------------------------
 
                 if (isServerFd(fd)) {
                     try {
@@ -106,19 +104,19 @@ void WebServer::pollLoop() {
             }
 
             if (revents & POLLOUT) {
-                LOG("POLLOUT on fd " << fd); //---------------------------------
+                //LOG("POLLOUT on fd " << fd); //---------------------------------
 
                 try {
                     sendResponse(fd, 0);
                 } catch (...) {
-					LOG("ICI PB :( ?)"); // ----------------------------------------------------------------------------
+					//LOG("ICI PB :( ?)"); // ----------------------------------------------------------------------------
                     closeConnection(fd);
                     continue;
                 }
             }
 
 			if (revents & (POLLHUP | POLLERR)) {
-                LOG("POLLHUP/POLLERR on fd " << fd); //-------------------------
+                //LOG("POLLHUP/POLLERR on fd " << fd); //-------------------------
 
 				SocketClient* client = _socketClients[fd];
 
@@ -197,7 +195,7 @@ void	WebServer::handleRequest(int fd){
 	try {
 		char buffer[4096];
 		ssize_t bytes = recv(fd, buffer, sizeof(buffer), 0);
-		LOG("recv bytes = " << bytes); // --------------------------------------
+		//LOG("recv bytes = " << bytes); // --------------------------------------
 		
 		if (bytes == 0) {
 			closeConnection(fd);
@@ -232,7 +230,7 @@ void	WebServer::handleRequest(int fd){
         setPollOut(fd);
     }
 	
-	LOG("HANDLE REQUEST END COMPLETE"); // ---------------------------
+	//LOG("HANDLE REQUEST END COMPLETE"); // ---------------------------
 }
 
 void WebServer::parseBody(SocketClient* client)
@@ -264,11 +262,11 @@ void WebServer::parseBody(SocketClient* client)
 }
 
 void	WebServer::sendResponse(int fd, int codeError){
-
+	(void)codeError;
 	LOG("\n>>> SEND RESPONSE "); // -------------------------------------------------------------
 
-	LOG(">>> sendResponse fd = " << fd); // ------------------------------------
-	LOG(">>> code error = " << codeError); // ----------------------------------
+	// LOG(">>> sendResponse fd = " << fd); // ------------------------------------
+	// LOG(">>> code error = " << codeError); // ----------------------------------
 
 	SocketClient* client = _socketClients[fd];
 
@@ -276,8 +274,8 @@ void	WebServer::sendResponse(int fd, int codeError){
 		HttpResponse res;
 		const LocationConfig* location = findMatchingLocation(client);
 
-		LOG("location name : " << location->returnUrl); // -------------------------------------------------------------
-		LOG("location return Code : " << location->returnCode); // -------------------------------------------------------------
+		// LOG("location name : " << location->returnUrl); // -------------------------------------------------------------
+		// LOG("location return Code : " << location->returnCode); // -------------------------------------------------------------
 		
 		if (client->state == ERROR) {
 			res = buildErrorResponse(client->errorCode, client); }
@@ -292,7 +290,7 @@ void	WebServer::sendResponse(int fd, int codeError){
 			resolvePath(client);
 
 			std::string method = client->getRequest().getMethod();
-			LOG("Method = " << method);  // -------------------------------------
+			//LOG("Method = " << method);  // -------------------------------------
 
 			if (method == "GET"){
 				res = methodGet(client, location);
@@ -306,9 +304,9 @@ void	WebServer::sendResponse(int fd, int codeError){
 
 		std::string response = res.ResponseToString();
 		
-		LOG(">>> RESPONSE BUILT:"); // -----------------------------------------
-		LOG(response); // ------------------------------------------------------
-		LOG("URI: " << client->getRequest().getUri()); // ----------------------
+		// LOG(">>> RESPONSE BUILT:"); // -----------------------------------------
+		// LOG(response); // ------------------------------------------------------
+		// LOG("URI: " << client->getRequest().getUri()); // ----------------------
 
 	
 

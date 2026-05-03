@@ -46,7 +46,7 @@ void WebServer::closeConnection(int fd){
 	LOG("Closing connection fd = " << fd);
 
 	if (_socketClients.find(fd) == _socketClients.end()) {
-		LOG("⚠️ FD NOT FOUND (double close?)");
+		//LOG("⚠️ FD NOT FOUND (double close?)");
 	}
 	
 	close(fd);

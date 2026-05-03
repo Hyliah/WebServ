@@ -58,26 +58,26 @@ bool WebServer::isCGI(const LocationConfig* location, const std::string& path){
     LOG("\n>>> IS CGI ");// --------------------------------------------------------------------------------------------
     
     if (!location){
-        LOG("pas de location"); // -------------------------------------------------------------
+        //LOG("pas de location"); // -------------------------------------------------------------
         return false;
     }
     
-    LOG("CGI infos de base = " << location->cgiEnabled); // --------------------------------------------------------------
+    //LOG("CGI infos de base = " << location->cgiEnabled); // --------------------------------------------------------------
     
     if (location->cgiInfo.empty()){
-        LOG("CGI est faux 1"); // --------------------------------------------------------------------------------------------
+        //LOG("CGI est faux 1"); // --------------------------------------------------------------------------------------------
         return false;
     }
 
     size_t lastDot = path.find_last_of('.'); // ok cpp98 si jamais j'ai check
     if (lastDot == std::string::npos){
-        LOG("Log a la con."); // -------------------------------------------------------------
+        //LOG("Log a la con."); // -------------------------------------------------------------
         return false;
     }
 
     std::string ext = path.substr(lastDot); // Récupère ".py" par exemple
     if (location->cgiInfo.find(ext) != location->cgiInfo.end()){
-        LOG("recup ext juste."); // -------------------------------------------------------------
+        //LOG("recup ext juste."); // -------------------------------------------------------------
         return true;
     }
 

@@ -57,21 +57,21 @@ HttpResponse	WebServer::methodPost(SocketClient* client, const LocationConfig* l
 	std::string path = client->getRequest().getPath();
 
 	if (path.find("..") != std::string::npos){
-		LOG("THE BRIT BRIT"); // -------------------------------------------------------------
+		//LOG("THE BRIT BRIT"); // -------------------------------------------------------------
 		return buildErrorResponse(403, client);
 	}
 
 	if (isCGI(location, path)){
-		LOG("on part pour executer le CGI"); // -------------------------------------------------------------
+		//LOG("on part pour executer le CGI"); // -------------------------------------------------------------
 		return (executeCGI(client, location, path));
 	}
 	
 	if (path.find("upload") == std::string::npos){
-		LOG("BOYS BOYS BOYS"); // -------------------------------------------------------------
+		//LOG("BOYS BOYS BOYS"); // -------------------------------------------------------------
 		return buildErrorResponse(403, client);
 	}
 	else {
-		LOG("Ca c est du static"); // -------------------------------------------------------------
+		//LOG("Ca c est du static"); // -------------------------------------------------------------
 		return (executeStatic(client, path));
 	}
 }
@@ -81,8 +81,8 @@ HttpResponse WebServer::methodDelete(SocketClient* client, const LocationConfig*
 	LOG("\n>>> METHOD DELETE "); // -------------------------------------------------------------
     
 	std::string path = client->getRequest().getPath();
-	LOG("\n>>> path a til un super / ?? " << path);
-	LOG("la query bitches");
+	//LOG("\n>>> path a til un super / ?? " << path);
+	//LOG("la query bitches");
 	
 	//CGI
 	if (isCGI(location, path))
@@ -90,7 +90,7 @@ HttpResponse WebServer::methodDelete(SocketClient* client, const LocationConfig*
 	//PAS CGI
 	else {
 		if (path.find("/upload/") == std::string::npos){
-			LOG("ULPOAAAAD------------------------");
+			//LOG("ULPOAAAAD------------------------");
 			return buildErrorResponse(403, client);
 		}
 

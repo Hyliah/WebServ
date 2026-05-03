@@ -123,7 +123,7 @@ HttpResponse WebServer::serveFile(const SocketClient* client, const std::string&
 	std::ostringstream ss;
 	ss << file.rdbuf();
 	std::string body = ss.str();
-	LOG("\n >>> MID SERVE "); //----------------
+	//LOG("\n >>> MID SERVE "); //----------------
 	HttpResponse res = fillResponseOK(body, body.size(), getMimeType(path), client);
 	return res;
 }

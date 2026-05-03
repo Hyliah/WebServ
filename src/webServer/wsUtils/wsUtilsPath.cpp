@@ -35,9 +35,9 @@ void WebServer::resolvePath(SocketClient* client) {
 		client->getRequest().setOriginQuery("?" + queryStr);
     }
 
-		LOG("URI de la request = [" << uri << "]");
-		LOG("PATH de la request = [" << path << "]");
-		LOG("QUERY dela request = [" << queryStr << "]");
+		// LOG("URI de la request = [" << uri << "]");
+		// LOG("PATH de la request = [" << path << "]");
+		// LOG("QUERY dela request = [" << queryStr << "]");
 
     // parse query
     resolveQuery(client, queryStr);

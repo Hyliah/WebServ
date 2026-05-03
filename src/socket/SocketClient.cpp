@@ -57,9 +57,9 @@ void	SocketClient::parseRequest(){
 	_buffer.erase(0, headerEnd + 4);
 	LOG("Buffer after header erase: [" << _buffer << "]");
 
-	LOG(">>> HEADER COMPLETE"); // ---------------------------------------------------------------------------------
-	LOG(".    Method: " << getRequest().getMethod()); // ----------------------------------------------------------------
-	LOG(".    URI: " << getRequest().getUri()); // ----------------------------------------------------------------
+	//LOG(">>> HEADER COMPLETE"); // ---------------------------------------------------------------------------------
+	//LOG(".    Method: " << getRequest().getMethod()); // ----------------------------------------------------------------
+	//LOG(".    URI: " << getRequest().getUri()); // ----------------------------------------------------------------
 
 	if (_request.getMethod() == "POST")
 		defineBodyType();
@@ -84,8 +84,8 @@ void	SocketClient::defineBodyType(){
 			throw ResponseException(_fd, 405);
 		if (_request.getContentLength() > DEFAULT_MAX_BODY_SIZE || _request.getContentLength() <= 0) // change ici 
 			throw ResponseException(_fd, 413);
-		LOG("..............  is requete ContentLength: " << contentLength); // -------------------------------------------------------------
-		LOG("..............  La length de la requete ContentLength: " << _request.getContentLength()); // ----------------------------------
+		//LOG("..............  is requete ContentLength: " << contentLength); // -------------------------------------------------------------
+		//LOG("..............  La length de la requete ContentLength: " << _request.getContentLength()); // ----------------------------------
 	}
 	else {
 		contentLength = false;
@@ -110,8 +110,11 @@ void	SocketClient::defineBodyType(){
 	if (chunked)
 		contentLength = false;
 
-	if (chunked || contentLength)
-		_request.openBodyFile();
+	if (chunked || contentLength){
+		_request.openBodyFile(_fd);
+		LOG("OPEN BODY FILE for fd = " << _fd);
+		LOG("BODY FILE = " << _request.getBodyPath() << " fd=" << _fd);
+	}
 }
 
 /* ************************************************** */
@@ -215,7 +218,7 @@ void	SocketClient::parsingNoBody(){
 
 void SocketClient::parsingChunked() {
 	while (1) {
-		LOG("chunked est passé 1x de plus"); // ----------------------------------------------------------------------------
+		//LOG("chunked est passé 1x de plus"); // ----------------------------------------------------------------------------
 		if (_chunkState == CHUNK_SIZE) {
 
 			size_t pos = _buffer.find("\r\n");
@@ -223,7 +226,7 @@ void SocketClient::parsingChunked() {
 				return; // attendre recv()
 			
 			std::string line = _buffer.substr(0, pos);
-			LOG("LINE en cours =  " << line); // ----------------------------------------------------------------------------
+			//LOG("LINE en cours =  " << line); // ----------------------------------------------------------------------------
 
 			try { _bytesPending = hexToLong(line); } 
 			catch (...) {
@@ -233,7 +236,7 @@ void SocketClient::parsingChunked() {
 			_buffer.erase(0, pos + 2); // remove "size\r\n"
 
 			if (_bytesPending == 0) {
-				LOG("CHUNKED DONE"); // ----------------------------------------------------------------------------
+				//LOG("CHUNKED DONE"); // ----------------------------------------------------------------------------
 				_chunkState = CHUNK_DONE;
 				continue;
 			}
@@ -253,7 +256,8 @@ void SocketClient::parsingChunked() {
 			if (_bytesRead + _bytesPending > DEFAULT_MAX_BODY_SIZE)
 				throw ResponseException(_fd, 413);
 				
-			_request.writeBody(chunk);
+			_request.writeBody(chunk, _fd);
+			LOG("WRITE BODY fd=" << _fd << " size=" << chunk.size());
 
 			_bytesRead += _bytesPending;
 			_buffer.erase(0, _bytesPending);
@@ -298,11 +302,12 @@ void SocketClient::parsingContentLength() {
 		//CHECK MAX SIZE 
 
         if (!isValidBody(chunk)){
-			LOG("BETTA WORK BITCH");
+			//LOG("BETTA WORK BITCH");
             throw ResponseException(_fd, 400);
 		}
 
-        _request.writeBody(chunk);
+        _request.writeBody(chunk, _fd);
+		LOG("WRITE BODY fd=" << _fd << " size=" << chunk.size());
 
         _bytesRead += size;
         _buffer.erase(0, size);
@@ -313,12 +318,12 @@ void SocketClient::parsingContentLength() {
         _request.closeBodyFile();
     }
 
-	LOG("DEBUG CL:");
-	LOG("buffer size = " << _buffer.size());
-	LOG("remaining = " << remaining);
-	LOG("bytesRead = " << _bytesRead);
-	LOG("contentLength = " << _request.getContentLength());
-	LOG("writing size = " << size);
+	// LOG("DEBUG CL:");
+	// LOG("buffer size = " << _buffer.size());
+	// LOG("remaining = " << remaining);
+	// LOG("bytesRead = " << _bytesRead);
+	// LOG("contentLength = " << _request.getContentLength());
+	// LOG("writing size = " << size);
 }
 
 /* ************************************************** */
@@ -336,6 +341,7 @@ void SocketClient::validateHeaders(int headerCount, size_t totalSize) {
         throw ResponseException(_fd, 431);
 
     if (header.find("host") == header.end()){
+		LOG("DONT YOU KNOW THAT YOU RE TOXIC");
         throw ResponseException(_fd, 400);
 	}
 
@@ -345,6 +351,7 @@ void SocketClient::validateHeaders(int headerCount, size_t totalSize) {
     if (it != header.end()) {
         if (it->second[0].find_first_not_of("0123456789") != std::string::npos)
 		{
+			LOG("BREAK THE ICE");
             throw ResponseException(_fd, 400);
 		}
     }
