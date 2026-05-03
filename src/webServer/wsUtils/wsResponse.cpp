@@ -71,18 +71,22 @@ HttpResponse WebServer::methodDelete(SocketClient* client, const LocationConfig*
 	LOG("\n>>> METHOD DELETE "); // -------------------------------------------------------------
     
 	std::string path = client->getRequest().getPath();
-	LOG("\n>>> path a til un super / ??" << path);
+	LOG("\n>>> path a til un super / ?? " << path);
+	LOG("la query bitches");
 	
 	//CGI
 	if (isCGI(location, path))
     	return executeCGI(client, location, path);
 	//PAS CGI
 	else {
-		if (path.find("..") != std::string::npos)
+		if (path.find("/upload/") == std::string::npos){
+			LOG("ULPOAAAAD------------------------");
 			return buildErrorResponse(403, client);
+		}
 
-		if (path.find("/upload/") == std::string::npos)
+		if (path.find("..") != std::string::npos){
 			return buildErrorResponse(403, client);
+		}
 
 		std::string dir = path.substr(0, path.find_last_of('/'));
 

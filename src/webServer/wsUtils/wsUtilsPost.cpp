@@ -68,6 +68,7 @@ bool WebServer::isCGI(const LocationConfig* location, const std::string& path){
         LOG("CGI est faux 1"); // --------------------------------------------------------------------------------------------
         return false;
     }
+
     size_t lastDot = path.find_last_of('.'); // ok cpp98 si jamais j'ai check
     if (lastDot == std::string::npos){
         LOG("Log a la con."); // -------------------------------------------------------------
@@ -98,6 +99,7 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
     {
         bodyFd = open(bodyPath.c_str(), O_RDONLY);
         if (bodyFd == -1)
+        LOG("IT S BRITNEY BITCH ");
         return buildErrorResponse(500, client);
     }
     LOG("body path =  " << bodyPath); // ------------------------------------------------------------------------------------------
@@ -105,8 +107,10 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
     std::map<std::string, std::vector<std::string> > map = createEnvp(client, location, path);
     LOG("map crée "); // ---------------------------------------------------------------------------------------------------------
     char** envp = convertMapToChar(map);
-    if (envp == NULL)
+    if (envp == NULL){
+        LOG("DONT YOU KNOW THAT YOU RE TOXIC");
         return buildErrorResponse(500, client);
+    }
     LOG("map convertie en char **"); // ------------------------------------------------------------------------------------------
 
     int pipeFd[2] = {-1};
@@ -114,6 +118,7 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
     if (pipe(pipeFd) == -1){
         safeClose(&bodyFd);
         freeTab(&envp);
+        LOG("BABY ONE MORE TIME");
         return buildErrorResponse(500, client);
     }
 
@@ -122,6 +127,7 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
         safeClose(&bodyFd);
         safeClose(&pipeFd[0]); safeClose(&pipeFd[1]);
         freeTab(&envp);
+        LOG("IM A SLAVE FOR YOU");
         return buildErrorResponse(500, client);
     }
 
@@ -188,9 +194,13 @@ HttpResponse	WebServer::createCGIResponse(const SocketClient* client, std::strin
         sep_len = 2;
     }
 
-    if (pos == std::string::npos)
-        return buildErrorResponse(500, client);
-
+    if (client->getRequest().getMethod() == "POST"){
+        if (pos == std::string::npos){
+            LOG("STRONGER THAN YESTERDAY");
+            return buildErrorResponse(500, client);
+        }
+    }
+    
     std::string headers = raw.substr(0, pos);
     std::string body = raw.substr(pos + sep_len);
 
