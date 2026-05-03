@@ -99,8 +99,7 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
     {
         bodyFd = open(bodyPath.c_str(), O_RDONLY);
         if (bodyFd == -1)
-        LOG("IT S BRITNEY BITCH ");
-        return buildErrorResponse(500, client);
+            return buildErrorResponse(500, client);
     }
     LOG("body path =  " << bodyPath); // ------------------------------------------------------------------------------------------
 
@@ -108,7 +107,6 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
     LOG("map crée "); // ---------------------------------------------------------------------------------------------------------
     char** envp = convertMapToChar(map);
     if (envp == NULL){
-        LOG("DONT YOU KNOW THAT YOU RE TOXIC");
         return buildErrorResponse(500, client);
     }
     LOG("map convertie en char **"); // ------------------------------------------------------------------------------------------

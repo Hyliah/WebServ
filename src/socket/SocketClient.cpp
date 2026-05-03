@@ -61,7 +61,8 @@ void	SocketClient::parseRequest(){
 	LOG(".    Method: " << getRequest().getMethod()); // ----------------------------------------------------------------
 	LOG(".    URI: " << getRequest().getUri()); // ----------------------------------------------------------------
 
-	defineBodyType();
+	if (_request.getMethod() == "POST")
+		defineBodyType();
 
 	headerParsed = true;
     state = (chunked || contentLength) ? BODY_READING : READY;
@@ -77,11 +78,12 @@ void	SocketClient::defineBodyType(){
 	itCL = headers.find("content-length");
 	if (itCL != headers.end()){
 		contentLength = true;
-		// peut etre faire une verif avant pour pas changer la fonction stringToLong
-		// attention gerer les 400 ou 413 ou quoi si le string n est pas un noombre correct genre 10M
+
 		_request.setContentLength(stringToLong(itCL->second[0].c_str()));
-		if (_request.getContentLength() > DEFAULT_MAX_BODY_SIZE)
-			throw ResponseException(_fd, 413); //probleme ici, ne revoit pas 413 mais 403 donc faire la veirf avant ou je sais pas 
+		if (_request.getContentLength() <= 0) // change ici 
+			throw ResponseException(_fd, 405);
+		if (_request.getContentLength() > DEFAULT_MAX_BODY_SIZE || _request.getContentLength() <= 0) // change ici 
+			throw ResponseException(_fd, 413);
 		LOG("..............  is requete ContentLength: " << contentLength); // -------------------------------------------------------------
 		LOG("..............  La length de la requete ContentLength: " << _request.getContentLength()); // ----------------------------------
 	}
@@ -101,6 +103,9 @@ void	SocketClient::defineBodyType(){
 	}
 
 	LOG("..............  is requete Chuncked: " << chunked); // -------------------------------------------------------------
+
+	if(!contentLength && !chunked)
+		throw ResponseException(_fd, 405);
 
 	if (chunked)
 		contentLength = false;
@@ -198,28 +203,7 @@ void SocketClient::parseHeaders(std::string &buffer, size_t &pos)
     state = HEADERS_PARSED;
 }
 
-void SocketClient::validateHeaders(int headerCount, size_t totalSize) {
 
-    const std::map<std::string, std::vector<std::string> >& header = _request.getHeaders();
-
-    if (headerCount > MAX_HEADER_COUNT)
-        throw ResponseException(_fd, 431);
-
-    if (totalSize > MAX_HEADER_SIZE)
-        throw ResponseException(_fd, 431);
-
-    if (header.find("host") == header.end()){
-        throw ResponseException(_fd, 400);
-	}
-
-    std::map<std::string, std::vector<std::string> >::const_iterator it = header.find("content-length");
-    if (it != header.end()) {
-        if (it->second[0].find_first_not_of("0123456789") != std::string::npos)
-		{
-            throw ResponseException(_fd, 400);
-		}
-    }
-}
 
 /* ************************************************** */
 /* Parsing Body                                       */
@@ -311,8 +295,12 @@ void SocketClient::parsingContentLength() {
     if (size > 0) {
         std::string chunk = _buffer.substr(0, size);
 
-        if (!isValidBody(chunk))
+		//CHECK MAX SIZE 
+
+        if (!isValidBody(chunk)){
+			LOG("BETTA WORK BITCH");
             throw ResponseException(_fd, 400);
+		}
 
         _request.writeBody(chunk);
 
@@ -337,49 +325,73 @@ void SocketClient::parsingContentLength() {
 /* checks Parsing                                     */
 /* ************************************************** */
 
-// verifier si y a un host
+void SocketClient::validateHeaders(int headerCount, size_t totalSize) {
+
+    const std::map<std::string, std::vector<std::string> >& header = _request.getHeaders();
+
+    if (headerCount > MAX_HEADER_COUNT)
+        throw ResponseException(_fd, 431);
+
+    if (totalSize > MAX_HEADER_SIZE)
+        throw ResponseException(_fd, 431);
+
+    if (header.find("host") == header.end()){
+        throw ResponseException(_fd, 400);
+	}
+
+	//Faire une verif de si y a plusieurs host dans le les headers et d autres ?
+
+    std::map<std::string, std::vector<std::string> >::const_iterator it = header.find("content-length");
+    if (it != header.end()) {
+        if (it->second[0].find_first_not_of("0123456789") != std::string::npos)
+		{
+            throw ResponseException(_fd, 400);
+		}
+    }
+}
+
 bool	SocketClient::isValidURI(){
+
+	if (_request.getUri().find("..") != std::string::npos)
+		return false;
 	return true;
 }
 
 bool	SocketClient::isValidMethod(){
-	
-	std::cout << "---------------- LE METHOD SA MERE EST : " << _request.getMethod() << std::endl;
 	if (_request.getMethod() == "POST" || _request.getMethod() == "GET" || _request.getMethod() == "DELETE")
 		return true;
 	return false;
-
-	return true;
 }
 
 bool	SocketClient::isValidVersion(){
-	//definir 1.1 or nothing bitches
+	if (_request.getVersion() != "HTTP/1.1")
+		return false;
 	return true;
 }
 
 bool	SocketClient::isValidBody(std::string& chunk){
+	(void)chunk;
+    // const std::map<std::string, std::vector<std::string> >& headers = _request.getHeaders();
+    // std::map<std::string, std::vector<std::string> >::const_iterator it = headers.find("content-type");
 
-    const std::map<std::string, std::vector<std::string> >& headers = _request.getHeaders();
-    std::map<std::string, std::vector<std::string> >::const_iterator it = headers.find("content-type");
+    // // pas de content-type → on accepte
+    // if (it == headers.end())
+    //     return true;
 
-    // pas de content-type → on accepte
-    if (it == headers.end())
-        return true;
+    // std::string type = it->second[0];
 
-    std::string type = it->second[0];
+    // // TEXT ONLY
+    // if (type.find("text") != std::string::npos ||
+    //     type.find("application/json") != std::string::npos ||
+    //     type.find("application/x-www-form-urlencoded") != std::string::npos) {
 
-    // TEXT ONLY
-    if (type.find("text") != std::string::npos ||
-        type.find("application/json") != std::string::npos ||
-        type.find("application/x-www-form-urlencoded") != std::string::npos) {
+    //     for (size_t i = 0; i < chunk.size(); ++i) {
+    //         unsigned char c = chunk[i];
 
-        for (size_t i = 0; i < chunk.size(); ++i) {
-            unsigned char c = chunk[i];
-
-            if (!isprint(c) && c != '\n' && c != '\r' && c != '\t')
-                return false;
-        }
-    }
+    //         if (!isprint(c) && c != '\n' && c != '\r' && c != '\t')
+    //             return false;
+    //     }
+    // }
 
     return true;
 }
@@ -403,124 +415,3 @@ void	SocketClient::cleanBuffer(){
 
 void	SocketClient::closeSocket(){
 }
-
-
-// faut metttre un bool comme quoi on a ou pas un contentlength
-// mettre aussi un bool pour le chunk
-// ensuite gerer les 3 cas :
-// 1. pas de chunk et pas de content-lenth -> on s arrete au header
-// 1.5 verifier que les deux trucs de longueur ne soient pas a true tout les deux -> sinon -> passe a chunked
-// 3. gerer le chunked -> apprendre a fair ca. 
-// 2. content length (without chunked) oui mais pas chunked -> on parse jusqu a la taille definie
-
-// int SocketClient::receiveData(){
-//     return 1; //pour qu il ne casse pas les couillasses
-// }
-// int SocketClient::sendData(const std::string& data){
-//     return 1; //pour qu il ne casse pas les couillasses
-// }
-
-
-
-
-
-// ancien ParseBody 
-
-
-// void SocketClient::parseBody(std::string &buffer, size_t &position) {
-// 	if (position >= buffer.size())
-// 		return;
-
-// 	// size_t content_length = 0;
-// 	// auto &headers = _request.getHeaders();
-// 	// if (headers.count("Content-Length")) {
-// 	//     content_length = std::stoul(headers["Content-Length"]);                        //??????
-// 	//}
-
-// 	// attention à ne pas dépasser le buffer
-// 	// size_t available = buffer.size() - position;
-// 	// size_t to_read = std::min(content_length, available);
-
-// 	_request.setBody(buffer.substr(position, buffer.size()));
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//base chunked
-
-// void	SocketClient::parsingChunked(){
-// 	if (ignoreBody)
-// 		return;
-
-// 	// boucle
-// 	// 1ere etape : check size -> lire cmb de bytes arrivent
-// 	/*
-// 		chercher le rn. tout ce que y a avant -> hex to long -> si pb PROBLEM
-// 	*/
-// 	// 2e etape : check data -> lire ces bytes + addbytes si on pu lire CONTINUE/BREAK
-// 	/*
-// 		va chercher le prochain rn -> si y a pas on arrive chunked
-// 		si oui :
-// 			prend le bout du buffer pour metre dans hhtprequest body (faire des veri si plus long )
-// 			addbytes
-// 			verif maxbody size 
-// 	*/
-// 	// 3e etape : CRFL -> verifier le rn =? DONE
-
-// 	while (1){
-// 		/*
-
-// 		dans buffer aller jusqu'a \r\n
-// 		-> si pas trouvé -> RETURN pcq pas assez d info, on attend le prochain recv()
-// 		-> si trouvé 
-// 			-> extraction du hexa en str
-// 			-> bytesPending = hexToLong + verif (if = -1 == PROBLEM)
-// 			-> supprime jusqua \r\n inclus
-		
-// 		lire jusuq au prochain \r\n
-// 		-> si y a plus que bytesPending -> PROBLEM
-// 		-> si y a pas de \r\n -> RETURN 
-// 		-> si y a et que ca fait la taille fait la meme que bytePending
-// 			-> on extrait le mot qu on met dans body de httprequest
-// 			-> addBytes(bytes); -> client.bytesread
-		
-// 		verif de bytesRead pour MAX SIZE
-// 		*/
-// 	}
-
-// 	/*
-// 		check de si c est la fin
-// 		-> DONE = DONE
-// 	*/
-
-// 		// 4\r\nWiki\r\n
-// 		// 5\r\npedia\r\n
-// 		// 0\r\n\r\n
-	
-// 	// apprendre a comprendre comment gerer ca. Si je suis bien on a :
-
-// 	// nombre x + rn + texte(size of x) + rn 
-// 	// -> rn = x					-> si pas size en int 			-> PROBLEM 
-// 	// -> passer rn					-> si deja a la fin 			-> PROBLEM
-// 	// -> buffer += line(size of x) -> si texte plus grand que x 	-> PROBLEM
-// 	//							-> si pas rn apres				-> PROBLEM
-	
-// 	// if DONE 
-// 		requestCompleted = true;
-// }

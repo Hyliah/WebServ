@@ -54,11 +54,21 @@ HttpResponse	WebServer::methodGet(SocketClient* client, const LocationConfig* lo
 HttpResponse	WebServer::methodPost(SocketClient* client, const LocationConfig* location){
 	LOG("\n>>> METHOD POST "); // -------------------------------------------------------------
 
-	std::string path = client->getRequest().getPath(); //mettre en const si ca hurle (url)
+	std::string path = client->getRequest().getPath();
+
+	if (path.find("..") != std::string::npos){
+		LOG("THE BRIT BRIT"); // -------------------------------------------------------------
+		return buildErrorResponse(403, client);
+	}
 
 	if (isCGI(location, path)){
 		LOG("on part pour executer le CGI"); // -------------------------------------------------------------
 		return (executeCGI(client, location, path));
+	}
+	
+	if (path.find("upload") == std::string::npos){
+		LOG("BOYS BOYS BOYS"); // -------------------------------------------------------------
+		return buildErrorResponse(403, client);
 	}
 	else {
 		LOG("Ca c est du static"); // -------------------------------------------------------------

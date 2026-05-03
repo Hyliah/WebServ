@@ -85,11 +85,7 @@ void WebServer::pollLoop() {
 
             LOG("Checking fd: " << fd << " revents: " << revents); //-----------
 
-            if (revents & (POLLHUP | POLLERR)) {
-                LOG("POLLHUP/POLLERR on fd " << fd); //-------------------------
-                closeConnection(fd);
-                continue;
-            }
+
 
             if (revents & POLLIN) {
                 LOG("POLLIN on fd " << fd); //----------------------------------
@@ -119,6 +115,21 @@ void WebServer::pollLoop() {
                     closeConnection(fd);
                     continue;
                 }
+            }
+
+			if (revents & (POLLHUP | POLLERR)) {
+                LOG("POLLHUP/POLLERR on fd " << fd); //-------------------------
+
+				SocketClient* client = _socketClients[fd];
+
+				if (client && client->state == PROCESSING) {
+					setPollOut(fd);
+					i++;
+					continue;
+				}
+				
+				closeConnection(fd);
+                continue;
             }
 
             i++;
