@@ -35,10 +35,6 @@ void WebServer::resolvePath(SocketClient* client) {
 		client->getRequest().setOriginQuery("?" + queryStr);
     }
 
-		// LOG("URI de la request = [" << uri << "]");
-		// LOG("PATH de la request = [" << path << "]");
-		// LOG("QUERY dela request = [" << queryStr << "]");
-
     // parse query
     resolveQuery(client, queryStr);
 
@@ -57,8 +53,6 @@ void WebServer::resolvePath(SocketClient* client) {
     cleanFinalPath(root, finalPath);
 
     finalPath = root + finalPath;
-
-	LOG("FINAL PATH = [" << finalPath << "]");
 
     client->getRequest().setPath(finalPath);
 }
@@ -152,7 +146,6 @@ void WebServer::cleanFinalPath(std::string& root, std::string& finalPath) {
 }
 
 std::string WebServer::findRoot(const SocketClient* client){
-
     LOG("\n>>> FIND ROOT "); // -------------------------------------------------------------
 	
 	const std::vector<const ServerConfig*>& conf = client->getServer()->getServers();
@@ -236,16 +229,6 @@ void WebServer::resolveQuery(SocketClient* client, std::string queryStr) {
     client->getRequest().setQuery(query);
 }
 
-	//test?key1=val1&key2=val2 -> key1 = "val1"     key2 = "val2"
-	//test?key1=&key2=val2 -> key1 = ""     key2 = "val2"
-	//test?key1 -> key1 = ""
-	//test?key1=val1=key2=val2 -> key1 = "val1=key2=val2"
-	
-	//si 2x les meme on garde le 2e
-	// %20 -> espace
-	// + -> espace 
-	// faire gestion generale des % par contre si pas hexa -> badrequest -> hexToChar(dejac codee) 
-	// si \0 bad request
 
 std::string WebServer::UrlDecode(const SocketClient *client, std::string entry) {
     LOG("\n>>> URL DECODE "); // -------------------------------------------------------------

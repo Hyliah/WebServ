@@ -19,7 +19,7 @@ const LocationConfig* WebServer::findMatchingLocation(const SocketClient* client
     if (!server)
         return NULL;
 
-    const std::string& uri = client->getRequest().getUri(); //pouetpouet
+    const std::string& uri = client->getRequest().getUri();
 
     const LocationConfig* bestMatch = NULL;
     size_t bestLen = 0;
@@ -46,7 +46,7 @@ const LocationConfig* WebServer::findMatchingLocation(const SocketClient* client
     {
         for (size_t i = 0; i < server->locations.size(); ++i) {
             if (server->locations[i].path == "/")
-                bestMatch = &server->locations[i]; // changé qqc ici
+                bestMatch = &server->locations[i];
         }
     }
 

@@ -17,7 +17,7 @@
 /* *************************************************** */ 
 LocationConfig::LocationConfig(){
 	path = "/";
-	root = ""; // si location.root est vide, utilise server.root par defaut ?? a checker 
+	root = "";
 	autoindex = false;
 	index.push_back("index.html");
 	returnCode = 0;

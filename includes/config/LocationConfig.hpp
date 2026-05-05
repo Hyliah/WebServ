@@ -25,7 +25,7 @@ public:
 	std::vector<std::string> methods;
 
 	bool					autoindex;
-	std::vector<std::string> index;         // Fichier par défaut (index.html)
+	std::vector<std::string> index;
 
 	int						returnCode;
 	std::string				returnUrl;

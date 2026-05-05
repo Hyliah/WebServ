@@ -21,7 +21,6 @@ HttpResponse	WebServer::executeStatic(const SocketClient* client, const std::str
     LOG("\n>>> EXECUTE STATIC ");// --------------------------------------------------------------------------------------------
 
     if (path.find("/cgi-bin/") != std::string::npos){
-        LOG("erreur d ici ");// --------------------------------------------------------------------------------------------    
         return buildErrorResponse(403, client);
     }
    
@@ -33,18 +32,15 @@ HttpResponse	WebServer::executeStatic(const SocketClient* client, const std::str
     std::ifstream src(req.getBodyPath().c_str(), std::ios::binary);
     if (!src)
         return buildErrorResponse(500, client);
-
-    LOG("le path passé :  " << path);// --------------------------------------------------------------------------------------------  
     std::ofstream dst(path.c_str(), std::ios::binary);
     if(!dst){
-        LOG("erreur de la ");// --------------------------------------------------------------------------------------------  
         return buildErrorResponse(403, client);
     }
 
     dst << src.rdbuf();
 
     HttpResponse res;
-    res.statusLine = "HTTP/1.1 201 OK"; // Created
+    res.statusLine = "HTTP/1.1 201 OK";
     res.headers["Content-Type"].push_back("text/plain");
     res.body = "File uploaded\n";
     return res;
@@ -58,26 +54,20 @@ bool WebServer::isCGI(const LocationConfig* location, const std::string& path){
     LOG("\n>>> IS CGI ");// --------------------------------------------------------------------------------------------
     
     if (!location){
-        //LOG("pas de location"); // -------------------------------------------------------------
         return false;
     }
-    
-    //LOG("CGI infos de base = " << location->cgiEnabled); // --------------------------------------------------------------
     
     if (location->cgiInfo.empty()){
-        //LOG("CGI est faux 1"); // --------------------------------------------------------------------------------------------
         return false;
     }
 
-    size_t lastDot = path.find_last_of('.'); // ok cpp98 si jamais j'ai check
+    size_t lastDot = path.find_last_of('.');
     if (lastDot == std::string::npos){
-        //LOG("Log a la con."); // -------------------------------------------------------------
         return false;
     }
 
-    std::string ext = path.substr(lastDot); // Récupère ".py" par exemple
+    std::string ext = path.substr(lastDot);
     if (location->cgiInfo.find(ext) != location->cgiInfo.end()){
-        //LOG("recup ext juste."); // -------------------------------------------------------------
         return true;
     }
 
@@ -101,22 +91,18 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
         if (bodyFd == -1)
             return buildErrorResponse(500, client);
     }
-    LOG("body path =  " << bodyPath); // ------------------------------------------------------------------------------------------
 
     std::map<std::string, std::vector<std::string> > map = createEnvp(client, location, path);
-    LOG("map crée "); // ---------------------------------------------------------------------------------------------------------
     char** envp = convertMapToChar(map);
     if (envp == NULL){
         return buildErrorResponse(500, client);
     }
-    LOG("map convertie en char **"); // ------------------------------------------------------------------------------------------
 
     int pipeFd[2] = {-1};
     
     if (pipe(pipeFd) == -1){
         safeClose(&bodyFd);
         freeTab(&envp);
-        LOG("BABY ONE MORE TIME");
         return buildErrorResponse(500, client);
     }
 
@@ -125,7 +111,6 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
         safeClose(&bodyFd);
         safeClose(&pipeFd[0]); safeClose(&pipeFd[1]);
         freeTab(&envp);
-        LOG("IM A SLAVE FOR YOU");
         return buildErrorResponse(500, client);
     }
 
@@ -202,7 +187,7 @@ HttpResponse	WebServer::createCGIResponse(const SocketClient* client, std::strin
     std::string headers = raw.substr(0, pos);
     std::string body = raw.substr(pos + sep_len);
 
-    std::vector<std::string> lines = splitLines(headers); //il est sexy
+    std::vector<std::string> lines = splitLines(headers);
 
     for (size_t i = 0; i < lines.size(); i++)
     {
@@ -234,13 +219,11 @@ HttpResponse	WebServer::createCGIResponse(const SocketClient* client, std::strin
 }
 
 
-std::map<std::string, std::vector<std::string> > WebServer::createEnvp(const SocketClient* client, const LocationConfig* location, const std::string& path)
-{
+std::map<std::string, std::vector<std::string> > WebServer::createEnvp(const SocketClient* client, const LocationConfig* location, const std::string& path){
     LOG("\n>>> CREATE ENVP "); // -------------------------------------------------------------
     (void)location;
 
     std::map<std::string, std::vector<std::string> > env;
-    LOG("MAp envp faite");
     const HttpRequest& req = client->getRequest();
     
     std::string contentType;
@@ -251,35 +234,19 @@ std::map<std::string, std::vector<std::string> > WebServer::createEnvp(const Soc
         contentType = it->second[0];
 
     env["REQUEST_METHOD"].push_back(req.getMethod());
-    LOG("REQUEST_METHOD " << req.getMethod()); //----------------------------------
-
     env["QUERY_STRING"].push_back(req.getOriginQuery());
-    LOG("QUERY_STRING " << req.getOriginQuery()); //----------------------------------
-
     env["CONTENT_LENGTH"].push_back( longToString(req.getContentLength()) );
-    LOG("CONTENT_LENGTH " << req.getContentLength()); //----------------------------------
-
     env["CONTENT_TYPE"].push_back(contentType);
-    LOG("CONTENT_TYPE " << contentType); //----------------------------------
-
     env["SCRIPT_NAME"].push_back(path);
-    LOG("SCRIPT_NAME " << path); //----------------------------------
-
     env["PATH_INFO"].push_back(extractPathInfo(path, req.getOriginPath()));
-
     env["SERVER_PROTOCOL"].push_back("HTTP/1.1");
-
     env["GATEWAY_INTERFACE"].push_back("CGI/1.1");
-
 
     return env;
 }
 
-std::string WebServer::extractPathInfo(const std::string& uri, const std::string& scriptPath)
-{
+std::string WebServer::extractPathInfo(const std::string& uri, const std::string& scriptPath){
     LOG("\n>>> EXTRACT PATH INFO "); // -------------------------------------------------------------
-    LOG("URI " << uri);
-    LOG("SCRIPT PATH " << scriptPath);
 
     if (uri.size() <= scriptPath.size())
         return "";

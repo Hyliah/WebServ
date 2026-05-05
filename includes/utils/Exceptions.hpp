@@ -20,7 +20,6 @@
 #include <string>
 #include <sstream>
 
-// Classe de base
 class WebservException : public std::exception {
 protected:
     std::string _message;
@@ -65,20 +64,7 @@ private:
 };
 
 
-/*
-
-int main() {
-    try {
-        throw ParseException(HTTP, "Invalid HTTP header");
-    } catch (const WebservException& e) {
-        std::cout << e.what() << std::endl;
-    }
-    return 0;
-}
-
-*/
 // erreur de socket
-
 class SocketException : public WebservException {
 	public:
 		SocketException(const std::string& msg)
@@ -114,11 +100,5 @@ class ResponseException : public std::exception {
         int getFd() const { return _fd; }
         int getCode() const { return _code; }
 };
-
-// erreur de CGI ?
-
-// erreur de http ? 
-
-// others ?? 
 
 #endif

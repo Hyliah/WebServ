@@ -19,7 +19,7 @@
 #include <ctime>
 #include <unistd.h>
 
-//#include "../http/HttpRequest.hpp"
+
 #include "WebServer.hpp"
 #include "Exceptions.hpp"
 
@@ -70,36 +70,6 @@ void	HttpRequest::closeBodyFile() {
 	if (_bodyFile.is_open())
 		_bodyFile.close();
 }
-
-// std::string generateId() {
-// 	std::stringstream ss;
-// 	ss << getpid() << "_" << std::time(NULL);
-
-// 	// std::stringstream ss;
-// 	// ss << "/tmp/webserv_body_" << getpid() << "_" << time(NULL) << "_" << rand();
-
-// 	// static size_t counter = 0;
-// 	// std::stringstream ss;
-// 	// ss << "/tmp/webserv_body_" << getpid() << "_" << counter++;
-
-// 	return ss.str();
-// }
-
-// void	HttpRequest::openBodyFile() {
-// 	if (_bodyFile.is_open())
-//         return;
-
-// 	_bodyFilePath = "/tmp/webserv_body_" + generateId();
-// 	LOG(" --------------------------- le body path au moment de sa divine creation : " << _bodyFilePath);
-// 	_bodyFile.open(_bodyFilePath.c_str(), std::ios::binary);
-// 	if (!_bodyFile.is_open()) {
-// 		throw std::runtime_error("Failed to open body file"); // en attendant est ce que il faut envoyer un error 500
-// 	}
-// }
-
-#include <sstream>
-#include <unistd.h>
-#include <ctime>
 
 std::string generateId(int fd)
 {

@@ -59,7 +59,7 @@ class ParserConfig {
 		void						checkBracketsBalance(const std::string &content);
 
 		// VERIF
-		void 						verifyConfig(); // verifie que chaque serveur a au moins un port et une location, et qu'il n'y a pas de doublons de ports
+		void 						verifyConfig();
 
 	public:
 		ParserConfig();
@@ -68,8 +68,6 @@ class ParserConfig {
 		~ParserConfig();
 
 		void parse(const std::string &configFilePath);
-
-		// Getters pour récupérer les serveurs après parsing
     	const std::vector<ServerConfig> &getServers() const { return _servers; }
 
 };

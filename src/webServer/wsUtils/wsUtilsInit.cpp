@@ -12,7 +12,6 @@
 
 #include "WebServer.hpp"
 
-//void	WebServer::removeClient(int fd){}
 
 void	WebServer::initSockets(){
 
@@ -53,11 +52,9 @@ void	WebServer::initPollStruct(){
 	for (size_t i = 0; i < _socketServers.size(); ++i){
 		int fd = _socketServers[i]->getFd();
 
-		LOG("SERVER FD ADDED: " << fd);
-
 		struct pollfd pfd;
 		pfd.fd = fd;
-		pfd.events = POLLIN; //changement ici
+		pfd.events = POLLIN;
 		pfd.revents = 0;
 		_pollFds.push_back(pfd);	
 	}
@@ -76,7 +73,6 @@ void WebServer::checkTimeouts() {
                 SocketClient* client = it->second;
 
                 if (client && isTimedOut(client)) {
-                    LOG("Timeout client fd = " << fd);
                     closeConnection(fd);
                     continue;
                 }
@@ -86,30 +82,6 @@ void WebServer::checkTimeouts() {
     }
 }
 
-// void WebServer::checkTimeouts() {
-//     for (size_t i = 0; i < _pollFds.size(); ) {
-
-//         int fd = _pollFds[i].fd;
-
-//         if (!isServerFd(fd)) {
-//             std::map<int, SocketClient*>::iterator it = _socketClients.find(fd);
-// 			if (it == _socketClients.end()) {
-// 				i++;
-// 				continue;
-// 			}
-
-// 		SocketClient* client = it->second;
-
-//             if (client && isTimedOut(client)) {
-//                 LOG("Timeout client fd = " << fd);
-//                 closeConnection(fd);
-//                 continue;
-//             }
-//         }
-
-//         i++;
-//     }
-// }
 
 bool WebServer::isTimedOut(const SocketClient* client) const {
     if (!client)

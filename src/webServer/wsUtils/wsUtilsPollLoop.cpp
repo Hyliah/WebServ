@@ -26,7 +26,7 @@ bool 	WebServer::isHeaderComplete(SocketClient* client){
 	size_t pos = buffer.find("\r\n\r\n");
 
 	if (pos == std::string::npos)
-		return false; // ca veut dire que le rnrn n est encore dans le recv -> requete pas terminée
+		return false;
 	return true;
 }
 
@@ -47,6 +47,7 @@ void WebServer::closeConnection(int fd){
 
 	if (_socketClients.find(fd) == _socketClients.end()) {
 		//LOG("⚠️ FD NOT FOUND (double close?)");
+		// supp tt ce if ? rien d'autre que le log dedans ? normalm ? 
 	}
 	
 	close(fd);
@@ -66,10 +67,8 @@ void	WebServer::setPollOut(int fd){
 
 	for (it = _pollFds.begin(); it != _pollFds.end(); ++it){
 		if (it->fd == fd){
-			it->events = POLLOUT; // it->events = POLLOUT | POLLERR | POLLHUP;
+			it->events = POLLOUT;
 			break;
 		}
 	}
-
-	LOG("Switching fd " << fd << " to POLLOUT");
 }

@@ -351,13 +351,10 @@ void	ParserConfig::handleReturn(std::vector<std::string>::iterator &it, Location
 
     if (isdigit((*it)[0])) {
         location.returnCode = stringToInt(*it);
-		LOG("return code : " << location.returnCode); // -------------------------------------------------------------
         it++;
     }
     if (validateValue(it) && *it != ";") {
-
         location.returnUrl = *it;
-        LOG("return url : " << location.returnUrl); // -------------------------------------------------------------
 		it++;
     }
     checkSemicolon(it);
@@ -378,13 +375,11 @@ void ParserConfig::handleCgi(std::vector<std::string>::iterator &it, LocationCon
     if (!validateValue(it))
         throw ParseException(CONF, "CGI directive needs an extension (e.g., .py)");
     std::string ext = *it;
-	LOG("----------------extension : " << ext);
     it++;
 
     if (!validateValue(it))
         throw ParseException(CONF, "CGI directive needs a path");
     std::string path = *it;
-	LOG("----------------path : " << path);
     it++;
 
     location.cgiInfo[ext] = path;

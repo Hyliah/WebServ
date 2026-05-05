@@ -58,7 +58,7 @@ class WebServer{
 		std::vector<SocketServer*>	    _socketServers;
 		std::map<int, SocketClient*>	_socketClients;
 		std::vector<ServerConfig>	    _servers;
-		std::vector<struct pollfd>	    _pollFds; //pauls 
+		std::vector<struct pollfd>	    _pollFds;
 		
 		WebServer(const WebServer &other);
 		WebServer& operator=(const WebServer &other);

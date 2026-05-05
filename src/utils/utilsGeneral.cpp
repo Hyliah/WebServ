@@ -68,14 +68,12 @@ char hexToChar(char a, char b) {
 
 
 int	stringToInt(const std::string &str){
-	// On peut faire la meme chose que pour stringToLong mais en utilisant un int 
-	// verif les limites de l'int pour eviter les overflow
 	int result = 0;
 	for (size_t i = 0; i < str.size(); i++)
 	{
 		if (!isdigit(static_cast<unsigned char>(str[i])))
 			throw ParseException(CONF, "Invalid number: " + str);
-		if (result > (INT_MAX - (str[i] - '0')) / 10) // Verifie que le prochain chiffre n'entraînera pas un overflow
+		if (result > (INT_MAX - (str[i] - '0')) / 10)
 			throw ParseException(CONF, "Number too large: " + str);
 		result = result * 10 + (str[i] - '0');
 	}
@@ -118,18 +116,16 @@ int hexValue(char c){
 
 size_t	parseSize(const std::string &str){
 	if (str.empty()) return 0;
-	char unit = str[str.size() - 1]; // pour acceder au dernier caractere si c'est une lettre 
-	std::string valueStr = str; // on va faire un copie de ka str
+	char unit = str[str.size() - 1];
+	std::string valueStr = str;
 	size_t multiplier = 1;
-	// donc si le dernier char est pas un digit ( donc k, m ou g )
 	if (!isdigit(unit)) {
-		valueStr = str.substr(0, str.size() - 1); // on stock les number en enlevant le dernier char 
+		valueStr = str.substr(0, str.size() - 1);
 		if (unit == 'K' || unit == 'k') multiplier = 1024;
 		else if (unit == 'M' || unit == 'm') multiplier = 1024 * 1024;
 		else if (unit == 'G' || unit == 'g') multiplier = 1024 * 1024 * 1024;
 		else throw ParseException(CONF, "Invalid size unit: " + str);
 	}
-	// Conversion de la partie numérique 
 	long val = stringToLong(valueStr);
 	if (val < 0) 
 		throw ParseException(CONF, "Size cannot be negative: " + str);

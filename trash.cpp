@@ -283,3 +283,150 @@
 //         }
 //     }
 // }
+
+// OLD VERSION ( a delete plus tard)
+// std::string generateId() {
+// 	std::stringstream ss;
+// 	ss << getpid() << "_" << std::time(NULL);
+
+// 	// std::stringstream ss;
+// 	// ss << "/tmp/webserv_body_" << getpid() << "_" << time(NULL) << "_" << rand();
+
+// 	// static size_t counter = 0;
+// 	// std::stringstream ss;
+// 	// ss << "/tmp/webserv_body_" << getpid() << "_" << counter++;
+
+// 	return ss.str();
+// }
+
+// void	HttpRequest::openBodyFile() {
+// 	if (_bodyFile.is_open())
+//         return;
+
+// 	_bodyFilePath = "/tmp/webserv_body_" + generateId();
+// 	LOG(" --------------------------- le body path au moment de sa divine creation : " << _bodyFilePath);
+// 	_bodyFile.open(_bodyFilePath.c_str(), std::ios::binary);
+// 	if (!_bodyFile.is_open()) {
+// 		throw std::runtime_error("Failed to open body file"); // en attendant est ce que il faut envoyer un error 500
+// 	}
+// }
+
+
+
+
+
+// HttpResponse WebServer::buildErrorResponse(int code, const SocketClient* client) {
+//     HttpResponse res;
+
+//     std::string statusText = "Error";
+// 	std::string	imagePath = "Error";
+// 	std::string comment = "";
+
+// 	if (code == 400){
+// 		statusText = "Bad Request";
+// 		//imagePath = "./doss";
+// 		comment = "bibibibb 400";
+// 	}
+// 	else if (code == 403){
+// 		statusText = "Forbidden";
+// 		//imagePath = "./doss";
+// 		comment = "FOR BI DEN bibibibibbi";
+// 	}
+//     else if (code == 404){
+//         statusText = "Not Found";
+// 		imagePath = "./Assets/404.jpg";
+// 		comment = "Oups... Prout Dino ate your page 🦖";
+// 	}
+// 	else if (code == 413){
+//         statusText = "Payload too large";
+// 		//imagePath = "./doss";
+// 		comment = "413 bibibbibibi ";
+// 	}
+// 	else if (code == 414){
+//         statusText = "URI too long";
+// 		//imagePath = "./doss";
+// 		comment = "414 bibibibiibibibbi ";
+// 	}
+// 	else if (code == 415){
+//         statusText = "Unsupported media type";
+// 		//imagePath = "./doss";
+// 		comment = "415 bibibibiibibibbi ";
+// 	}
+// 	else if (code == 418){
+//         statusText = "I am a teapot";
+// 		//imagePath = "./doss";
+// 		comment = "The Server refuses to brew Coffee because it is permanently a TeaPot";
+// 	}
+// 		else if (code == 431){
+//         statusText = "Request Header fields too large";
+// 		//imagePath = "./doss";
+// 		comment = "431 bibibibiibibibbi ";
+// 	}
+//     else if (code == 500){
+// 		statusText = "Internal Server Error";
+// 		//imagePath = "./doss";
+// 	}
+    
+// 	// Status line
+//     res.statusLine = "HTTP/1.1 " + longToString(code) + " " + statusText;
+
+//     // Body
+//     res.body =
+//         "<html>"
+//         "<head><title>" + longToString(code) + " " + statusText + "</title></head>"
+//         "<body style='text-align:center;'>"
+//         "<h1>" + longToString(code) + " - " + statusText + "</h1>"
+//         "<p>" + comment + "</p>"
+//         //"<img src='" + imagePath + "' width='400'>"
+//         "</body>"
+//         "</html>";
+
+//     // Headers
+// 	std::string sizeStr = longToString(res.body.size());
+//     res.headers["Content-Length"].push_back(sizeStr);
+//     res.headers["Content-Type"].push_back("text/html");
+// 	if (client->keepAlive)
+//         res.headers["Connection"].push_back("keep-alive");
+// 	else 
+//     	res.headers["Connection"].push_back("close");
+
+//     return res;
+// }
+
+// void WebServer::checkTimeouts() {
+//     for (size_t i = 0; i < _pollFds.size(); ) {
+
+//         int fd = _pollFds[i].fd;
+
+//         if (!isServerFd(fd)) {
+//             std::map<int, SocketClient*>::iterator it = _socketClients.find(fd);
+// 			if (it == _socketClients.end()) {
+// 				i++;
+// 				continue;
+// 			}
+
+// 		SocketClient* client = it->second;
+
+//             if (client && isTimedOut(client)) {
+//                 LOG("Timeout client fd = " << fd);
+//                 closeConnection(fd);
+//                 continue;
+//             }
+//         }
+
+//         i++;
+//     }
+// }
+
+// Note pour resolve query
+
+	//test?key1=val1&key2=val2 -> key1 = "val1"     key2 = "val2"
+	//test?key1=&key2=val2 -> key1 = ""     key2 = "val2"
+	//test?key1 -> key1 = ""
+	//test?key1=val1=key2=val2 -> key1 = "val1=key2=val2"
+	
+	//si 2x les meme on garde le 2e
+	// %20 -> espace
+	// + -> espace 
+	// faire gestion generale des % par contre si pas hexa -> badrequest -> hexToChar(dejac codee) 
+	// si \0 bad request

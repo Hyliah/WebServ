@@ -26,8 +26,8 @@ WebServer::~WebServer(){
 	for (std::map<int, SocketClient*>::iterator it = _socketClients.begin();
 		 it != _socketClients.end(); ++it) {
 		
-		close(it->first);          // ferme le fd
-		delete it->second;         // delete le client
+		close(it->first);
+		delete it->second;
 	}
 	_socketClients.clear();
 
@@ -62,7 +62,6 @@ void WebServer::pollLoop() {
     while (_running) {
 
         int ret = poll(&_pollFds[0], _pollFds.size(), 1000);
-        //LOG("poll() ret = " << ret); //-----------------------------------------
 
         if (ret == -1) {
             if (errno == EINTR) {
@@ -83,10 +82,7 @@ void WebServer::pollLoop() {
             int fd = _pollFds[i].fd;
             short revents = _pollFds[i].revents;
 
-            //LOG("Checking fd: " << fd << " revents: " << revents); //-----------
-
             if (revents & POLLIN) {
-                //LOG("POLLIN on fd " << fd); //----------------------------------
 
                 if (isServerFd(fd)) {
                     try {
@@ -104,19 +100,16 @@ void WebServer::pollLoop() {
             }
 
             if (revents & POLLOUT) {
-                //LOG("POLLOUT on fd " << fd); //---------------------------------
 
                 try {
                     sendResponse(fd, 0);
                 } catch (...) {
-					//LOG("ICI PB :( ?)"); // ----------------------------------------------------------------------------
                     closeConnection(fd);
                     continue;
                 }
             }
 
 			if (revents & (POLLHUP | POLLERR)) {
-                //LOG("POLLHUP/POLLERR on fd " << fd); //-------------------------
 
 				SocketClient* client = _socketClients[fd];
 
@@ -136,7 +129,6 @@ void WebServer::pollLoop() {
 }
 
 void	WebServer::acceptClient(int serverFd){
-
 	LOG("\n >>> ACCEPT CLIENT on server fd " << serverFd); // ---------------------
 
 	struct sockaddr_storage addr;
@@ -188,14 +180,13 @@ void	WebServer::acceptClient(int serverFd){
 }
 
 void	WebServer::handleRequest(int fd){
-	LOG("\n>>> HANDLE REQUEST "); // -------------------------------------------------------------
+	LOG("\n>>> HANDLE REQUEST "); // -------------------------------------------
 	LOG(">>> handleRequest fd = " << fd); // -----------------------------------
 	SocketClient* client = _socketClients[fd];
 
 	try {
 		char buffer[4096];
 		ssize_t bytes = recv(fd, buffer, sizeof(buffer), 0);
-		//LOG("recv bytes = " << bytes); // --------------------------------------
 		
 		if (bytes == 0) {
 			closeConnection(fd);
@@ -210,7 +201,6 @@ void	WebServer::handleRequest(int fd){
 		
 		client->appendBuffer(std::string(buffer, bytes));
 		client->lastActivity = std::time(NULL);
-		LOG("BUFFER NOW:\n" << client->getBuffer()); // ------------------------
 
 		if (client->state == READING)
             client->parseRequest();
@@ -229,12 +219,9 @@ void	WebServer::handleRequest(int fd){
         client->state = ERROR;
         setPollOut(fd);
     }
-	
-	//LOG("HANDLE REQUEST END COMPLETE"); // ---------------------------
 }
 
-void WebServer::parseBody(SocketClient* client)
-{
+void WebServer::parseBody(SocketClient* client){
 	LOG("\n>>> PARSE BODY "); // -------------------------------------------------------------
 
 	client->lastActivity = std::time(NULL);
@@ -243,17 +230,14 @@ void WebServer::parseBody(SocketClient* client)
 		client->ignoreBody = true;
 
     if (client->chunked){
-		LOG("CA PASSSE PAR CHUNCKED ICI");
         client->parsingChunked();
 	}
 
     else if (client->contentLength){
-		LOG("CA PASSSE PAR CONTENT LENTGHT ICI");
         client->parsingContentLength();
 	}
 
     else{
-		LOG("CA PASSSE PAs ICI");
         client->parsingNoBody();
 	}
 
@@ -265,17 +249,11 @@ void	WebServer::sendResponse(int fd, int codeError){
 	(void)codeError;
 	LOG("\n>>> SEND RESPONSE "); // -------------------------------------------------------------
 
-	// LOG(">>> sendResponse fd = " << fd); // ------------------------------------
-	// LOG(">>> code error = " << codeError); // ----------------------------------
-
 	SocketClient* client = _socketClients[fd];
 
 	try {
 		HttpResponse res;
 		const LocationConfig* location = findMatchingLocation(client);
-
-		// LOG("location name : " << location->returnUrl); // -------------------------------------------------------------
-		// LOG("location return Code : " << location->returnCode); // -------------------------------------------------------------
 		
 		if (client->state == ERROR) {
 			res = buildErrorResponse(client->errorCode, client); }
@@ -290,11 +268,9 @@ void	WebServer::sendResponse(int fd, int codeError){
 			resolvePath(client);
 
 			std::string method = client->getRequest().getMethod();
-			//LOG("Method = " << method);  // -------------------------------------
 
 			if (method == "GET"){
 				res = methodGet(client, location);
-				std::cout << "ALL GOOD DANS METHOD GET" << std::endl;
 			}
             else if (method == "POST")
                 res = methodPost(client, location);
@@ -303,12 +279,6 @@ void	WebServer::sendResponse(int fd, int codeError){
 		}
 
 		std::string response = res.ResponseToString();
-		
-		// LOG(">>> RESPONSE BUILT:"); // -----------------------------------------
-		// LOG(response); // ------------------------------------------------------
-		// LOG("URI: " << client->getRequest().getUri()); // ----------------------
-
-	
 
 		size_t totalSent = 0;
 		while (totalSent < response.size()) {

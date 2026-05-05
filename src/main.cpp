@@ -11,7 +11,6 @@
 /*****************************************************************************/
 
 #include "WebServer.hpp"
-//#include "../http/HttpResponse.hpp"
 #include "Exceptions.hpp"
 #include "LocationConfig.hpp"
 #include "ParserConfig.hpp"
@@ -19,14 +18,14 @@
 #include <iostream>
 #include <csignal>
 
-WebServer* gSignal = NULL; // pointeur global pour le signal
+WebServer* gSignal = NULL;
 
 void handle_sigint(int signum) {
     if (signum)
-        gSignal->_running = false; // sort de la loop proprement
+        gSignal->_running = false;
 }
 
-void	testPrintParse();
+//void	testPrintParse();
 
 int main (int ac, char **av)
 {

@@ -18,9 +18,9 @@ class HttpRequest
 {
     private :
     // REQUEST LINE
-    std::string _method; // POST DELETE GET
-    std::string _uri; // la target en gros
-    std::string _version; // version du http
+    std::string _method;
+    std::string _uri;
+    std::string _version;
 
     std::string _originPath; // pas utile mais potentiellement, on verra la flemme
     std::string _originQuery;

@@ -19,8 +19,7 @@
 /* ************************************************** */
 
 HttpResponse WebServer::handleDirectory(const SocketClient* client, const std::string& path){
-
-	LOG(">>> handleDirectory");
+	LOG(">>> handleDirectory"); // ------------------------------------------------------------
 
 	const ServerConfig* config = findMatchingConfig(client);
 	const LocationConfig* loc = findMatchingLocation(client);
@@ -41,12 +40,8 @@ HttpResponse WebServer::handleDirectory(const SocketClient* client, const std::s
 	
 	// INDEX
     if (!indexes->empty()) {
-		LOG("Indexes size: " << indexes->size());
         for (size_t i = 0; i < indexes->size(); i++) {
             std::string fullPath = path;
-
-			LOG("Trying index: " << (*indexes)[i]);
-			LOG("Full path: " << fullPath);
 
             if (!fullPath.empty() && fullPath[fullPath.size() - 1] != '/')
                 fullPath += "/";
@@ -63,7 +58,6 @@ HttpResponse WebServer::handleDirectory(const SocketClient* client, const std::s
 
     // AUTOINDEX
     if (autoindex) {
-		LOG("Autoindex: " << autoindex);
         return generateListing(path, client);
     }
 
@@ -112,8 +106,7 @@ std::string WebServer::getMimeType(std::string path){
 
 HttpResponse WebServer::serveFile(const SocketClient* client, const std::string& path, struct stat& st){
 	(void)st;
-	
-	LOG(">>> SERVE FILE ");
+	LOG(">>> SERVE FILE "); // ------------------------------------------------------------
 
     std::ifstream file(path.c_str(), std::ios::binary);
     if (!file) {
@@ -123,7 +116,6 @@ HttpResponse WebServer::serveFile(const SocketClient* client, const std::string&
 	std::ostringstream ss;
 	ss << file.rdbuf();
 	std::string body = ss.str();
-	//LOG("\n >>> MID SERVE "); //----------------
 	HttpResponse res = fillResponseOK(body, body.size(), getMimeType(path), client);
 	return res;
 }
@@ -131,7 +123,7 @@ HttpResponse WebServer::serveFile(const SocketClient* client, const std::string&
 
 
 HttpResponse	WebServer::generateListing(const std::string &path, const SocketClient* client){
-	LOG(">>> generateListing for " << path); // ---------------------
+	LOG(">>> generateListing for " << path); // ---------------------------------------------
 
 	DIR* dir = opendir(path.c_str());
 	if (!dir)
@@ -165,7 +157,7 @@ HttpResponse	WebServer::generateListing(const std::string &path, const SocketCli
 HttpResponse	WebServer::fillResponseOK(std::string body, long size, std::string type, const SocketClient* client){
 	HttpResponse res;
 
-	LOG("\n >>> FILL RESPONSE OK "); //----------------
+	LOG("\n >>> FILL RESPONSE OK "); //-----------------------------------------------------------
 	
 	res.statusLine = "HTTP/1.1 200 OK";
 	res.body = body;
@@ -180,7 +172,6 @@ HttpResponse	WebServer::fillResponseOK(std::string body, long size, std::string 
     	res.headers["Connection"].push_back("close");
 	return res;
 }
-
 
 
 /* ************************************************** */
