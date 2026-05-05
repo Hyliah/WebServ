@@ -70,19 +70,19 @@ void    SocketServer::createSocket(){
 		throw SocketException("Error : listen has failed");
 }
 
-	static bool setSocket(int sockFd){
-		int opt = 1;
-		if (setsockopt(sockFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
-			return false;
+static bool setSocket(int sockFd){
+	int opt = 1;
+	if (setsockopt(sockFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+		return false;
 
-		int flags = fcntl(sockFd, F_GETFL, 0);
-		if (flags < 0)
-			return false;
-		if (fcntl(sockFd, F_SETFL, flags | O_NONBLOCK) < 0)
-			return false;
+	int flags = fcntl(sockFd, F_GETFL, 0);
+	if (flags < 0)
+		return false;
+	if (fcntl(sockFd, F_SETFL, flags | O_NONBLOCK) < 0)
+		return false;
 
-		return true;
-	}
+	return true;
+}
 
 int SocketServer::initStructGetaddrinfo(struct addrinfo& hints, struct addrinfo** res){
 	std::memset(&hints, 0, sizeof(hints));
