@@ -320,6 +320,34 @@ void SocketClient::validateHeaders(int headerCount, size_t totalSize) {
 }
 
 bool	SocketClient::isValidURI(){
+	//faire une fonction de type RIP
+	//de / a /
+	// si .. balance -=1
+	// si abc ballance +=1
+	// si balance == -1 -> return false 
+
+	// int balance = 0;
+	// size_t begin = 0; 
+	// size_t pos = 0;
+	// std::string uri = _request.getUri();
+
+	// while (pos < uri.length()){
+	// 	pos = uri.find("/");
+		
+	// 	if (pos = 0)
+	// 		continue;
+	// std::string line = _uri.substr(begin, pos);
+	// 	if (line == ".." && begin == 0)
+	//		return false ;
+	// 	if (line == "..")
+	//		balance -= 1;
+	//	else
+	//		balance += 1;
+	//	if (balance < 0)
+	//		return false;
+	//	pos += 1;
+	//	begin = pos;
+	// }
 
 	if (_request.getUri().find("..") != std::string::npos)
 		return false;
