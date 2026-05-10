@@ -105,6 +105,7 @@ void WebServer::pollLoop() {
                     sendResponse(fd, 0);
                 } catch (...) {
                     closeConnection(fd);
+					// 500
                     continue;
                 }
             }
@@ -190,24 +191,27 @@ void	WebServer::handleRequest(int fd){
 		
 		if (bytes == 0) {
 			closeConnection(fd);
+			//return 500
 			return ;
 		}
+		
 		if (bytes < 0) {
 			if (errno == EAGAIN || errno == EWOULDBLOCK)
         		return; // est ce que on a droit au errno ici ? 
     		closeConnection(fd);
+			//return 500 
 			return ;
 		}
 		
 		client->appendBuffer(std::string(buffer, bytes));
 		client->lastActivity = std::time(NULL);
-
+		
 		if (client->state == READING)
             client->parseRequest();
 		
 		if (client->state == BODY_READING)
             parseBody(client);
-
+		
 		if (client->state == READY) {
             client->state = PROCESSING;
             setPollOut(fd);
@@ -228,12 +232,12 @@ void WebServer::parseBody(SocketClient* client){
 
 	if (client->getRequest().getMethod() == "DELETE" || client->getRequest().getMethod() == "GET")
 		client->ignoreBody = true;
-
-    if (client->chunked){
+    
+	if (client->chunked){
         client->parsingChunked();
 	}
-
-    else if (client->contentLength){
+    
+	else if (client->contentLength){
         client->parsingContentLength();
 	}
 
@@ -248,16 +252,25 @@ void WebServer::parseBody(SocketClient* client){
 void	WebServer::sendResponse(int fd, int codeError){
 	(void)codeError;
 	LOG("\n>>> SEND RESPONSE "); // -------------------------------------------------------------
-
 	SocketClient* client = _socketClients[fd];
 
 	try {
 		HttpResponse res;
 		const LocationConfig* location = findMatchingLocation(client);
-		
-		if (client->state == ERROR) {
-			res = buildErrorResponse(client->errorCode, client); }
 
+		try{ resolvePath(client); }
+		catch (const ResponseException& e) {
+		client->state = ERROR;
+		client->errorCode = e.getCode();
+		}
+		LOG ("ok :)");
+		LOG (" code error : "<< client->errorCode);
+
+		if (client->state == ERROR) {
+			res = buildErrorResponse(client->errorCode, client); 
+			LOG ("pas tres ok :)");
+		}
+		
 		else if (!location){
 			res = buildErrorResponse(404, client); }
 
@@ -265,7 +278,6 @@ void	WebServer::sendResponse(int fd, int codeError){
 			res = buildRedirectResponse(location->returnCode, location->returnUrl, client); }
 
 		else {
-			resolvePath(client);
 
 			std::string method = client->getRequest().getMethod();
 
@@ -297,6 +309,7 @@ void	WebServer::sendResponse(int fd, int codeError){
 		closeConnection(fd);
 	}
 	    catch (...) {
+		// response 500
         closeConnection(fd);
     }
 }

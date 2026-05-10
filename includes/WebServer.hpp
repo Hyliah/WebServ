@@ -128,6 +128,7 @@ class WebServer{
 		
 		//PATH -> dans le fichier wsPath.cpp
 		void		resolvePath(SocketClient* client);
+		void		checkPathSecurity(const std::string &path, int fd);
 		std::string	decodePath(const std::string &path, int fd);
 		std::string	normalizePath(const std::string &path, int fd);
 		void		checkErrorPath(const std::string &path, int fd);

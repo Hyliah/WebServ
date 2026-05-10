@@ -15,6 +15,7 @@
 void WebServer::resolvePath(SocketClient* client) {
     LOG("\n>>> RESOLVE PATH "); // -------------------------------------------------------------
     const std::string& uri = client->getRequest().getUri();
+    LOG("uri de départ : " << uri); // -------------------------------------------------------------
     int fd = client->getFd();
 
     size_t pos = uri.find('?');
@@ -40,14 +41,13 @@ void WebServer::resolvePath(SocketClient* client) {
 
     // traitement du path
 	std::string finalPath;
-	try {
-		finalPath = decodePath(path, fd);
-		finalPath = normalizePath(finalPath, fd);
-		checkErrorPath(finalPath, fd);
-	}
-	catch (...) {
-		throw ResponseException(fd, 400);
-	}
+
+    LOG("uri avant de decode : " << path); // --------
+    finalPath = decodePath(path, fd);
+    LOG("uri apres de decode : " << finalPath); // --------
+    checkPathSecurity(finalPath, fd);
+    finalPath = normalizePath(finalPath, fd);
+    checkErrorPath(finalPath, fd);
 
     std::string root = findRoot(client);
     cleanFinalPath(root, finalPath);
@@ -55,26 +55,28 @@ void WebServer::resolvePath(SocketClient* client) {
     finalPath = root + finalPath;
 
     client->getRequest().setPath(finalPath);
+    LOG ("final path = " << finalPath);
 }
 
 std::string	WebServer::decodePath(const std::string &path, int fd){
     LOG("\n>>> DECODE PATH "); // -------------------------------------------------------------
 	std::string output;
 
-	if (path.empty())
+	if (path.empty()){
 		throw ResponseException(fd, 400);
+    }
 
 	for (size_t i = 0 ; i < path.size() ; i++){
 		if (path[i] == '%') {
 			if (i + 2 >= path.size())
-				throw ResponseException(fd, 400);
-
+                throw ResponseException(fd, 400);
+            
 			char c1 = path[i + 1];
 			char c2 = path[i + 2];
 
 			if (c1 == '0' && c2 == '0')
-				throw ResponseException(fd, 400);
-
+                throw ResponseException(fd, 400);
+            
 			if (!isHex(c1) || !(isHex(c2)))
 				throw ResponseException(fd, 400);
 
@@ -88,11 +90,13 @@ std::string	WebServer::decodePath(const std::string &path, int fd){
 			output += path[i];
 	}
 
-	if (output.find("%2f") != std::string::npos)
-		throw ResponseException(fd, 403);
+	if (output.find("%2f") != std::string::npos){
+        throw ResponseException(fd, 403);
+    }
 	
-	if (output.find('\0') != std::string::npos)
-		throw ResponseException(fd, 400);
+	if (output.find('\0') != std::string::npos){
+        throw ResponseException(fd, 403);
+    }
 	
 	return output;
 }
@@ -179,10 +183,7 @@ void	WebServer::checkErrorPath(const std::string &path, int fd){
 	if (path.find("//") != std::string::npos)
 		throw ResponseException(fd, 403);
 
-	if (path.find("..") != std::string::npos)
-		throw ResponseException(fd, 403);
-
-	for (size_t i = 0 ; i < path.size() ; i++){ //voir si mieux avec && ou || pcq bibi n est pas sure
+	for (size_t i = 0 ; i < path.size() ; i++){ 
 		if (path[i] < ' ' || path[i] > '~')
 			throw ResponseException(fd, 403);
 	}
@@ -264,4 +265,46 @@ std::string WebServer::UrlDecode(const SocketClient *client, std::string entry) 
     }
 
     return result;
+}
+
+
+
+void WebServer::checkPathSecurity(const std::string &uri, int fd)
+{
+    LOG("\n>>> CHECK SECURITY "); // -------------------------------------------------------------
+    LOG("security check on :  " << uri); // -------------------------------------------------------------
+    if (uri.empty())
+        throw ResponseException(fd, 400);
+
+    if (uri[0] != '/')
+        throw ResponseException(fd, 400);
+
+    int balance = 0;
+    size_t pos = 0;
+
+    while (pos < uri.size())
+    {
+        while (pos < uri.size() && uri[pos] == '/')
+            pos++;
+
+        if (pos >= uri.size())
+            break;
+
+        size_t end = uri.find('/', pos);
+        if (end == std::string::npos)
+            end = uri.size();
+
+        std::string part = uri.substr(pos, end - pos);
+
+        if (part == "."){ } //se passe rien
+        else if (part == "..") {
+            balance--;
+            if (balance < 0)
+                throw ResponseException(fd, 403);
+        }
+        else {
+            balance++;
+        }
+        pos = end;
+    }
 }

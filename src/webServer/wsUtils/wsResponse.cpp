@@ -49,9 +49,10 @@ HttpResponse	WebServer::methodPost(SocketClient* client, const LocationConfig* l
 
 	std::string path = client->getRequest().getPath();
 
-	if (path.find("..") != std::string::npos){
-		return buildErrorResponse(403, client);
-	}
+	// if (path.find("..") != std::string::npos){
+	// 	return buildErrorResponse(403, client);
+	// }
+	// enlever pcq c est sensé etre gere avant
 
 	if (isCGI(location, path)){
 		return (executeCGI(client, location, path));
@@ -79,9 +80,9 @@ HttpResponse WebServer::methodDelete(SocketClient* client, const LocationConfig*
 			return buildErrorResponse(403, client);
 		}
 
-		if (path.find("..") != std::string::npos){
-			return buildErrorResponse(403, client);
-		}
+		// if (path.find("..") != std::string::npos){
+		// 	return buildErrorResponse(403, client);
+		// }
 
 		std::string dir = path.substr(0, path.find_last_of('/'));
 
