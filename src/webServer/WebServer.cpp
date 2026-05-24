@@ -88,13 +88,13 @@ void WebServer::pollLoop() {
                     try {
                         acceptClient(fd);
                     } catch (const ResponseException& e) {
-                        sendResponse(e.getFd(), e.getCode());
+                        sendResponse(e.getFd());
                     }
                 } else {
                     try {
                         handleRequest(fd);
                     } catch (const ResponseException& e) {
-                        sendResponse(e.getFd(), e.getCode());
+                        sendResponse(e.getFd());
                     }
                 }
             }
@@ -102,7 +102,7 @@ void WebServer::pollLoop() {
             if (revents & POLLOUT) {
 
                 try {
-                    sendResponse(fd, 0);
+                    sendResponse(fd);
                 } catch (...) {
                     closeConnection(fd);
 					// 500
@@ -123,7 +123,6 @@ void WebServer::pollLoop() {
 				closeConnection(fd);
                 continue;
             }
-
             i++;
         }
     }
@@ -191,7 +190,6 @@ void	WebServer::handleRequest(int fd){
 		
 		if (bytes == 0) {
 			closeConnection(fd);
-			//return 500
 			return ;
 		}
 		
@@ -199,7 +197,7 @@ void	WebServer::handleRequest(int fd){
 			if (errno == EAGAIN || errno == EWOULDBLOCK)
         		return; // est ce que on a droit au errno ici ? 
     		closeConnection(fd);
-			//return 500 
+			//return 500
 			return ;
 		}
 		
@@ -220,6 +218,7 @@ void	WebServer::handleRequest(int fd){
     catch (const ResponseException& e)
     {
         client->errorCode = e.getCode();
+		LOG("error code : " << client->errorCode);
         client->state = ERROR;
         setPollOut(fd);
     }
@@ -249,26 +248,24 @@ void WebServer::parseBody(SocketClient* client){
         client->state = READY;
 }
 
-void	WebServer::sendResponse(int fd, int codeError){
-	(void)codeError;
+void	WebServer::sendResponse(int fd){
 	LOG("\n>>> SEND RESPONSE "); // -------------------------------------------------------------
 	SocketClient* client = _socketClients[fd];
-
+	
 	try {
 		HttpResponse res;
 		const LocationConfig* location = findMatchingLocation(client);
 
-		try{ resolvePath(client); }
-		catch (const ResponseException& e) {
-		client->state = ERROR;
-		client->errorCode = e.getCode();
+		if (client->state != ERROR){
+			try{ resolvePath(client); }
+			catch (const ResponseException& e) {
+				client->state = ERROR;
+				client->errorCode = e.getCode();
+			}
 		}
-		LOG ("ok :)");
-		LOG (" code error : "<< client->errorCode);
-
+		
 		if (client->state == ERROR) {
 			res = buildErrorResponse(client->errorCode, client); 
-			LOG ("pas tres ok :)");
 		}
 		
 		else if (!location){

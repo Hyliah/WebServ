@@ -31,15 +31,15 @@ HttpResponse	WebServer::methodGet(SocketClient* client, const LocationConfig* lo
 	if (stat(path.c_str(), &st) < 0){
 		return buildErrorResponse(404, client);
 	}
-	//Permission
+
 	if (access(path.c_str(), R_OK) != 0) {
 		return buildErrorResponse(403, client);
 	}
-	//Directory → gérer index / autoindex
+
 	if (st.st_mode & S_IFDIR){
 		return handleDirectory(client, path);
 	}
-	//File
+
 	return serveFile(client, path, st);
 
 }
@@ -48,11 +48,6 @@ HttpResponse	WebServer::methodPost(SocketClient* client, const LocationConfig* l
 	LOG("\n>>> METHOD POST "); // -------------------------------------------------------------
 
 	std::string path = client->getRequest().getPath();
-
-	// if (path.find("..") != std::string::npos){
-	// 	return buildErrorResponse(403, client);
-	// }
-	// enlever pcq c est sensé etre gere avant
 
 	if (isCGI(location, path)){
 		return (executeCGI(client, location, path));
@@ -70,24 +65,16 @@ HttpResponse WebServer::methodDelete(SocketClient* client, const LocationConfig*
 	LOG("\n>>> METHOD DELETE "); // -------------------------------------------------------------
     
 	std::string path = client->getRequest().getPath();
-	
-	//CGI
+
 	if (isCGI(location, path))
     	return executeCGI(client, location, path);
-	//PAS CGI
+
 	else {
 		if (path.find("/upload/") == std::string::npos){
 			return buildErrorResponse(403, client);
 		}
 
-		// if (path.find("..") != std::string::npos){
-		// 	return buildErrorResponse(403, client);
-		// }
-
 		std::string dir = path.substr(0, path.find_last_of('/'));
-
-		// if (access(dir.c_str(), W_OK) == -1)
-		// 	return buildErrorResponse(403, client);
 
 		struct stat st;
 		if (stat(path.c_str(), &st) < 0)
@@ -151,7 +138,7 @@ HttpResponse WebServer::buildRedirectResponse(int returnCode, const std::string&
 	else if (returnCode == 308)	status = "Permament Redirect";
 	else status = "Redirect";
 
-	res.statusLine = "HTTP/1.1 " + longToString((long)returnCode) + " " + status; //voir avec ces histoire de long si ca joue pas
+	res.statusLine = "HTTP/1.1 " + longToString((long)returnCode) + " " + status; 
 	res.headers["location"].push_back(url);
 	res.headers["content-length"].push_back("0");
 

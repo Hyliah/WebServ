@@ -170,19 +170,6 @@ void	*freePtr(void **ptr)
 	return (NULL);
 }
 
-void	freeMidTab(char ***tab, int i) // supprimer partout
-{
-	if (!tab && !*tab)
-		return ;
-	while (i > 0)
-	{
-		i--;
-		freePtr((void **)&((*tab)[i]));
-	}
-	free(*tab);
-	*tab = NULL;
-}
-
 void freeTab(char*** envp)
 {
     for (int i = 0; (*envp)[i] != NULL; i++)

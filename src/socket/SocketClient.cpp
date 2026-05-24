@@ -47,8 +47,6 @@ void	SocketClient::parseRequest(){
 
 	size_t headerEnd = _buffer.find("\r\n\r\n");
 	size_t position = 0;
-
-	LOG("buffer : " << _buffer); // --------
     
 	if (headerEnd == std::string::npos)
         return ;
@@ -89,7 +87,6 @@ void	SocketClient::defineBodyType(){
 		_request.setContentLength(0);
 	}
 
-	//chunked
 	chunked = false;
 	std::map<std::string, std::vector<std::string> >::const_iterator itTE;
 	itTE = headers.find("transfer-encoding");
@@ -116,32 +113,33 @@ void	SocketClient::defineBodyType(){
 
 void SocketClient::parseFirstLine(std::string &buffer, size_t &pos)
 {
+	LOG("\n>>> PARSE FIRST LINE"); //-----------------------------------------------
     size_t end = buffer.find("\r\n", pos);
-    if (end == std::string::npos)
-        throw ResponseException(_fd, 400);
-
+    if (end == std::string::npos){
+		throw ResponseException(_fd, 400);
+	}
 
     std::string line = buffer.substr(pos, end - pos);
 
     size_t s1 = line.find(' ');
-    if (s1 == std::string::npos)
-        throw ResponseException(_fd, 400);
-    
+    if (s1 == std::string::npos){
+		throw ResponseException(_fd, 400);
+	}
+
 	size_t s2 = line.find(' ', s1 + 1);
-    if (s2 == std::string::npos)
-        throw ResponseException(_fd, 400);
-	
+    if (s2 == std::string::npos){
+		throw ResponseException(_fd, 400);
+	}
     std::string method = line.substr(0, s1);
-    
 
 	std::string uri = line.substr(s1 + 1, s2 - s1 - 1);
-	
 
-	if (uri.size() > MAX_URI_SIZE)
-    	throw ResponseException(_fd, 414);
+	if (uri.size() > MAX_URI_SIZE){
+    	throw ResponseException(_fd, 414); //ici ca passe bien mais ca renvoie 400
+	}
+	
     std::string version = line.substr(s2 + 1);
 	
-
 	_request.setMethod(method);
 	_request.setUri(uri);
 	
@@ -204,7 +202,6 @@ void SocketClient::parseHeaders(std::string &buffer, size_t &pos)
 
     state = HEADERS_PARSED;
 }
-
 
 
 /* ************************************************** */
@@ -274,8 +271,8 @@ void SocketClient::parsingChunked() {
 			return;
 		}
 		
-		else { //CHUNK ERROR
-			throw ResponseException(_fd, 418); //a voir quel NB LUI DONNER une error dans le body 400 sinon
+		else {
+			throw ResponseException(_fd, 400);
 		}
 	}
 }

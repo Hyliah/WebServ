@@ -41,7 +41,7 @@ void	WebServer::removePollFd(int fd){
 	}
 }
 
-void WebServer::closeConnection(int fd){
+void WebServer::closeConnection(int fd){ // voir avec chattos
 	
 	LOG("Closing connection fd = " << fd);
 

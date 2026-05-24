@@ -430,3 +430,16 @@
 	// + -> espace 
 	// faire gestion generale des % par contre si pas hexa -> badrequest -> hexToChar(dejac codee) 
 	// si \0 bad request
+
+// 	void	freeMidTab(char ***tab, int i) // supprimer partout
+// {
+// 	if (!tab && !*tab)
+// 		return ;
+// 	while (i > 0)
+// 	{
+// 		i--;
+// 		freePtr((void **)&((*tab)[i]));
+// 	}
+// 	free(*tab);
+// 	*tab = NULL;
+// }

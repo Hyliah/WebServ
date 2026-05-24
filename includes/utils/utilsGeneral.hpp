@@ -28,7 +28,6 @@ char        hexToChar(char a, char b);
 std::string trim(const std::string& s);
 void        safeClose(int *fd);
 void	    *freePtr(void **ptr);
-void	    freeMidTab(char ***tab, int i);
 void	    freeTab(char ***tab);
 
 std::vector<std::string> splitLines(std::string str);

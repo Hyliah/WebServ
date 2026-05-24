@@ -179,7 +179,6 @@ HttpResponse	WebServer::createCGIResponse(const SocketClient* client, std::strin
 
     if (client->getRequest().getMethod() == "POST"){
         if (pos == std::string::npos){
-            LOG("STRONGER THAN YESTERDAY");
             return buildErrorResponse(500, client);
         }
     }

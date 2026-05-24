@@ -37,8 +37,6 @@ HttpResponse WebServer::handleDirectory(const SocketClient* client, const std::s
 	else
 		autoindex = false;
 
-	
-	// INDEX
     if (!indexes->empty()) {
         for (size_t i = 0; i < indexes->size(); i++) {
             std::string fullPath = path;
@@ -56,12 +54,10 @@ HttpResponse WebServer::handleDirectory(const SocketClient* client, const std::s
         }
     }
 
-    // AUTOINDEX
     if (autoindex) {
         return generateListing(path, client);
     }
 
-    // FORBIDDEN
     return buildErrorResponse(403, client);
 }
 
@@ -172,10 +168,5 @@ HttpResponse	WebServer::fillResponseOK(std::string body, long size, std::string 
     	res.headers["Connection"].push_back("close");
 	return res;
 }
-
-
-/* ************************************************** */
-/* File							                      */
-/* ************************************************** */
 
 

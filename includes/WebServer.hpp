@@ -87,7 +87,7 @@ class WebServer{
 		void	pollLoop();
 		void	acceptClient(int fd);
 		void	handleRequest(int fd);
-		void	sendResponse(int fd, int codeError);
+		void	sendResponse(int fd);
 		
 
 		void	parseBody(SocketClient* client);

@@ -15,7 +15,6 @@
 void WebServer::resolvePath(SocketClient* client) {
     LOG("\n>>> RESOLVE PATH "); // -------------------------------------------------------------
     const std::string& uri = client->getRequest().getUri();
-    LOG("uri de départ : " << uri); // -------------------------------------------------------------
     int fd = client->getFd();
 
     size_t pos = uri.find('?');
@@ -36,15 +35,10 @@ void WebServer::resolvePath(SocketClient* client) {
 		client->getRequest().setOriginQuery("?" + queryStr);
     }
 
-    // parse query
     resolveQuery(client, queryStr);
-
-    // traitement du path
 	std::string finalPath;
 
-    LOG("uri avant de decode : " << path); // --------
     finalPath = decodePath(path, fd);
-    LOG("uri apres de decode : " << finalPath); // --------
     checkPathSecurity(finalPath, fd);
     finalPath = normalizePath(finalPath, fd);
     checkErrorPath(finalPath, fd);
@@ -55,7 +49,6 @@ void WebServer::resolvePath(SocketClient* client) {
     finalPath = root + finalPath;
 
     client->getRequest().setPath(finalPath);
-    LOG ("final path = " << finalPath);
 }
 
 std::string	WebServer::decodePath(const std::string &path, int fd){
@@ -272,7 +265,6 @@ std::string WebServer::UrlDecode(const SocketClient *client, std::string entry) 
 void WebServer::checkPathSecurity(const std::string &uri, int fd)
 {
     LOG("\n>>> CHECK SECURITY "); // -------------------------------------------------------------
-    LOG("security check on :  " << uri); // -------------------------------------------------------------
     if (uri.empty())
         throw ResponseException(fd, 400);
 
@@ -296,7 +288,7 @@ void WebServer::checkPathSecurity(const std::string &uri, int fd)
 
         std::string part = uri.substr(pos, end - pos);
 
-        if (part == "."){ } //se passe rien
+        if (part == "."){ }
         else if (part == "..") {
             balance--;
             if (balance < 0)

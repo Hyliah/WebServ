@@ -24,52 +24,47 @@ HttpResponse WebServer::buildErrorResponse(int code, const SocketClient* client)
     if (code == 400) {
         statusText = "Bad Request";
         imagePath = "/Assets/400.jpg";
-        message = "Bad request 🤨";
+        message = "Bad request";
     }
     else if (code == 403) {
         statusText = "Forbidden";
         imagePath = "/Assets/403.jpg";
-        message = "Access denied 🚫";
+        message = "Access denied";
     }
     else if (code == 404) {
         statusText = "Not Found";
         imagePath = "/Assets/404.jpg";
-        message = "Oups... page missing 🦖";
+        message = "Oups... page missing";
     }
 	else if (code == 405) {
 		statusText = "Method Not Allowed";
 		imagePath = "/Assets/405.jpg";
-		message = "You can't do that here 🛑";
+		message = "You can't do that here";
 	}
     else if (code == 413) {
         statusText = "Payload Too Large";
         imagePath = "/Assets/413.jpg";
-        message = "Body too big 📦";
+        message = "Body too big ";
     }
     else if (code == 414) {
         statusText = "URI Too Long";
         imagePath = "/Assets/414.jpg";
-        message = "URL exploded 💥";
+        message = "URL exploded";
     }
     else if (code == 415) {
         statusText = "Unsupported Media Type";
         imagePath = "/Assets/415.jpg";
-        message = "Format not supported 📁";
-    }
-    else if (code == 418) {
-        statusText = "I'm a teapot";
-        imagePath = "/Assets/418.jpg";
-        message = "Tea time ☕";
+        message = "Format not supported";
     }
     else if (code == 431) {
         statusText = "Request Header Fields Too Large";
         imagePath = "/Assets/431.jpg";
-        message = "Headers too big 📜";
+        message = "Headers too big";
     }
     else if (code == 500) {
         statusText = "Internal Server Error";
         imagePath = "/Assets/500.jpg";
-        message = "Something broke 💀";
+        message = "Something broke";
     }
     else {
         statusText = "Error";
