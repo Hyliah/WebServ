@@ -39,6 +39,7 @@ void WebServer::resolvePath(SocketClient* client) {
 	std::string finalPath;
 
     finalPath = decodePath(path, fd);
+    LOG("final path == " << finalPath);
     checkPathSecurity(finalPath, fd);
     finalPath = normalizePath(finalPath, fd);
     checkErrorPath(finalPath, fd);
@@ -59,6 +60,7 @@ std::string	WebServer::decodePath(const std::string &path, int fd){
 		throw ResponseException(fd, 400);
     }
 
+    LOG("le path est : " << path);
 	for (size_t i = 0 ; i < path.size() ; i++){
 		if (path[i] == '%') {
 			if (i + 2 >= path.size())
@@ -299,4 +301,29 @@ void WebServer::checkPathSecurity(const std::string &uri, int fd)
         }
         pos = end;
     }
+}
+
+
+bool WebServer::isMethodAllowed(const std::string& path, const std::string& method, const LocationConfig* location)
+{
+    if (!location)
+        return false;
+
+    if (path.compare(0, location->path.size(), location->path) != 0){
+        return false;
+    }
+
+    if (method == "GET"){
+        return location->hasGet;
+    }
+
+    if (method == "POST"){
+        return location->hasPost;
+    }
+
+    if (method == "DELETE"){
+        return location->hasDelete;
+    }
+
+    return false;
 }

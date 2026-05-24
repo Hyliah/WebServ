@@ -289,9 +289,9 @@ void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, LocationCo
 void	ParserConfig::handleMethods(std::vector<std::string>::iterator &it, LocationConfig &location){
 	it++;
 	location.methods.clear();
-	location.hasGet = false;
-	location.hasPost = false;
-	location.hasDelete = false;
+	// location.hasGet = false;
+	// location.hasPost = false;
+	// location.hasDelete = false;
 	if (!validateValue(it))
 		throw ParseException(CONF, "Need at least one methode : GET, POST, DELETE");
 	while (it != _tokens.end() && *it != ";"){
@@ -306,6 +306,7 @@ void	ParserConfig::handleMethods(std::vector<std::string>::iterator &it, Locatio
 		location.methods.push_back(*it);
 		it++;
 	}
+	std::cout << "location : " << location.path << "\nDELTE : " << location.hasDelete << "\nPOST : " << location.hasPost << "\nGET : " << location.hasGet << std::endl;
 	checkSemicolon(it);
 }
 

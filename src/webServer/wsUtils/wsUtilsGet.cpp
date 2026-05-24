@@ -26,6 +26,7 @@ HttpResponse WebServer::handleDirectory(const SocketClient* client, const std::s
 
 	const std::vector<std::string>* indexes;
 	bool autoindex;
+	std::string root = config->root;
 
 	if (loc && !loc->index.empty())
 		indexes = &loc->index;
@@ -37,19 +38,24 @@ HttpResponse WebServer::handleDirectory(const SocketClient* client, const std::s
 	else
 		autoindex = false;
 
+	LOG("l index est present ? : " << indexes->empty());
     if (!indexes->empty()) {
         for (size_t i = 0; i < indexes->size(); i++) {
-            std::string fullPath = path;
+            std::string fullPath = root;
 
             if (!fullPath.empty() && fullPath[fullPath.size() - 1] != '/')
                 fullPath += "/";
 
             fullPath += (*indexes)[i];
 
+			LOG("full pathounet = " << fullPath);
+
             struct stat st;
             if (stat(fullPath.c_str(), &st) == 0 && S_ISREG(st.st_mode)) {
                 if (access(fullPath.c_str(), R_OK) == 0)
+				{
                     return serveFile(client, fullPath, st);
+				}
             }
         }
     }

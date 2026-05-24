@@ -32,6 +32,8 @@ HttpResponse	WebServer::executeStatic(const SocketClient* client, const std::str
     std::ifstream src(req.getBodyPath().c_str(), std::ios::binary);
     if (!src)
         return buildErrorResponse(500, client);
+    
+    LOG("la path est : " << path);
     std::ofstream dst(path.c_str(), std::ios::binary);
     if(!dst){
         return buildErrorResponse(403, client);

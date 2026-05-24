@@ -72,7 +72,12 @@ void WebServer::pollLoop() {
             }
         }
 
-        checkTimeouts();
+        //checkTimeouts();
+		try {
+            checkTimeouts();
+        } catch (const ResponseException& e) {
+        	sendResponse(e.getFd());
+        }
 
         if (ret == 0)
             continue;
@@ -261,6 +266,7 @@ void	WebServer::sendResponse(int fd){
 			catch (const ResponseException& e) {
 				client->state = ERROR;
 				client->errorCode = e.getCode();
+				//LOG("code error reolve path " << client->errorCode);
 			}
 		}
 		
@@ -277,6 +283,9 @@ void	WebServer::sendResponse(int fd){
 		else {
 
 			std::string method = client->getRequest().getMethod();
+
+			LOG("la methose est : " << method);
+			
 
 			if (method == "GET"){
 				res = methodGet(client, location);

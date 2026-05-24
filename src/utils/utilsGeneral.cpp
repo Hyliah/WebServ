@@ -63,6 +63,8 @@ long	hexToLong(const std::string& hex)
 }
 
 char hexToChar(char a, char b) {
+	char i = hexValue(a) * 16 + hexValue(b);
+	LOG("le char du demon est " << i);
     return (hexValue(a) * 16 + hexValue(b));
 }
 

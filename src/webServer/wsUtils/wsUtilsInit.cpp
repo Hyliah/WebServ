@@ -73,6 +73,7 @@ void WebServer::checkTimeouts() {
                 SocketClient* client = it->second;
 
                 if (client && isTimedOut(client)) {
+					throw ResponseException(fd, 400);
                     closeConnection(fd);
                     continue;
                 }

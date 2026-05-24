@@ -96,8 +96,10 @@ void	SocketClient::defineBodyType(){
 			chunked = true;
 	}
 
-	if(!contentLength && !chunked)
-			throw ResponseException(_fd, 405);
+	if(!contentLength && !chunked){
+		LOG("cl et chunked no");
+		throw ResponseException(_fd, 405);
+	}
 
 	if (chunked)
 		contentLength = false;
@@ -137,7 +139,7 @@ void SocketClient::parseFirstLine(std::string &buffer, size_t &pos)
 	if (uri.size() > MAX_URI_SIZE){
     	throw ResponseException(_fd, 414); //ici ca passe bien mais ca renvoie 400
 	}
-	
+
     std::string version = line.substr(s2 + 1);
 	
 	_request.setMethod(method);
@@ -146,8 +148,8 @@ void SocketClient::parseFirstLine(std::string &buffer, size_t &pos)
 
 	_request.setVersion(version);
 
-    if (!isValidMethod())
-			throw ResponseException(_fd, 405);
+    // if (!isValidMethod())
+	// 		throw ResponseException(_fd, 405);
 
     if (!isValidURI())
         throw ResponseException(_fd, 400);
@@ -160,6 +162,7 @@ void SocketClient::parseFirstLine(std::string &buffer, size_t &pos)
 
 void SocketClient::parseHeaders(std::string &buffer, size_t &pos)
 {
+	LOG("\n>>> PARSE HEADERS"); //-----------------------------------------------
     size_t end = buffer.find("\r\n\r\n", pos);
     if (end == std::string::npos)
         throw ResponseException(_fd, 400);
@@ -288,9 +291,9 @@ void SocketClient::parsingContentLength() {
     if (size > 0) {
         std::string chunk = _buffer.substr(0, size);
 
-        if (!isValidBody(chunk)){
-            throw ResponseException(_fd, 400);
-		}
+        // if (!isValidBody(chunk)){
+        //     throw ResponseException(_fd, 400);
+		// } TECHINIOQUEMENT PLUS BESOIN
 
         _request.writeBody(chunk, _fd);
         _bytesRead += size;

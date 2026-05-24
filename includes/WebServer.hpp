@@ -136,6 +136,7 @@ class WebServer{
 		void		cleanFinalPath(std::string& root, std::string& finalPath);
 		void		resolveQuery(SocketClient* client, std::string path);
 		std::string UrlDecode(const SocketClient *client, std::string entry);
+		bool		isMethodAllowed(const std::string& path, const std::string& method, const LocationConfig* location);
 
 		std::string getMimeType(std::string path);
 

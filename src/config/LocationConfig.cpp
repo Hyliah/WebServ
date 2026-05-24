@@ -28,9 +28,10 @@ LocationConfig::LocationConfig(){
 
 	methods.push_back("GET");
 
-	hasGet = true;
+	hasGet = false;
 	hasPost = false;
 	hasDelete = false;
+
 }
 LocationConfig::LocationConfig(const LocationConfig &other) {
 	path = other.path;
@@ -44,6 +45,9 @@ LocationConfig::LocationConfig(const LocationConfig &other) {
 	cgiInfo = other.cgiInfo;
 	maxBodySize = other.maxBodySize;
 	cgiEnabled = other.cgiEnabled;
+	hasGet = other.hasGet;
+	hasDelete = other.hasDelete;
+	hasPost = other.hasPost;
 }
 LocationConfig& LocationConfig::operator=(const LocationConfig &other) {
 	if (this != &other) {
@@ -58,8 +62,26 @@ LocationConfig& LocationConfig::operator=(const LocationConfig &other) {
 		cgiInfo = other.cgiInfo;
 		maxBodySize = other.maxBodySize;
 		cgiEnabled = other.cgiEnabled;
+		hasGet = other.hasGet;
+		hasDelete = other.hasDelete;
+		hasPost = other.hasPost;
 	}
 	return *this;
 }
 LocationConfig::~LocationConfig() {}
 
+
+// void LocationConfig::updateMethodFlags()
+// {
+//     for (size_t i = 0; i < methods.size(); ++i)
+//     {
+//         const std::string& m = methods[i];
+
+//         if (m == "GET")
+//             hasGet = true;
+//         else if (m == "POST")
+//             hasPost = true;
+//         else if (m == "DELETE")
+//             hasDelete = true;
+//     }
+// }
