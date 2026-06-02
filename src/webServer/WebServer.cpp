@@ -266,7 +266,6 @@ void	WebServer::sendResponse(int fd){
 			catch (const ResponseException& e) {
 				client->state = ERROR;
 				client->errorCode = e.getCode();
-				//LOG("code error reolve path " << client->errorCode);
 			}
 		}
 		

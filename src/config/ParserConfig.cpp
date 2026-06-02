@@ -289,9 +289,6 @@ void	ParserConfig::handleRoot(std::vector<std::string>::iterator &it, LocationCo
 void	ParserConfig::handleMethods(std::vector<std::string>::iterator &it, LocationConfig &location){
 	it++;
 	location.methods.clear();
-	// location.hasGet = false;
-	// location.hasPost = false;
-	// location.hasDelete = false;
 	if (!validateValue(it))
 		throw ParseException(CONF, "Need at least one methode : GET, POST, DELETE");
 	while (it != _tokens.end() && *it != ";"){
@@ -302,7 +299,8 @@ void	ParserConfig::handleMethods(std::vector<std::string>::iterator &it, Locatio
 		else if (*it == "DELETE")
 			location.hasDelete = true;
 		else
-			throw ParseException(CONF, "Invalid HTTP method: " + *it);
+			location.hasGet = true;
+			//throw ParseException(CONF, "Invalid HTTP method: " + *it);
 		location.methods.push_back(*it);
 		it++;
 	}

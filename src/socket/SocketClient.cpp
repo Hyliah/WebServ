@@ -187,11 +187,15 @@ void SocketClient::parseHeaders(std::string &buffer, size_t &pos)
         if (colon == std::string::npos)
             throw ResponseException(_fd, 400);
 
-        std::string key = trim(line.substr(0, colon));
+		std::string key = line.substr(0, colon);
         std::string value = trim(line.substr(colon + 1));
 
         if (key.empty())
             throw ResponseException(_fd, 400);
+
+		size_t space = key.find(' ');
+        if (space != std::string::npos)
+			throw ResponseException(_fd, 400);
 
         _request.setHeaders(toLower(key), value);
 
@@ -291,10 +295,6 @@ void SocketClient::parsingContentLength() {
     if (size > 0) {
         std::string chunk = _buffer.substr(0, size);
 
-        // if (!isValidBody(chunk)){
-        //     throw ResponseException(_fd, 400);
-		// } TECHINIOQUEMENT PLUS BESOIN
-
         _request.writeBody(chunk, _fd);
         _bytesRead += size;
         _buffer.erase(0, size);
@@ -324,7 +324,11 @@ void SocketClient::validateHeaders(int headerCount, size_t totalSize) {
         throw ResponseException(_fd, 400);
 	}
 
-	//Faire une verif de si y a plusieurs host dans le les headers et d autres ?
+	LOG ("ICI");
+	if (!isValidHeadersContent()){
+		LOG("BIBIBIBI");
+        throw ResponseException(_fd, 400);
+	}
 
     std::map<std::string, std::vector<std::string> >::const_iterator it = header.find("content-length");
     if (it != header.end()) {
@@ -334,7 +338,31 @@ void SocketClient::validateHeaders(int headerCount, size_t totalSize) {
     }
 }
 
-bool SocketClient::isValidURI() {
+bool	SocketClient::isValidHeadersContent() {
+	const std::map<std::string, std::vector<std::string> >& header = _request.getHeaders();
+
+	if (getHeaderCount(header, "host") > 1)
+		return false;
+	
+	if (getHeaderCount(header, "content-length") > 1)
+		return false;
+
+	if (getHeaderCount(header, "transfert-encoding") > 1)
+		return false;
+
+	return true;
+}
+
+size_t	SocketClient::getHeaderCount(const std::map<std::string, std::vector<std::string> >& headers, const std::string& name) {
+    std::map<std::string, std::vector<std::string> >::const_iterator it = headers.find(name);
+    if (it == headers.end())
+        return 0;
+
+		LOG("NB  = " << it->second.size());
+    return it->second.size();
+}
+
+bool	SocketClient::isValidURI() {
 
 	const std::string& uri = _request.getUri();
 
