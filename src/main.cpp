@@ -18,46 +18,79 @@
 #include <iostream>
 #include <csignal>
 
-WebServer* gSignal = NULL;
-
-void handle_sigint(int signum) {
-    if (signum)
-        gSignal->_running = false;
-}
+//WebServer* gSignal = NULL;
 
 //void	testPrintParse();
 
+static WebServer* g_server = 0;
+
+void handle_sigint(int signum) {
+    if (signum)
+        g_server->_running = false;
+}
+
 int main (int ac, char **av)
 {
-	if (ac != 2) {
-		std::cerr << "Usage: ./webserv [config_file]" << std::endl;
-		return 1;
-	}
-	
-	try {
-		ParserConfig parser;
-		parser.parse(av[1]);
-		
-		//testPrintParse();					//Parsing conf ALL GOOD
+    if (ac != 2) {
+        std::cerr << "Usage: ./webserv [config_file]" << std::endl;
+        return 1;
+    }
 
-		WebServer webserver(parser.getServers());
-		//webserver.testPrintSocket(); 		// creation socket ALL GOOD
-		gSignal = &webserver;           	// assigner le pointeur global
-		signal(SIGINT, handle_sigint); 		// installer le handler
+    try {
+        ParserConfig parser;
+        parser.parse(av[1]);
 
-		webserver.pollLoop();           	// boucle poll()
-	}
-	catch (const ParseException &e) {
-		std::cerr << e.what() << std::endl;
-		return 1;
-	} 
-	catch (const std::exception &e) {
-		std::cerr << "Unexpected error: " << e.what() << std::endl;
-		return 1;
-	}
-	std::cout << "ALL GOOD BITCHES" << std::endl;
-	return 0;
+        WebServer webserver(parser.getServers());
+
+        g_server = &webserver;
+        signal(SIGINT, handle_sigint);
+
+        webserver.pollLoop();
+
+        g_server = 0; // cleanup propre
+    }
+    catch (const ParseException &e) {
+        std::cerr << e.what() << std::endl;
+        return 1;
+    }
+    catch (const std::exception &e) {
+        std::cerr << "Unexpected error: " << e.what() << std::endl;
+        return 1;
+    }
+
+    return 0;
 }
+// int main (int ac, char **av)
+// {
+// 	if (ac != 2) {
+// 		std::cerr << "Usage: ./webserv [config_file]" << std::endl;
+// 		return 1;
+// 	}
+	
+// 	try {
+// 		ParserConfig parser;
+// 		parser.parse(av[1]);
+		
+// 		//testPrintParse();					//Parsing conf ALL GOOD
+
+// 		WebServer webserver(parser.getServers());
+// 		//webserver.testPrintSocket(); 		// creation socket ALL GOOD
+// 		gSignal = &webserver;           	// assigner le pointeur global
+// 		signal(SIGINT, handle_sigint); 		// installer le handler
+
+// 		webserver.pollLoop();           	// boucle poll()
+// 	}
+// 	catch (const ParseException &e) {
+// 		std::cerr << e.what() << std::endl;
+// 		return 1;
+// 	} 
+// 	catch (const std::exception &e) {
+// 		std::cerr << "Unexpected error: " << e.what() << std::endl;
+// 		return 1;
+// 	}
+// 	std::cout << "ALL GOOD BITCHES" << std::endl;
+// 	return 0;
+// }
 
 
 
