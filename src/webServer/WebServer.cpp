@@ -207,8 +207,8 @@ void	WebServer::handleRequest(int fd){
 		}
 		
 		if (bytes < 0) {
-			if (errno == EAGAIN || errno == EWOULDBLOCK)
-        		return; // est ce que on a droit au errno ici ? 
+			// if (errno == EAGAIN || errno == EWOULDBLOCK)
+        	// 	return; // est ce que on a droit au errno ici ? 
     		closeConnection(fd);
 			//return 500
 			return ;
