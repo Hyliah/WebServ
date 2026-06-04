@@ -66,16 +66,18 @@ void WebServer::checkTimeouts() {
         int fd = _pollFds[i].fd;
 
         if (!isServerFd(fd)) {
-
+			LOG ("LA");
             std::map<int, SocketClient*>::iterator it = _socketClients.find(fd);
             if (it != _socketClients.end()) {
 
                 SocketClient* client = it->second;
-
+				LOG("ICI");
                 if (client && isTimedOut(client)) {
+					client->state = ERROR;
+					client->errorCode = 400;
 					throw ResponseException(fd, 400);
-                    closeConnection(fd);
-                    continue;
+                    // closeConnection(fd); //je crois q
+                    // continue;
                 }
             }
         }
@@ -84,13 +86,27 @@ void WebServer::checkTimeouts() {
 }
 
 
-bool WebServer::isTimedOut(const SocketClient* client) const {
-    if (!client)
-        return false;
 
-    const int TIMEOUT = 5; // secondes (à adapter)
+bool WebServer::isTimedOut(const SocketClient* client) const
+{
+    const int TIMEOUT = 5;
 
     time_t now = time(NULL);
 
-    return (difftime(now, client->lastActivity) > TIMEOUT);
+    double diff = difftime(now, client->lastActivity);
+
+    LOG("TIMEOUT CHECK fd=" << client->getFd()
+        << " now=" << now
+        << " last=" << client->lastActivity
+        << " diff=" << diff);
+
+    return diff >= TIMEOUT;
 }
+
+// bool WebServer::isTimedOut(const SocketClient* client) const {
+//     const int TIMEOUT = 5; // secondes (à adapter)
+
+//     time_t now = time(NULL);
+
+//     return (difftime(now, client->lastActivity) > TIMEOUT);
+// }

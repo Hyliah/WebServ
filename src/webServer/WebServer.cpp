@@ -117,7 +117,15 @@ void WebServer::pollLoop() {
 
 			if (revents & (POLLHUP | POLLERR)) {
 
+				 LOG("POLLHUP/POLLERR fd=" << fd);
+
 				SocketClient* client = _socketClients[fd];
+
+				LOG("requestCompleted="
+					<< (client ? client->requestCompleted : -1));
+
+				LOG("state="
+					<< (client ? client->state : -1));
 
 				if (client && client->state == PROCESSING) {
 					setPollOut(fd);
@@ -264,6 +272,7 @@ void	WebServer::sendResponse(int fd){
 		if (client->state != ERROR){
 			try{ resolvePath(client); }
 			catch (const ResponseException& e) {
+				LOG("ERORRRRRRRRRRRRRRRRR N : " << client->errorCode);
 				client->state = ERROR;
 				client->errorCode = e.getCode();
 			}

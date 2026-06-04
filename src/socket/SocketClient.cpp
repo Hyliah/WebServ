@@ -76,8 +76,10 @@ void	SocketClient::defineBodyType(){
 		contentLength = true;
 
 		_request.setContentLength(stringToLong(itCL->second[0].c_str()));
-		if (_request.getContentLength() < 0)
+		if (_request.getContentLength() < 0){
+			LOG("POUPOU");
 			throw ResponseException(_fd, 405);
+		}
 		
 		if (_request.getContentLength() > DEFAULT_MAX_BODY_SIZE || _request.getContentLength() < 0)
 			throw ResponseException(_fd, 413);
@@ -219,21 +221,109 @@ void	SocketClient::parsingNoBody(){
 	requestCompleted = true;
 }
 
-void SocketClient::parsingChunked() {
-	LOG("\n>>> PARSING CHUNKED"); // ----------------------------------------------------------------------------------
-	while (1) {
-		if (_chunkState == CHUNK_SIZE) {
+// void SocketClient::parsingChunked() {
+// 	LOG("\n>>> PARSING CHUNKED"); // ----------------------------------------------------------------------------------
+// 	while (1) {
+// 		if (_chunkState == CHUNK_SIZE) {
 
-			size_t pos = _buffer.find("\r\n");
-			if (pos == std::string::npos)
-				return;
+// 			size_t pos = _buffer.find("\r\n");
+// 			if (pos == std::string::npos)
+// 				return;
 			
+// 			std::string line = _buffer.substr(0, pos);
+
+// 			try { _bytesPending = hexToLong(line); } 
+// 			catch (...) {
+// 				throw ResponseException(_fd, 400);
+// 			}
+
+// 			_buffer.erase(0, pos + 2);
+
+// 			if (_bytesPending == 0) {
+// 				_chunkState = CHUNK_DONE;
+// 				continue;
+// 			}
+
+// 			_chunkState = CHUNK_DATA;
+// 		}
+
+// 		else if (_chunkState == CHUNK_DATA) {
+// 			if ((long)_buffer.size() < _bytesPending)
+// 				return;
+
+// 			std::string chunk = _buffer.substr(0, _bytesPending);
+
+// 			if (!isValidBody(chunk))
+// 				throw ResponseException(_fd, 400);
+			
+// 			if (_bytesRead + _bytesPending > DEFAULT_MAX_BODY_SIZE)
+// 				throw ResponseException(_fd, 413);
+				
+// 			_request.writeBody(chunk, _fd);
+// 			_bytesRead += _bytesPending;
+// 			_buffer.erase(0, _bytesPending);
+// 			_chunkState = CHUNK_CRLF;
+// 		}
+
+// 		else if (_chunkState == CHUNK_CRLF) {
+// 			if (_buffer.size() < 2)
+// 				return;
+// 			if (_buffer.substr(0, 2) != "\r\n") {
+// 				throw ResponseException(_fd, 400);
+// 			}
+// 			_buffer.erase(0, 2);
+// 			_chunkState = CHUNK_SIZE;
+// 		}
+
+// 		else if (_chunkState == CHUNK_DONE){
+// 			requestCompleted = true;
+// 			return;
+// 		}
+		
+// 		else {
+// 			throw ResponseException(_fd, 400);
+// 		}
+// 	}
+// }
+
+bool isDigits(const std::string& str)
+{
+    if (str.empty())
+        return false;
+
+    for (size_t i = 0; i < str.size(); ++i)
+    {
+        if (!std::isdigit(static_cast<unsigned char>(str[i])))
+            return false;
+    }
+
+    return true;
+}
+
+void SocketClient::parsingChunked()
+{
+	LOG("\n>>> PARSING CHUNKED");
+
+	while (true)
+	{
+
+		if (_chunkState == CHUNK_SIZE) {
+			size_t pos = _buffer.find("\r\n");
+
+			if (pos == std::string::npos) {
+				return;
+			}
+
 			std::string line = _buffer.substr(0, pos);
 
-			try { _bytesPending = hexToLong(line); } 
-			catch (...) {
+			if (!isDigits(line)){
 				throw ResponseException(_fd, 400);
 			}
+			
+			_bytesPending = hexToLong(line);
+
+			if (_bytesPending < 0)
+				throw ResponseException(_fd, 400);
 
 			_buffer.erase(0, pos + 2);
 
@@ -245,40 +335,77 @@ void SocketClient::parsingChunked() {
 			_chunkState = CHUNK_DATA;
 		}
 
-		else if (_chunkState == CHUNK_DATA) {
-			if ((long)_buffer.size() < _bytesPending)
-				return;
+		else if (_chunkState == CHUNK_DATA)
+		{
+			if ((long)_buffer.size() < _bytesPending) {
+				throw ResponseException(_fd, 400);
+			}
 
 			std::string chunk = _buffer.substr(0, _bytesPending);
 
-			if (!isValidBody(chunk))
+			if (!isValidBody(chunk)) {
 				throw ResponseException(_fd, 400);
-			
-			if (_bytesRead + _bytesPending > DEFAULT_MAX_BODY_SIZE)
+			}
+
+			if (_bytesRead + _bytesPending > DEFAULT_MAX_BODY_SIZE) {
 				throw ResponseException(_fd, 413);
-				
+			}
+
 			_request.writeBody(chunk, _fd);
+
 			_bytesRead += _bytesPending;
+
 			_buffer.erase(0, _bytesPending);
+
 			_chunkState = CHUNK_CRLF;
 		}
 
-		else if (_chunkState == CHUNK_CRLF) {
+		else if (_chunkState == CHUNK_CRLF)
+		{
 			if (_buffer.size() < 2)
+			{
+				LOG("[CHUNK] waiting CRLF");
 				return;
-			if (_buffer.substr(0, 2) != "\r\n") {
+			}
+
+			if (_buffer.compare(0, 2, "\r\n") != 0)
+			{
+				LOG("[CHUNK] missing CRLF after chunk");
 				throw ResponseException(_fd, 400);
 			}
+
+			LOG("[CHUNK] CRLF OK");
+
 			_buffer.erase(0, 2);
+
 			_chunkState = CHUNK_SIZE;
 		}
 
-		else if (_chunkState == CHUNK_DONE){
+		else if (_chunkState == CHUNK_DONE)
+		{
+			if (_buffer.size() < 2)
+			{
+				LOG("[CHUNK] waiting final CRLF");
+				return;
+			}
+
+			if (_buffer.compare(0, 2, "\r\n") != 0)
+			{
+				LOG("[CHUNK] invalid final CRLF");
+				throw ResponseException(_fd, 400);
+			}
+
+			_buffer.erase(0, 2);
+
+			LOG("[CHUNK] request completed");
+
 			requestCompleted = true;
 			return;
 		}
-		
-		else {
+
+		else
+		{
+			LOG("[CHUNK] invalid state");
 			throw ResponseException(_fd, 400);
 		}
 	}
@@ -326,7 +453,6 @@ void SocketClient::validateHeaders(int headerCount, size_t totalSize) {
 
 	LOG ("ICI");
 	if (!isValidHeadersContent()){
-		LOG("BIBIBIBI");
         throw ResponseException(_fd, 400);
 	}
 
@@ -421,7 +547,7 @@ bool	SocketClient::isValidBody(std::string& chunk){
 }
 	// Vérifier content-type / encoding
 	// Attention aux injections le body à un parseur ou script
-	// Timeout / limite mémoire si traitement lourd - 413 payload too large
+	//  / limite mémoire si traitement lourd - 413 payload too large
 
 bool	SocketClient::isDone() const {
 	return (_chunkState == CHUNK_DONE);
