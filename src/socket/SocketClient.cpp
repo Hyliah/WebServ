@@ -47,12 +47,11 @@ void	SocketClient::parseRequest(){
 
 	size_t headerEnd = _buffer.find("\r\n\r\n");
 	size_t position = 0;
-    
+	
 	if (headerEnd == std::string::npos)
-        return ;
+		return ;
 
 	parseFirstLine(_buffer, position);
-	
 	parseHeaders(_buffer, position);
 
 
@@ -62,9 +61,8 @@ void	SocketClient::parseRequest(){
 		defineBodyType();
 
 	headerParsed = true;
-    state = (chunked || contentLength) ? BODY_READING : READY;
+	state = (chunked || contentLength) ? BODY_READING : READY;
 }
-
 
 void	SocketClient::defineBodyType(){
 
@@ -77,12 +75,12 @@ void	SocketClient::defineBodyType(){
 
 		_request.setContentLength(stringToLong(itCL->second[0].c_str()));
 		if (_request.getContentLength() < 0){
-			LOG("POUPOU");
 			throw ResponseException(_fd, 405);
 		}
 		
 		if (_request.getContentLength() > DEFAULT_MAX_BODY_SIZE || _request.getContentLength() < 0)
 			throw ResponseException(_fd, 413);
+		// METTRE L AUTRE
 	}
 	else {
 		contentLength = false;
@@ -99,7 +97,6 @@ void	SocketClient::defineBodyType(){
 	}
 
 	if(!contentLength && !chunked){
-		LOG("cl et chunked no");
 		throw ResponseException(_fd, 405);
 	}
 
@@ -118,31 +115,31 @@ void	SocketClient::defineBodyType(){
 void SocketClient::parseFirstLine(std::string &buffer, size_t &pos)
 {
 	LOG("\n>>> PARSE FIRST LINE"); //-----------------------------------------------
-    size_t end = buffer.find("\r\n", pos);
-    if (end == std::string::npos){
+	size_t end = buffer.find("\r\n", pos);
+	if (end == std::string::npos){
 		throw ResponseException(_fd, 400);
 	}
 
-    std::string line = buffer.substr(pos, end - pos);
+	std::string line = buffer.substr(pos, end - pos);
 
-    size_t s1 = line.find(' ');
-    if (s1 == std::string::npos){
+	size_t s1 = line.find(' ');
+	if (s1 == std::string::npos){
 		throw ResponseException(_fd, 400);
 	}
 
 	size_t s2 = line.find(' ', s1 + 1);
-    if (s2 == std::string::npos){
+	if (s2 == std::string::npos){
 		throw ResponseException(_fd, 400);
 	}
-    std::string method = line.substr(0, s1);
+	std::string method = line.substr(0, s1);
 
 	std::string uri = line.substr(s1 + 1, s2 - s1 - 1);
 
 	if (uri.size() > MAX_URI_SIZE){
-    	throw ResponseException(_fd, 414); //ici ca passe bien mais ca renvoie 400
+		throw ResponseException(_fd, 414);
 	}
 
-    std::string version = line.substr(s2 + 1);
+	std::string version = line.substr(s2 + 1);
 	
 	_request.setMethod(method);
 	_request.setUri(uri);
@@ -150,66 +147,66 @@ void SocketClient::parseFirstLine(std::string &buffer, size_t &pos)
 
 	_request.setVersion(version);
 
-    // if (!isValidMethod())
+	// if (!isValidMethod())
 	// 		throw ResponseException(_fd, 405);
 
-    if (!isValidURI())
-        throw ResponseException(_fd, 400);
+	if (!isValidURI())
+		throw ResponseException(_fd, 400);
 
-    if (!isValidVersion())
-        throw ResponseException(_fd, 400);
+	if (!isValidVersion())
+		throw ResponseException(_fd, 400);
 
-    pos = end + 2;
+	pos = end + 2;
 }
 
 void SocketClient::parseHeaders(std::string &buffer, size_t &pos)
 {
 	LOG("\n>>> PARSE HEADERS"); //-----------------------------------------------
-    size_t end = buffer.find("\r\n\r\n", pos);
-    if (end == std::string::npos)
-        throw ResponseException(_fd, 400);
+	size_t end = buffer.find("\r\n\r\n", pos);
+	if (end == std::string::npos)
+		throw ResponseException(_fd, 400);
 
-    int count = 0;
-    size_t total = 0;
+	int count = 0;
+	size_t total = 0;
 
-    while (pos < end)
-    {
-        size_t lineEnd = buffer.find("\r\n", pos);
-        if (lineEnd == std::string::npos || lineEnd > end)
-            break;
+	while (pos < end)
+	{
+		size_t lineEnd = buffer.find("\r\n", pos);
+		if (lineEnd == std::string::npos || lineEnd > end)
+			break;
 
-        std::string line = buffer.substr(pos, lineEnd - pos);
+		std::string line = buffer.substr(pos, lineEnd - pos);
 
-        if (line.empty()) {
-            pos = lineEnd + 2;
-            continue;
-        }
+		if (line.empty()) {
+			pos = lineEnd + 2;
+			continue;
+		}
 
-        size_t colon = line.find(':');
-        if (colon == std::string::npos)
-            throw ResponseException(_fd, 400);
-
-		std::string key = line.substr(0, colon);
-        std::string value = trim(line.substr(colon + 1));
-
-        if (key.empty())
-            throw ResponseException(_fd, 400);
-
-		size_t space = key.find(' ');
-        if (space != std::string::npos)
+		size_t colon = line.find(':');
+		if (colon == std::string::npos)
 			throw ResponseException(_fd, 400);
 
-        _request.setHeaders(toLower(key), value);
+		std::string key = line.substr(0, colon);
+		std::string value = trim(line.substr(colon + 1));
 
-        count++;
-        total += line.size();
+		if (key.empty())
+			throw ResponseException(_fd, 400);
 
-        pos = lineEnd + 2 ;
-    }
+		size_t space = key.find(' ');
+		if (space != std::string::npos)
+			throw ResponseException(_fd, 400);
 
-    validateHeaders(count, total);
+		_request.setHeaders(toLower(key), value);
 
-    state = HEADERS_PARSED;
+		count++;
+		total += line.size();
+
+		pos = lineEnd + 2 ;
+	}
+
+	validateHeaders(count, total);
+
+	state = HEADERS_PARSED;
 }
 
 
@@ -221,92 +218,23 @@ void	SocketClient::parsingNoBody(){
 	requestCompleted = true;
 }
 
-// void SocketClient::parsingChunked() {
-// 	LOG("\n>>> PARSING CHUNKED"); // ----------------------------------------------------------------------------------
-// 	while (1) {
-// 		if (_chunkState == CHUNK_SIZE) {
-
-// 			size_t pos = _buffer.find("\r\n");
-// 			if (pos == std::string::npos)
-// 				return;
-			
-// 			std::string line = _buffer.substr(0, pos);
-
-// 			try { _bytesPending = hexToLong(line); } 
-// 			catch (...) {
-// 				throw ResponseException(_fd, 400);
-// 			}
-
-// 			_buffer.erase(0, pos + 2);
-
-// 			if (_bytesPending == 0) {
-// 				_chunkState = CHUNK_DONE;
-// 				continue;
-// 			}
-
-// 			_chunkState = CHUNK_DATA;
-// 		}
-
-// 		else if (_chunkState == CHUNK_DATA) {
-// 			if ((long)_buffer.size() < _bytesPending)
-// 				return;
-
-// 			std::string chunk = _buffer.substr(0, _bytesPending);
-
-// 			if (!isValidBody(chunk))
-// 				throw ResponseException(_fd, 400);
-			
-// 			if (_bytesRead + _bytesPending > DEFAULT_MAX_BODY_SIZE)
-// 				throw ResponseException(_fd, 413);
-				
-// 			_request.writeBody(chunk, _fd);
-// 			_bytesRead += _bytesPending;
-// 			_buffer.erase(0, _bytesPending);
-// 			_chunkState = CHUNK_CRLF;
-// 		}
-
-// 		else if (_chunkState == CHUNK_CRLF) {
-// 			if (_buffer.size() < 2)
-// 				return;
-// 			if (_buffer.substr(0, 2) != "\r\n") {
-// 				throw ResponseException(_fd, 400);
-// 			}
-// 			_buffer.erase(0, 2);
-// 			_chunkState = CHUNK_SIZE;
-// 		}
-
-// 		else if (_chunkState == CHUNK_DONE){
-// 			requestCompleted = true;
-// 			return;
-// 		}
-		
-// 		else {
-// 			throw ResponseException(_fd, 400);
-// 		}
-// 	}
-// }
-
 bool isDigits(const std::string& str)
 {
-    if (str.empty())
-        return false;
+	if (str.empty())
+		return false;
 
-    for (size_t i = 0; i < str.size(); ++i)
-    {
-        if (!std::isdigit(static_cast<unsigned char>(str[i])))
-            return false;
-    }
+	for (size_t i = 0; i < str.size(); ++i) {
+		if (!std::isdigit(static_cast<unsigned char>(str[i])))
+			return false;
+	}
 
-    return true;
+	return true;
 }
 
 void SocketClient::parsingChunked()
 {
 	LOG("\n>>> PARSING CHUNKED");
-
-	while (true)
-	{
-
+	while (true) {
 		if (_chunkState == CHUNK_SIZE) {
 			size_t pos = _buffer.find("\r\n");
 
@@ -315,7 +243,6 @@ void SocketClient::parsingChunked()
 			}
 
 			std::string line = _buffer.substr(0, pos);
-
 			if (!isDigits(line)){
 				throw ResponseException(_fd, 400);
 			}
@@ -331,7 +258,6 @@ void SocketClient::parsingChunked()
 				_chunkState = CHUNK_DONE;
 				continue;
 			}
-
 			_chunkState = CHUNK_DATA;
 		}
 
@@ -340,72 +266,49 @@ void SocketClient::parsingChunked()
 			if ((long)_buffer.size() < _bytesPending) {
 				throw ResponseException(_fd, 400);
 			}
-
 			std::string chunk = _buffer.substr(0, _bytesPending);
 
-			if (!isValidBody(chunk)) {
-				throw ResponseException(_fd, 400);
-			}
-
-			if (_bytesRead + _bytesPending > DEFAULT_MAX_BODY_SIZE) {
+			if (_bytesRead + _bytesPending > DEFAULT_MAX_BODY_SIZE) { 
 				throw ResponseException(_fd, 413);
 			}
-
+			// METTRE L AUTRE
 			_request.writeBody(chunk, _fd);
-
 			_bytesRead += _bytesPending;
-
 			_buffer.erase(0, _bytesPending);
-
 			_chunkState = CHUNK_CRLF;
 		}
 
 		else if (_chunkState == CHUNK_CRLF)
 		{
-			if (_buffer.size() < 2)
-			{
-				LOG("[CHUNK] waiting CRLF");
+			if (_buffer.size() < 2) {
 				return;
 			}
 
-			if (_buffer.compare(0, 2, "\r\n") != 0)
-			{
-				LOG("[CHUNK] missing CRLF after chunk");
+			if (_buffer.compare(0, 2, "\r\n") != 0) {
 				throw ResponseException(_fd, 400);
 			}
-
-			LOG("[CHUNK] CRLF OK");
-
 			_buffer.erase(0, 2);
-
 			_chunkState = CHUNK_SIZE;
 		}
 
 		else if (_chunkState == CHUNK_DONE)
 		{
-			if (_buffer.size() < 2)
-			{
+			if (_buffer.size() < 2) {
 				LOG("[CHUNK] waiting final CRLF");
 				return;
 			}
 
-			if (_buffer.compare(0, 2, "\r\n") != 0)
-			{
-				LOG("[CHUNK] invalid final CRLF");
+			if (_buffer.compare(0, 2, "\r\n") != 0) {
 				throw ResponseException(_fd, 400);
 			}
 
 			_buffer.erase(0, 2);
 
-			LOG("[CHUNK] request completed");
-
 			requestCompleted = true;
 			return;
 		}
 
-		else
-		{
-			LOG("[CHUNK] invalid state");
+		else {
 			throw ResponseException(_fd, 400);
 		}
 	}
@@ -413,24 +316,24 @@ void SocketClient::parsingChunked()
 
 void SocketClient::parsingContentLength() {
 	LOG("\n>>> PARSING CONTENTNTNTNTN"); // ----------------------------------------------------------------------------------
-    size_t size = _buffer.size();
-    size_t remaining = _request.getContentLength() - _bytesRead;
+	size_t size = _buffer.size();
+	size_t remaining = _request.getContentLength() - _bytesRead;
 
-    if (size > remaining)
-        size = remaining;
+	if (size > remaining)
+		size = remaining;
 
-    if (size > 0) {
-        std::string chunk = _buffer.substr(0, size);
+	if (size > 0) {
+		std::string chunk = _buffer.substr(0, size);
 
-        _request.writeBody(chunk, _fd);
-        _bytesRead += size;
-        _buffer.erase(0, size);
-    }
+		_request.writeBody(chunk, _fd);
+		_bytesRead += size;
+		_buffer.erase(0, size);
+	}
 
-    if (_bytesRead == _request.getContentLength()) {
-        requestCompleted = true;
-        _request.closeBodyFile();
-    }
+	if (_bytesRead == _request.getContentLength()) {
+		requestCompleted = true;
+		_request.closeBodyFile();
+	}
 }
 
 /* ************************************************** */
@@ -439,29 +342,28 @@ void SocketClient::parsingContentLength() {
 
 void SocketClient::validateHeaders(int headerCount, size_t totalSize) {
 
-    const std::map<std::string, std::vector<std::string> >& header = _request.getHeaders();
+	const std::map<std::string, std::vector<std::string> >& header = _request.getHeaders();
 
-    if (headerCount > MAX_HEADER_COUNT)
-        throw ResponseException(_fd, 431);
+	if (headerCount > MAX_HEADER_COUNT)
+		throw ResponseException(_fd, 431);
 
-    if (totalSize > MAX_HEADER_SIZE)
-        throw ResponseException(_fd, 431);
+	if (totalSize > MAX_HEADER_SIZE)
+		throw ResponseException(_fd, 431);
 
-    if (header.find("host") == header.end()){
-        throw ResponseException(_fd, 400);
+	if (header.find("host") == header.end()){
+		throw ResponseException(_fd, 400);
 	}
 
-	LOG ("ICI");
 	if (!isValidHeadersContent()){
-        throw ResponseException(_fd, 400);
+		throw ResponseException(_fd, 400);
 	}
 
-    std::map<std::string, std::vector<std::string> >::const_iterator it = header.find("content-length");
-    if (it != header.end()) {
-        if (it->second[0].find_first_not_of("0123456789") != std::string::npos){
-            throw ResponseException(_fd, 400);
+	std::map<std::string, std::vector<std::string> >::const_iterator it = header.find("content-length");
+	if (it != header.end()) {
+		if (it->second[0].find_first_not_of("0123456789") != std::string::npos){
+			throw ResponseException(_fd, 400);
 		}
-    }
+	}
 }
 
 bool	SocketClient::isValidHeadersContent() {
@@ -479,17 +381,17 @@ bool	SocketClient::isValidHeadersContent() {
 	return true;
 }
 
+// TESTER LES DOUBLES HEADERS A 42
 size_t	SocketClient::getHeaderCount(const std::map<std::string, std::vector<std::string> >& headers, const std::string& name) {
-    std::map<std::string, std::vector<std::string> >::const_iterator it = headers.find(name);
-    if (it == headers.end())
-        return 0;
+	std::map<std::string, std::vector<std::string> >::const_iterator it = headers.find(name);
+	if (it == headers.end())
+		return 0;
 
-		LOG("NB  = " << it->second.size());
-    return it->second.size();
+	LOG("NB  = " << it->second.size());
+	return it->second.size();
 }
 
 bool	SocketClient::isValidURI() {
-
 	const std::string& uri = _request.getUri();
 
 	if (uri.empty())
@@ -518,36 +420,6 @@ bool	SocketClient::isValidVersion(){
 		return false;
 	return true;
 }
-
-bool	SocketClient::isValidBody(std::string& chunk){
-	(void)chunk;
-    // const std::map<std::string, std::vector<std::string> >& headers = _request.getHeaders();
-    // std::map<std::string, std::vector<std::string> >::const_iterator it = headers.find("content-type");
-
-    // // pas de content-type → on accepte
-    // if (it == headers.end())
-    //     return true;
-
-    // std::string type = it->second[0];
-
-    // // TEXT ONLY
-    // if (type.find("text") != std::string::npos ||
-    //     type.find("application/json") != std::string::npos ||
-    //     type.find("application/x-www-form-urlencoded") != std::string::npos) {
-
-    //     for (size_t i = 0; i < chunk.size(); ++i) {
-    //         unsigned char c = chunk[i];
-
-    //         if (!isprint(c) && c != '\n' && c != '\r' && c != '\t')
-    //             return false;
-    //     }
-    // }
-
-    return true;
-}
-	// Vérifier content-type / encoding
-	// Attention aux injections le body à un parseur ou script
-	//  / limite mémoire si traitement lourd - 413 payload too large
 
 bool	SocketClient::isDone() const {
 	return (_chunkState == CHUNK_DONE);

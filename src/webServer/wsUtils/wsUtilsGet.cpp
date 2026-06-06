@@ -122,8 +122,6 @@ HttpResponse WebServer::serveFile(const SocketClient* client, const std::string&
 	return res;
 }
 
-
-
 HttpResponse	WebServer::generateListing(const std::string &path, const SocketClient* client){
 	LOG(">>> generateListing for " << path); // ---------------------------------------------
 
@@ -174,5 +172,3 @@ HttpResponse	WebServer::fillResponseOK(std::string body, long size, std::string 
     	res.headers["Connection"].push_back("close");
 	return res;
 }
-
-

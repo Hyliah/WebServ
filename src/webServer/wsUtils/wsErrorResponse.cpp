@@ -13,92 +13,120 @@
 #include "WebServer.hpp"
 
 
+std::string loadFile(const std::string& path){
+    std::ifstream file(path.c_str(), std::ios::in | std::ios::binary);
+    if (!file.is_open())
+        return "";
+
+    std::ostringstream ss;
+    ss << file.rdbuf();
+
+    return ss.str();
+}
+
+std::string resolveErrorPage(int code, const ServerConfig* config)
+{
+    LOG ("error page = " << code);
+
+    if (config) {
+        std::map<int, std::string>::const_iterator it = config->errorPages.find(code);
+        if (it != config->errorPages.end())
+            return it->second;
+    }
+
+    static std::map<int, std::string> defaults;
+
+    if (defaults.empty())
+    {
+        defaults[400] = "www/errorPages/400.html";
+        defaults[403] = "www/errorPages/403.html";
+        defaults[404] = "www/errorPages/404.html";
+        defaults[405] = "www/errorPages/405.html";
+        defaults[413] = "www/errorPages/413.html";
+        defaults[414] = "www/errorPages/414.html";
+        defaults[415] = "www/errorPages/415.html";
+        defaults[431] = "www/errorPages/431.html";
+        defaults[500] = "www/errorPages/500.html";
+    }
+
+    std::string ret;
+
+    std::map<int, std::string>::const_iterator it = defaults.find(code);
+    if (it != defaults.end())
+        ret = it->second;
+    else
+        ret = "/errorPages/generic.html";
+
+    LOG ("le return est : " << ret);
+    return ret;
+}
+
 HttpResponse WebServer::buildErrorResponse(int code, const SocketClient* client)
 {
     HttpResponse res;
-
     std::string statusText;
-    std::string imagePath;
-    std::string message;
     std::string connection;
 
+    const ServerConfig* config = findMatchingConfig(client);
+    const std::map<int, std::string> errorPages = config->errorPages;
+
+    std::string filePath = resolveErrorPage(code, config);
+    std::string body = loadFile(filePath);
+
+    if (body.empty()) {
+        body =
+            "<html>"
+            "<body style='text-align:center;font-family:sans-serif;'>"
+            "<h1>Error " + longToString(code) + "</h1>"
+            "<p>Unable to load error page.</p>"
+            "</body>"
+            "</html>";
+    }
 
     if (code == 400) {
         statusText = "Bad Request";
-        imagePath = "/Assets/400.jpg";
-        message = "Bad request";
         connection = "close";
     }
     else if (code == 403) {
         statusText = "Forbidden";
-        imagePath = "/Assets/403.jpg";
-        message = "Access denied";
         connection = "keep-alive";
     }
     else if (code == 404) {
         statusText = "Not Found";
-        imagePath = "/Assets/404.jpg";
-        message = "Oups... page missing";
         connection = "keep-alive";
     }
 	else if (code == 405) {
 		statusText = "Method Not Allowed";
-		imagePath = "/Assets/405.jpg";
-		message = "You can't do that here";
         connection = "keep-alive";
 	}
     else if (code == 413) {
         statusText = "Payload Too Large";
-        imagePath = "/Assets/413.jpg";
-        message = "Body too big ";
         connection = "close";
     }
     else if (code == 414) {
         statusText = "URI Too Long";
-        imagePath = "/Assets/414.jpg";
-        message = "URL exploded";
         connection = "close";
     }
     else if (code == 415) {
         statusText = "Unsupported Media Type";
-        imagePath = "/Assets/415.jpg";
-        message = "Format not supported";
         connection = "keep-alive";
     }
     else if (code == 431) {
         statusText = "Request Header Fields Too Large";
-        imagePath = "/Assets/431.jpg";
-        message = "Headers too big";
         connection = "close";
     }
     else if (code == 500) {
         statusText = "Internal Server Error";
-        imagePath = "/Assets/500.jpg";
-        message = "Something broke";
         connection = "keep-alive";
     }
     else {
         statusText = "Error";
-        imagePath = "/Assets/error.jpg";
-        message = "Unknown error";
         connection = "close";
     }
 
-    // Status line HTTP
     res.statusLine = "HTTP/1.1 " + longToString(code) + " " + statusText;
+    res.body = body;
 
-    // Body HTML
-    res.body =
-        "<html>"
-        "<head><title>" + longToString(code) + " " + statusText + "</title></head>"
-        "<body style='text-align:center;font-family:sans-serif;'>"
-        "<h1>" + longToString(code) + " - " + statusText + "</h1>"
-        "<p>" + message + "</p>"
-        "<img src='" + imagePath + "' width='400'>"
-        "</body>"
-        "</html>";
-
-    // Headers
     res.headers["Content-Length"].push_back(longToString(res.body.size()));
     res.headers["Content-Type"].push_back("text/html");
 

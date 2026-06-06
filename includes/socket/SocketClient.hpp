@@ -117,7 +117,6 @@ class SocketClient {
 		void	validateHeaders(int headerCount, size_t totalSize);
 		bool	isValidHeadersContent();
 		size_t	getHeaderCount(const std::map<std::string, std::vector<std::string> >& headers, const std::string& name);
-		bool	isValidBody(std::string& chunk);
 		bool	isDone() const;
 
 		void	defineBodyType();

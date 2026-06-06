@@ -15,15 +15,10 @@
 #include "Exceptions.hpp"
 #include <climits>
 
-
 /* ************************************************** */
 /* Conversion					                      */
 /* ************************************************** */
 
-
-/*
-CHANGER POUR LE ENUM !!!!!!!!!!!!!!!!!
-*/
 long	stringToLong(const std::string &str){
 	long result = 0;
 	for (size_t i = 0; i < str.size(); i++)
@@ -68,7 +63,6 @@ char hexToChar(char a, char b) {
     return (hexValue(a) * 16 + hexValue(b));
 }
 
-
 int	stringToInt(const std::string &str){
 	int result = 0;
 	for (size_t i = 0; i < str.size(); i++)
@@ -82,7 +76,6 @@ int	stringToInt(const std::string &str){
 	return result;
 }
 
-
 /* ************************************************** */
 /* Autre						                      */
 /* ************************************************** */
@@ -95,14 +88,12 @@ std::string toLower(const std::string& str){
 	return res;
 }
 
-//attention fonction qui fait pas de verif
 bool isHex(char c) {
     return (
         (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f')
     );
 }
 
-//attention fonction qui fait pas de verif
 int hexValue(char c){
 	if (c >= '0' && c <= '9')
 		return (c - '0');
@@ -134,7 +125,6 @@ size_t	parseSize(const std::string &str){
 	return static_cast<size_t>(val * multiplier);
 }
 
-
 std::string trim(const std::string& s)
 {
     size_t start = 0;
@@ -152,11 +142,10 @@ std::string trim(const std::string& s)
 /* Close and free				                      */
 /* ************************************************** */
 
-
 void	safeClose(int *fd){
 	if (!*fd || !fd)
 		return;
-	if (*fd != -1){
+	if (*fd != -1) {
 		close(*fd);
 		*fd = -1;
 	}
@@ -164,8 +153,7 @@ void	safeClose(int *fd){
 
 void	*freePtr(void **ptr)
 {
-	if (*ptr && ptr)
-	{
+	if (*ptr && ptr) {
 		free(*ptr);
 		*ptr = NULL;
 	}
@@ -197,8 +185,7 @@ std::vector<std::string> splitLines(std::string str){
         posStart = pos + 1;
     }
 
-    if (posStart < str.size())
-    {
+    if (posStart < str.size()) {
         std::string line = str.substr(posStart);
         if (!line.empty() && line[line.size() - 1] == '\r')
             line.erase(line.size() - 1);

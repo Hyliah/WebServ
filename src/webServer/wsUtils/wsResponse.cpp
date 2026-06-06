@@ -138,12 +138,60 @@ HttpResponse WebServer::buildRedirectResponse(int returnCode, const std::string&
 	LOG("\n>>> REDIRECT RESPONSE "); // -------------------------------------------------------------
 	HttpResponse res;
 
+	const ServerConfig* config = findMatchingConfig(client);
+    const std::map<int, std::string> errorPages = config->errorPages;
+
 	std::string status;
-	if (returnCode == 301)	status = "Moved Permanently";
-	else if (returnCode == 302)	status = "Found";
-	else if (returnCode == 307)	status = "Temporary Redirect";
-	else if (returnCode == 308)	status = "Permament Redirect";
+	std::string imagePath;
+	std::string message;
+
+	if (returnCode == 301){
+		imagePath = "/Assets/301.jpg";
+        std::map<int, std::string>::const_iterator it = errorPages.find(301);
+        if (it != errorPages.end())
+            imagePath = it->second;
+		
+		status = "Moved Permanently";
+		message = "Moved Permanently";
+	}
+	else if (returnCode == 302){
+		imagePath = "/Assets/302.jpg";
+		std::map<int, std::string>::const_iterator it = errorPages.find(302);
+        if (it != errorPages.end())
+            imagePath = it->second;
+		
+		status = "Found";
+		message = "Found";
+	}
+	else if (returnCode == 307){
+		imagePath = "/Assets/307.jpg";
+		std::map<int, std::string>::const_iterator it = errorPages.find(307);
+        if (it != errorPages.end())
+            imagePath = it->second;
+		
+		status = "Temporary Redirect";
+		message = "Temporary Redirect";
+	}
+	else if (returnCode == 308){
+		imagePath = "/Assets/308.jpg";
+		std::map<int, std::string>::const_iterator it = errorPages.find(308);
+        if (it != errorPages.end())
+            imagePath = it->second;
+		
+		status = "Permament Redirect";
+		message = "Permament Redirect";
+	}
 	else status = "Redirect";
+
+    res.body =
+        "<html>"
+        "<head><title>" + longToString(returnCode) + " " + status + "</title></head>"
+        "<body style='text-align:center;font-family:sans-serif;'>"
+        "<h1>" + longToString(returnCode) + " - " + status + "</h1>"
+        "<p>" + message + "</p>"
+        "<img src='" + imagePath + "' width='400'>"
+        "</body>"
+        "</html>";
 
 	res.statusLine = "HTTP/1.1 " + longToString((long)returnCode) + " " + status; 
 	res.headers["location"].push_back(url);
