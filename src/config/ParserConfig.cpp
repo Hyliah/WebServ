@@ -301,11 +301,9 @@ void	ParserConfig::handleMethods(std::vector<std::string>::iterator &it, Locatio
 			location.hasDelete = true;
 		else
 			location.hasGet = true;
-			//throw ParseException(CONF, "Invalid HTTP method: " + *it);
 		location.methods.push_back(*it);
 		it++;
 	}
-	std::cout << "location : " << location.path << "\nDELTE : " << location.hasDelete << "\nPOST : " << location.hasPost << "\nGET : " << location.hasGet << std::endl;
 	checkSemicolon(it);
 }
 
@@ -383,7 +381,6 @@ void ParserConfig::handleCgi(std::vector<std::string>::iterator &it, LocationCon
     it++;
 
     location.cgiInfo[ext] = path;
-	std::cout << location.cgiInfo[ext] << std::endl;
     location.cgiEnabled = true;
     checkSemicolon(it);
 }

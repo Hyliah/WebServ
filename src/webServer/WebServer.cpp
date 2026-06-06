@@ -87,6 +87,7 @@ void WebServer::pollLoop() {
             int fd = _pollFds[i].fd;
             short revents = _pollFds[i].revents;
 
+			// EVAL :Un seul POLLIN  donc un seul handleRequest() ou acceptClient()
             if (revents & POLLIN) {
 
                 if (isServerFd(fd)) {
@@ -104,6 +105,7 @@ void WebServer::pollLoop() {
                 }
             }
 
+			// EVAL : Un seul POLLOUT donc un seul sendResponse()
             if (revents & POLLOUT) {
 
                 try {
@@ -201,14 +203,12 @@ void	WebServer::handleRequest(int fd){
 		char buffer[4096];
 		ssize_t bytes = recv(fd, buffer, sizeof(buffer), 0);
 		
-		if (bytes == 0) {
+		if (bytes == 0) { // EVAL : ici client deconnecte
 			closeConnection(fd);
 			return ;
 		}
 		
-		if (bytes < 0) {
-			// if (errno == EAGAIN || errno == EWOULDBLOCK)
-        	// 	return; // est ce que on a droit au errno ici ? 
+		if (bytes < 0) { // EVAL : ici erreur donc on close 
     		closeConnection(fd);
 			//return 500
 			return ;
@@ -295,9 +295,8 @@ void	WebServer::sendResponse(int fd){
 			LOG("la methose est : " << method);
 			
 
-			if (method == "GET"){
+			if (method == "GET")
 				res = methodGet(client, location);
-			}
             else if (method == "POST")
                 res = methodPost(client, location);
             else if (method == "DELETE")
@@ -312,7 +311,7 @@ void	WebServer::sendResponse(int fd){
 			
 			LOG("Bytes sent: " << sent);
 				
-			if (sent <= 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+			if (sent <= 0 ) { // EVAL : erreur donc client supp
 				closeConnection(fd);
 				return;
 			}
@@ -331,31 +330,6 @@ void	WebServer::sendResponse(int fd){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* DECHETS
-	std::vector<ServerConfig>::iterator it;
-	for (it = _servers.begin(); it != _servers.end(); ++it){
-		_socketServers.push_back(SocketServer(it->port));
-	}
-*/
 
 
 
@@ -398,81 +372,3 @@ HARDCODE DU SENDRESPONSE
 
 */
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// supprimer si ca compile bien :)
-
-
-/*
-// std::string	WebServer::resolvePath(){
-// 	std::string& uri = client._request.getUri();
-	
-// 	size_t pos = uri.find('?');
-// 	std::string path = uri.substr(0, pos);
-// 	std::string finalPath;
-// 	//std::string query = uri.substr(pos, uri.end()); -> si on veut gerer ca
-
-// 	finalPath = decodePath(path); // gestion avec des if catch throw and shit
-// 	finalPath = normalizePath(finalPath); //same
-// 	checkErrorPath();
-
-// 	const std::vector<const ServerConfig*>& conf = client.getServer().getServers();
-
-// 	HttpRequest& req = client.getRequest();
-// 	const std::map<std::string, std::string>& headers = req.getHeaders();
-
-// 	std::string host;
-// 	std::map<std::string,std::string>::const_iterator it = headers.find("host");
-// 	if (it != headers.end())
-// 		host = it->second;
-// 	else
-// 		host = ""; // ou fallback
-	
-
-// 	std::string recupRoot;
-// 	for (size_t i = 0; i < conf.size(); ++i) {
-// 		const ServerConfig* cfg = conf[i];
-// 		if (cfg->serverName == host) {
-// 			recupRoot = cfg->root;
-// 			break;
-// 		}
-// 	}
-
-// 	// fallback sur le premier serveur si host pas trouvé
-// 	if (recupRoot.empty() && !conf.empty())
-// 		recupRoot = conf[0]->root;
-
-// 	finalPath = recupRoot + finalPath;
-
-// 	return finalPath;
-
-// }
-*/
