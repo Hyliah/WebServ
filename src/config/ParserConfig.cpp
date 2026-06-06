@@ -54,6 +54,7 @@ void ParserConfig::parse(const std::string &configFilePath){
 			throw ParseException(CONF, "Unexpected token: " + *it);
 		}
 	}
+	verifyConfig();
 }
 
 /* *************************************************** */
@@ -404,24 +405,6 @@ void ParserConfig::handleCgiEnabled(std::vector<std::string>::iterator &it, Loca
     checkSemicolon(it);
 }
 
-// void	ParserConfig::handleCgi(std::vector<std::string>::iterator &it, LocationConfig &location){
-// 	it++; 
-// 	// recup l'extension (ex: .py)
-// 	if (!validateValue(it))
-// 		throw ParseException(CONF, "CGI directive needs an extension (e.g., .py)");
-// 	std::string ext = *it;
-// 	it++;
-// 	// récupère le chemin ex: /usr/bin/python3)
-// 	if (!validateValue(it))
-// 		throw ParseException(CONF, "CGI directive needs a path ");
-// 	std::string path = *it;
-// 	it++;
-// 	location.cgiInfo[ext] = path;
-// 	location.cgiEnabled = !location.cgiInfo.empty();
-// 	checkSemicolon(it);
-// }
-
-
 /* *************************************************** */
 /*  CHECKS AND UTILS                                   */
 /* *************************************************** */ 
@@ -464,10 +447,12 @@ void	ParserConfig::verifyConfig(){
 
     for (size_t i = 0; i < _servers.size(); i++) {
         for (size_t j = i + 1; j < _servers.size(); j++) {
-            if (_servers[i].host == _servers[j].host && 
-                _servers[i].port == _servers[j].port)
-                throw ParseException(CONF, "Duplicate host:port: " 
-                    + _servers[i].host + ":" + _servers[i].port);
+
+            // meme port et meme serveur name
+            if (_servers[i].port == _servers[j].port &&
+                _servers[i].serverName == _servers[j].serverName)
+                throw ParseException(CONF, "Duplicate port + server_name: " 
+                    + _servers[i].serverName + ":" + _servers[i].port);
         }
     }
     for (size_t i = 0; i < _servers.size(); i++) {
