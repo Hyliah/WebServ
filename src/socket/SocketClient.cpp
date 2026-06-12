@@ -242,10 +242,12 @@ void SocketClient::parsingChunked()
 				return;
 			}
 
+			//isHex(char c)
+			// changer ca 
 			std::string line = _buffer.substr(0, pos);
-			if (!isDigits(line)){
-				throw ResponseException(_fd, 400);
-			}
+			// if (!isDigits(line)){
+			// 	throw ResponseException(_fd, 400);
+			// }
 			
 			_bytesPending = hexToLong(line);
 
