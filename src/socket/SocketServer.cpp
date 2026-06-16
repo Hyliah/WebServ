@@ -70,7 +70,22 @@ void    SocketServer::createSocket(){
 		throw SocketException("Error : listen has failed");
 }
 
-static bool setSocket(int sockFd){
+// static bool setSocket(int sockFd){
+// 	int opt = 1;
+// 	if (setsockopt(sockFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+// 		return false;
+
+// 	int flags = fcntl(sockFd, F_GETFL, 0);
+// 	if (flags < 0)
+// 		return false;
+// 	if (fcntl(sockFd, F_SETFL, flags | O_NONBLOCK) < 0)
+// 		return false;
+
+// 	return true;
+// }
+
+static bool setSocket(int sockFd)
+{
 	int opt = 1;
 	if (setsockopt(sockFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
 		return false;
@@ -79,6 +94,12 @@ static bool setSocket(int sockFd){
 	if (flags < 0)
 		return false;
 	if (fcntl(sockFd, F_SETFL, flags | O_NONBLOCK) < 0)
+		return false;
+
+	int fdFlags = fcntl(sockFd, F_GETFD);
+	if (fdFlags < 0)
+		return false;
+	if (fcntl(sockFd, F_SETFD, fdFlags | FD_CLOEXEC) < 0)
 		return false;
 
 	return true;
