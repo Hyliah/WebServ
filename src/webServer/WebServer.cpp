@@ -165,9 +165,18 @@ void	WebServer::acceptClient(int serverFd){
 	}
 
 	int flags = fcntl(clientFd, F_GETFL, 0);
+	if (flags < 0)
+		throw ResponseException(clientFd, 500);
 	if (fcntl(clientFd, F_SETFL, flags | O_NONBLOCK) < 0)
 		throw ResponseException(clientFd, 500);
 	
+
+	int fdFlags = fcntl(clientFd, F_GETFD);
+	if (fdFlags < 0)
+		throw ResponseException(clientFd, 500);
+	if (fcntl(clientFd, F_SETFD, fdFlags | FD_CLOEXEC) < 0)
+		throw ResponseException(clientFd, 500);
+
 	SocketServer* serverPtr = NULL;
     for (size_t i = 0; i < _socketServers.size(); ++i) {
         if (_socketServers[i]->getFd() == serverFd) {
