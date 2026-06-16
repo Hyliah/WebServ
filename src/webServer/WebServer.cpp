@@ -71,8 +71,8 @@ void WebServer::pollLoop() {
                 throw RunningException(std::string("Poll: ") + strerror(errno));
             }
         }
-        
-		checkTimeouts();
+        try { checkTimeouts(); }
+		catch (const ResponseException& e) { sendResponse(e.getFd()); }
         
 		if (ret == 0)
             continue;
@@ -277,7 +277,7 @@ void	WebServer::sendResponse(int fd){
 		const LocationConfig* location = findMatchingLocation(client);
 
 		if (client->state != ERROR){
-			try{ resolvePath(client); }
+			try { resolvePath(client); }
 			catch (const ResponseException& e) {
 				LOG("ERORRRRRRRRRRRRRRRRR N : " << client->errorCode);
 				client->state = ERROR;

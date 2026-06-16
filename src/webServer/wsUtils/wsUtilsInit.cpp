@@ -61,32 +61,6 @@ void	WebServer::initPollStruct(){
 }
 
 // // original
-// void WebServer::checkTimeouts() {
-//     for (size_t i = 0; i < _pollFds.size(); ) {
-
-//         int fd = _pollFds[i].fd;
-
-//         if (!isServerFd(fd)) {
-// 			LOG ("LA");
-//             std::map<int, SocketClient*>::iterator it = _socketClients.find(fd);
-//             if (it != _socketClients.end()) {
-
-//                 SocketClient* client = it->second;
-// 				LOG("ICI");
-//                 if (client && isTimedOut(client)) {
-// 					client->state = ERROR;
-// 					client->errorCode = 400;
-// 					throw ResponseException(fd, 400);
-//                     // closeConnection(fd); //je crois q
-//                     // continue;
-//                 }
-//             }
-//         }
-//         i++;
-//     }
-// }
-
-// modif hygie 16.06
 void WebServer::checkTimeouts() {
     for (size_t i = 0; i < _pollFds.size(); ) {
 
@@ -98,15 +72,39 @@ void WebServer::checkTimeouts() {
 
                 SocketClient* client = it->second;
                 if (client && isTimedOut(client)) {
-                    closeConnection(fd);
-					std::cout << std::endl;
-                    continue;
+					client->state = ERROR;
+					client->errorCode = 400;
+					throw ResponseException(fd, 400);
+                    // closeConnection(fd); //je crois q
+                    // continue;
                 }
             }
         }
         i++;
     }
 }
+
+// modif hygie 16.06
+// void WebServer::checkTimeouts() {
+//     for (size_t i = 0; i < _pollFds.size(); ) {
+
+//         int fd = _pollFds[i].fd;
+
+//         if (!isServerFd(fd)) {
+//             std::map<int, SocketClient*>::iterator it = _socketClients.find(fd);
+//             if (it != _socketClients.end()) {
+
+//                 SocketClient* client = it->second;
+//                 if (client && isTimedOut(client)) {
+//                     closeConnection(fd);
+// 					std::cout << std::endl;
+//                     continue;
+//                 }
+//             }
+//         }
+//         i++;
+//     }
+// }
 
 // // new version G 
 // void WebServer::checkTimeouts() {
