@@ -71,9 +71,12 @@ void WebServer::pollLoop() {
                 throw RunningException(std::string("Poll: ") + strerror(errno));
             }
         }
-        try { checkTimeouts(); }
-		catch (const ResponseException& e) { sendResponse(e.getFd()); }
+
+        // try { checkTimeouts(); }
+		// catch (const ResponseException& e) {earlyError(400, -1); }
         
+		checkTimeouts();
+		
 		if (ret == 0)
             continue;
 
@@ -152,14 +155,9 @@ void	WebServer::acceptClient(int serverFd){
 	
 	if (_socketClients.size() >= 1024) {
 		LOG("Too many clients");
-		std::string res =
-			"HTTP/1.1 503 Service Unavailable\r\n"
-			"Content-Length: 0\r\n"
-			"Connection: close\r\n\r\n";
-
-		send(clientFd, res.c_str(), res.size(), 0);
-		close(clientFd);
-		return;
+		
+		earlyError(503, clientFd);
+		return ;
 	}
 
 	int flags = fcntl(clientFd, F_GETFL, 0);

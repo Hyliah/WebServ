@@ -137,3 +137,38 @@ HttpResponse WebServer::buildErrorResponse(int code, const SocketClient* client)
 
     return res;
 }
+
+
+void WebServer::earlyError(int code, int fd)
+{
+    if (fd > 0) {
+        HttpResponse res;
+        std::string statusText;
+        std::string connection;
+        std::string filePath = resolveErrorPage(code, NULL);
+        std::string body = loadFile(filePath);
+
+        if (body.empty()) {
+            body =
+                "<html>"
+                "<body style='text-align:center;font-family:sans-serif;'>"
+                "<h1>Error " + longToString(code) + "</h1>"
+                "<p>Unable to load error page.</p>"
+                "</body>"
+                "</html>";
+        }
+
+        res.statusLine = "HTTP/1.1 " + longToString(code) + " " + statusText;
+        res.body = body;
+
+        res.headers["Content-Length"].push_back(longToString(res.body.size()));
+        res.headers["Content-Type"].push_back("text/html");
+        res.headers["Connection"].push_back("close");
+
+        std::string ret = res.ResponseToString();
+        
+        send(fd, ret.c_str(), ret.size(), 0);
+        close(fd);
+    }
+
+}

@@ -150,6 +150,7 @@ class WebServer{
 		void	setPollOut(int fd);
 
 		HttpResponse buildErrorResponse(int code, const SocketClient* client);
+		void	 earlyError(int code, int fd);
 };
 
 #endif

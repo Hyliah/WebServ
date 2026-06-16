@@ -74,9 +74,11 @@ void WebServer::checkTimeouts() {
                 if (client && isTimedOut(client)) {
 					client->state = ERROR;
 					client->errorCode = 400;
-					throw ResponseException(fd, 400);
+					//throw ResponseException(fd, 400);
                     // closeConnection(fd); //je crois q
                     // continue;
+					earlyError(400, fd);
+					closeConnection(fd);
                 }
             }
         }
