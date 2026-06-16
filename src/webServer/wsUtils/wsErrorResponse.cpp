@@ -167,7 +167,15 @@ void WebServer::earlyError(int code, int fd)
 
         std::string ret = res.ResponseToString();
         
-        send(fd, ret.c_str(), ret.size(), 0);
+        size_t totalSent = 0;
+		while (totalSent < ret.size()) {
+            ssize_t sent = send(fd, ret.c_str(), ret.size(), 0);
+            if (sent <= 0 ) { // EVAL : erreur donc client supp
+				closeConnection(fd);
+				return;
+			}
+			totalSent += sent;
+        }
         close(fd);
     }
 

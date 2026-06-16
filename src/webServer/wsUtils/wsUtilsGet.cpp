@@ -41,7 +41,7 @@ HttpResponse WebServer::handleDirectory(const SocketClient* client, const std::s
 	LOG("l index est present ? : " << indexes->empty());
     if (!indexes->empty()) {
         for (size_t i = 0; i < indexes->size(); i++) {
-            std::string fullPath = root;
+            std::string fullPath = path;
 
             if (!fullPath.empty() && fullPath[fullPath.size() - 1] != '/')
                 fullPath += "/";
