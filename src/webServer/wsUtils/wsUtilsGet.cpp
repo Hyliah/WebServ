@@ -41,14 +41,15 @@ HttpResponse WebServer::handleDirectory(const SocketClient* client, const std::s
 	LOG("l index est present ? : " << indexes->empty());
     if (!indexes->empty()) {
         for (size_t i = 0; i < indexes->size(); i++) {
-            std::string fullPath = root;
+            //std::string fullPath = root; 
+			std::string fullPath = path; // modif melo
 
             if (!fullPath.empty() && fullPath[fullPath.size() - 1] != '/')
                 fullPath += "/";
 
             fullPath += (*indexes)[i];
 
-			LOG("full pathounet = " << fullPath);
+			LOG("full pathounet corrigee tentative melo = " << fullPath);
 
             struct stat st;
             if (stat(fullPath.c_str(), &st) == 0 && S_ISREG(st.st_mode)) {
@@ -127,7 +128,10 @@ HttpResponse	WebServer::generateListing(const std::string &path, const SocketCli
 
 	DIR* dir = opendir(path.c_str());
 	if (!dir)
+	{
+		LOG("check le chemin melo "<< path );
 		return buildErrorResponse(403, client);
+	}
 
 	std::stringstream body;
 
