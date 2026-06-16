@@ -71,15 +71,10 @@ void WebServer::pollLoop() {
                 throw RunningException(std::string("Poll: ") + strerror(errno));
             }
         }
-
-        //checkTimeouts();
-		try {
-            checkTimeouts();
-        } catch (const ResponseException& e) {
-        	sendResponse(e.getFd());
-        }
-
-        if (ret == 0)
+        
+		checkTimeouts();
+        
+		if (ret == 0)
             continue;
 
         for (size_t i = 0; i < _pollFds.size(); ) {
@@ -121,7 +116,10 @@ void WebServer::pollLoop() {
 
 				 LOG("POLLHUP/POLLERR fd=" << fd);
 
-				SocketClient* client = _socketClients[fd];
+				std::map<int, SocketClient*>::iterator it = _socketClients.find(fd);
+				if (it == _socketClients.end())
+    				continue;
+				SocketClient* client = it->second;
 
 				LOG("requestCompleted="
 					<< (client ? client->requestCompleted : -1));
