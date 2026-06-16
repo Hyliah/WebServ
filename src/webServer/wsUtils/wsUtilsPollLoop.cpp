@@ -46,8 +46,7 @@ void WebServer::closeConnection(int fd){ // voir avec chattos
 	LOG("Closing connection fd = " << fd);
 
 	if (_socketClients.find(fd) == _socketClients.end()) {
-		//LOG("⚠️ FD NOT FOUND (double close?)");
-		// supp tt ce if ? rien d'autre que le log dedans ? normalm ? 
+		return; // securite double close a garder 
 	}
 	
 	close(fd);

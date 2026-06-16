@@ -60,6 +60,7 @@ void	WebServer::initPollStruct(){
 	}
 }
 
+// // original
 // void WebServer::checkTimeouts() {
 //     for (size_t i = 0; i < _pollFds.size(); ) {
 
@@ -85,6 +86,7 @@ void	WebServer::initPollStruct(){
 //     }
 // }
 
+// modif hygie 16.06
 void WebServer::checkTimeouts() {
     for (size_t i = 0; i < _pollFds.size(); ) {
 
@@ -106,6 +108,32 @@ void WebServer::checkTimeouts() {
     }
 }
 
+// // new version G 
+// void WebServer::checkTimeouts() {
+//     for (size_t i = 0; i < _pollFds.size(); ) {
+//         int fd = _pollFds[i].fd;
+
+//         if (!isServerFd(fd)) {
+//             std::map<int, SocketClient*>::iterator it = _socketClients.find(fd);
+//             if (it != _socketClients.end()) {
+//                 SocketClient* client = it->second;
+                
+//                 if (client && isTimedOut(client)) {
+//                     // Optionnel mais fortement recommandé pour éviter le statut 'pending' au client :
+//                     std::string timeoutResponse = "HTTP/1.1 408 Request Timeout\r\nConnection: close\r\n\r\n";
+//                     send(fd, timeoutResponse.c_str(), timeoutResponse.length(), 0);
+
+//                     closeConnection(fd);
+//                     // /!\ PIÈGE : closeConnection a supprimé l'élément à l'index i.
+//                     // Le vecteur a shrink. Le prochain élément est DEJA à l'index i.
+//                     // Donc on ne fait PAS i++, et on ne fait pas de continue inutile.
+//                     continue; 
+//                 }
+//             }
+//         }
+//         i++; // On n'incrémente que si on n'a rien supprimé !
+//     }
+// }
 
 
 bool WebServer::isTimedOut(const SocketClient* client) const
