@@ -274,7 +274,7 @@ void	WebServer::sendResponse(int fd){
 		const LocationConfig* location = findMatchingLocation(client);
 
 		if (client->state != ERROR){
-			try { resolvePath(client); }
+			try { resolvePath(client, location); }
 			catch (const ResponseException& e) {
 				LOG("ERORRRRRRRRRRRRRRRRR N : " << client->errorCode);
 				client->state = ERROR;

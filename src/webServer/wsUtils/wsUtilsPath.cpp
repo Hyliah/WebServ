@@ -12,13 +12,15 @@
 
 #include "WebServer.hpp"
 
-void WebServer::resolvePath(SocketClient* client) {
+void WebServer::resolvePath(SocketClient* client, const LocationConfig* location) {
     LOG("\n>>> RESOLVE PATH "); // -------------------------------------------------------------
+    
     const std::string& uri = client->getRequest().getUri();
     int fd = client->getFd();
-
+    
     size_t pos = uri.find('?');
-
+    
+    std::string locationPath = location->path;
     std::string path;
     std::string queryStr;
 
@@ -37,16 +39,19 @@ void WebServer::resolvePath(SocketClient* client) {
 
     resolveQuery(client, queryStr);
 	std::string finalPath;
-
+    if (finalPath.compare(0, locationPath.size(), locationPath) != 0) {
+        throw ResponseException(fd, 403);
+    }
     finalPath = decodePath(path, fd);
     LOG("final path == " << finalPath);
     checkPathSecurity(finalPath, fd);
+    
     finalPath = normalizePath(finalPath, fd);
     checkErrorPath(finalPath, fd);
 
     std::string root = findRoot(client);
     cleanFinalPath(root, finalPath);
-
+    
     finalPath = root + finalPath;
 
     client->getRequest().setPath(finalPath);
@@ -267,6 +272,7 @@ std::string WebServer::UrlDecode(const SocketClient *client, std::string entry) 
 void WebServer::checkPathSecurity(const std::string &uri, int fd)
 {
     LOG("\n>>> CHECK SECURITY "); // -------------------------------------------------------------
+    LOG("URI TEST : " << uri);
     if (uri.empty())
         throw ResponseException(fd, 400);
 

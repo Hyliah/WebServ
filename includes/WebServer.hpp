@@ -127,7 +127,7 @@ class WebServer{
 		bool					fullDelete(const std::string& path);
 		
 		//PATH -> dans le fichier wsPath.cpp
-		void		resolvePath(SocketClient* client);
+		void		resolvePath(SocketClient* client, const LocationConfig* location);
 		void		checkPathSecurity(const std::string &path, int fd);
 		std::string	decodePath(const std::string &path, int fd);
 		std::string	normalizePath(const std::string &path, int fd);
