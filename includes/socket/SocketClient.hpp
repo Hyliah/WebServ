@@ -77,6 +77,7 @@ class SocketClient {
 		bool        	chunked;
 		bool			keepAlive;
 		int				errorCode;
+		size_t			maxBodySize;
 		time_t			lastActivity;
 		RequestState 	state;
 		

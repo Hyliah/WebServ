@@ -12,6 +12,7 @@
 
 #include "SocketClient.hpp"
 #include "WebServer.hpp"
+#include "../utils/utilsGeneral.hpp"
 #include <sstream>
 #include "Exceptions.hpp"
 
@@ -19,7 +20,7 @@
 /* construtor & destructors                           */
 /* ************************************************** */
 
-SocketClient::SocketClient() : _fd(-1), _bytesRead(0), _bytesPending(0), _buffer(""), _chunkState(CHUNK_SIZE), _server(NULL), ignoreBody(false), headerParsed(false), requestCompleted(false), contentLength(false), chunked(false), keepAlive(true), errorCode(0), lastActivity(std::time(NULL)), state(READING){
+SocketClient::SocketClient() : _fd(-1), _bytesRead(0), _bytesPending(0), _buffer(""), _chunkState(CHUNK_SIZE), _server(NULL), ignoreBody(false), headerParsed(false), requestCompleted(false), contentLength(false), chunked(false), keepAlive(true), errorCode(0), maxBodySize(DEFAULT_MAX_BODY_SIZE), lastActivity(std::time(NULL)), state(READING){
 }
 SocketClient::SocketClient(int fd, struct sockaddr_storage addr, SocketServer* serverPtr) : _fd(fd), _bytesRead(0), _bytesPending(0), _buffer(""), _chunkState(CHUNK_SIZE), _server(serverPtr), _addr(addr), ignoreBody(false), headerParsed(false), requestCompleted(false), contentLength(false), chunked(false), keepAlive(true), errorCode(0), lastActivity(std::time(NULL)), state(READING){}
 SocketClient::~SocketClient(){}
@@ -68,6 +69,21 @@ void	SocketClient::defineBodyType(){
 
 	const std::map<std::string, std::vector<std::string> >& headers = _request.getHeaders();
 
+	//trouver la config pour la taille max comme ca si c etait pas si chiant que ca 
+	const std::vector<const ServerConfig*>& configs = getServer()->getServers();
+	const ServerConfig* theConfig = configs[0]; 
+    std::string host;
+    // const std::map<std::string, std::vector<std::string> >& headers = getRequest().getHeaders();
+    std::map<std::string, std::vector<std::string> >::const_iterator it = headers.find("host");
+    if (it != headers.end())
+        host = it->second[0];
+    std::string cleanHost = host.substr(0, host.find(':'));
+    for (size_t i = 0; i < configs.size(); i++) {
+        if (configs[i]->serverName == cleanHost)
+            theConfig = configs[i];
+    }
+
+
 	std::map<std::string, std::vector<std::string> >::const_iterator itCL;
 	itCL = headers.find("content-length");
 	if (itCL != headers.end()){
@@ -78,9 +94,8 @@ void	SocketClient::defineBodyType(){
 			throw ResponseException(_fd, 405);
 		}
 		
-		if (_request.getContentLength() > DEFAULT_MAX_BODY_SIZE || _request.getContentLength() < 0)
+		if (_request.getContentLength() < 0 || static_cast<size_t>(_request.getContentLength()) > theConfig->maxBodySize)
 			throw ResponseException(_fd, 413);
-		// METTRE L AUTRE
 	}
 	else {
 		contentLength = false;

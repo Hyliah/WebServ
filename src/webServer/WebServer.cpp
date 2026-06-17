@@ -185,7 +185,6 @@ void	WebServer::acceptClient(int serverFd){
 	}
 	
 	SocketClient* client = new SocketClient(clientFd, addr, serverPtr);
-	
 	client->lastActivity = std::time(NULL);
 
     _socketClients[clientFd] = client;
