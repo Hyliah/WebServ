@@ -21,6 +21,8 @@ void WebServer::resolvePath(SocketClient* client, const LocationConfig* location
     size_t pos = uri.find('?');
     
     std::string locationPath = location->path;
+
+    LOG (" LOCATION PATH = " << locationPath);
     std::string path;
     std::string queryStr;
 
@@ -39,18 +41,17 @@ void WebServer::resolvePath(SocketClient* client, const LocationConfig* location
 
     resolveQuery(client, queryStr);
 	std::string finalPath;
-    if (finalPath.compare(0, locationPath.size(), locationPath) != 0) {
-        throw ResponseException(fd, 403);
-    }
     finalPath = decodePath(path, fd);
-    LOG("final path == " << finalPath);
     checkPathSecurity(finalPath, fd);
-    
     finalPath = normalizePath(finalPath, fd);
     checkErrorPath(finalPath, fd);
-
+    
     std::string root = findRoot(client);
     cleanFinalPath(root, finalPath);
+    LOG("FINAL PATH = " << finalPath);
+    if ((locationPath != "/") && (finalPath.compare(0, locationPath.size(), locationPath) != 0)) {
+        throw ResponseException(fd, 403);
+    }
     
     finalPath = root + finalPath;
 
@@ -312,9 +313,11 @@ void WebServer::checkPathSecurity(const std::string &uri, int fd)
 
 bool WebServer::isMethodAllowed(const std::string& path, const std::string& method, const LocationConfig* location)
 {
+    (void)path;
     if (!location)
         return false;
 
+    // VOIR CE QU ON EN FAIT
     if (path.compare(0, location->path.size(), location->path) != 0){
         return false;
     }

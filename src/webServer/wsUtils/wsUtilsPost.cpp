@@ -17,6 +17,19 @@
 /* Static						                      */
 /* ************************************************** */
 
+std::string getDirectoryFromPath(const std::string& path)
+{
+    if (path.empty())
+        return "";
+
+    size_t pos = path.find_last_of('/');
+
+    if (pos == std::string::npos)
+        return "";
+
+    return path.substr(0, pos + 1);
+}
+
 HttpResponse	WebServer::executeStatic(const SocketClient* client, const std::string& path) {
     LOG("\n>>> EXECUTE STATIC ");// --------------------------------------------------------------------------------------------
 
@@ -34,9 +47,22 @@ HttpResponse	WebServer::executeStatic(const SocketClient* client, const std::str
         return buildErrorResponse(500, client);
     
     LOG("la path est : " << path);
-    std::ofstream dst(path.c_str(), std::ios::binary);
-    if(!dst){
-        return buildErrorResponse(403, client);
+
+    std::string dir = getDirectoryFromPath(path); // ex: /upload/
+
+    struct stat st;
+    if (stat(dir.c_str(), &st) != 0 || !S_ISDIR(st.st_mode)){
+        return buildErrorResponse(404, client); // dossier inexistant
+    }
+
+    if (access(dir.c_str(), W_OK) != 0) {
+        return buildErrorResponse(403, client); // pas le droit d'écrire
+    }
+
+    std::ofstream dst(path.c_str(), std::ios::binary | std::ios::trunc);
+
+    if (!dst.is_open()) {
+        return buildErrorResponse(500, client); // erreur serveur
     }
 
     dst << src.rdbuf();

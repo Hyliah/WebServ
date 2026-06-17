@@ -59,6 +59,7 @@ HttpResponse	WebServer::methodPost(SocketClient* client, const LocationConfig* l
 	}
 	
     if (!isMethodAllowed(client->getRequest().getOriginPath(), "POST", location)){
+		LOG("hey");
         return buildErrorResponse(405, client);
 	}
 	
