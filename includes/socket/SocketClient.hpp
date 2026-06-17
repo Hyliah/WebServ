@@ -28,7 +28,6 @@
 
 #include "../http/HttpRequest.hpp"
 
-
 enum ChunkState {
     CHUNK_SIZE,
     CHUNK_DATA,
@@ -48,7 +47,6 @@ enum RequestState {
     ERROR
 };
 
-
 class SocketClient {
 
 	private:
@@ -67,7 +65,6 @@ class SocketClient {
 		SocketClient(const SocketClient& other);
 		SocketClient& operator=(const SocketClient& other);
 		
-		
 		public:
 		
 		bool			ignoreBody;
@@ -77,7 +74,6 @@ class SocketClient {
 		bool        	chunked;
 		bool			keepAlive;
 		int				errorCode;
-		size_t			maxBodySize;
 		time_t			lastActivity;
 		RequestState 	state;
 		

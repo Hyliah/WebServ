@@ -141,8 +141,15 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
 
     while (true){
         pid_t result = waitpid(pid, &status, WNOHANG);
+
         if (result == pid)
             break;
+
+        if (result == -1) {
+            kill(pid, SIGKILL);
+            return buildErrorResponse(500, client);
+        }
+
         if (difftime(time(NULL), start) > MAX_WAIT)
         {
             kill(pid, SIGKILL);
@@ -159,9 +166,12 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
 
     while ((bytes = read(pipeFd[0], buffer, sizeof(buffer))) > 0)
         output.append(buffer, bytes);
-
+    
     safeClose(&pipeFd[0]);
     freeTab(&envp);
+
+    if (output.empty())
+        return buildErrorResponse(500, client);
     
     return createCGIResponse(client, output);
 }
@@ -170,13 +180,20 @@ HttpResponse	WebServer::createCGIResponse(const SocketClient* client, std::strin
     LOG("\n>>> CREATE CGI RESPONSE "); // --------------------------------------------------------------------------------
     HttpResponse res;
 
+    if (raw.empty())
+        return buildErrorResponse(500, client);
+
     size_t pos = raw.find("\r\n\r\n");
     size_t sep_len = 4;
 
     if (pos == std::string::npos)
-    {
         pos = raw.find("\n\n");
-        sep_len = 2;
+
+    if (pos == std::string::npos)
+    {
+        res.statusLine = "HTTP/1.1 200 OK";
+        res.body = raw;
+        return res;
     }
 
     if (client->getRequest().getMethod() == "POST"){

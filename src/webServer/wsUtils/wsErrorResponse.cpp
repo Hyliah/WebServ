@@ -47,6 +47,8 @@ std::string resolveErrorPage(int code, const ServerConfig* config)
         defaults[415] = "www/errorPages/415.html";
         defaults[431] = "www/errorPages/431.html";
         defaults[500] = "www/errorPages/500.html";
+        defaults[503] = "www/errorPages/503.html";
+        defaults[504] = "www/errorPages/504.html";
     }
 
     std::string ret;

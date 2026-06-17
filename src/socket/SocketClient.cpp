@@ -20,7 +20,7 @@
 /* construtor & destructors                           */
 /* ************************************************** */
 
-SocketClient::SocketClient() : _fd(-1), _bytesRead(0), _bytesPending(0), _buffer(""), _chunkState(CHUNK_SIZE), _server(NULL), ignoreBody(false), headerParsed(false), requestCompleted(false), contentLength(false), chunked(false), keepAlive(true), errorCode(0), maxBodySize(DEFAULT_MAX_BODY_SIZE), lastActivity(std::time(NULL)), state(READING){
+SocketClient::SocketClient() : _fd(-1), _bytesRead(0), _bytesPending(0), _buffer(""), _chunkState(CHUNK_SIZE), _server(NULL), ignoreBody(false), headerParsed(false), requestCompleted(false), contentLength(false), chunked(false), keepAlive(true), errorCode(0), lastActivity(std::time(NULL)), state(READING){
 }
 SocketClient::SocketClient(int fd, struct sockaddr_storage addr, SocketServer* serverPtr) : _fd(fd), _bytesRead(0), _bytesPending(0), _buffer(""), _chunkState(CHUNK_SIZE), _server(serverPtr), _addr(addr), ignoreBody(false), headerParsed(false), requestCompleted(false), contentLength(false), chunked(false), keepAlive(true), errorCode(0), lastActivity(std::time(NULL)), state(READING){}
 SocketClient::~SocketClient(){}
@@ -68,13 +68,11 @@ void	SocketClient::parseRequest(){
 void	SocketClient::defineBodyType(){
 
 	const std::map<std::string, std::vector<std::string> >& headers = _request.getHeaders();
-
-	//trouver la config pour la taille max comme ca si c etait pas si chiant que ca 
 	const std::vector<const ServerConfig*>& configs = getServer()->getServers();
 	const ServerConfig* theConfig = configs[0]; 
     std::string host;
-    // const std::map<std::string, std::vector<std::string> >& headers = getRequest().getHeaders();
-    std::map<std::string, std::vector<std::string> >::const_iterator it = headers.find("host");
+    
+	std::map<std::string, std::vector<std::string> >::const_iterator it = headers.find("host");
     if (it != headers.end())
         host = it->second[0];
     std::string cleanHost = host.substr(0, host.find(':'));
@@ -82,7 +80,6 @@ void	SocketClient::defineBodyType(){
         if (configs[i]->serverName == cleanHost)
             theConfig = configs[i];
     }
-
 
 	std::map<std::string, std::vector<std::string> >::const_iterator itCL;
 	itCL = headers.find("content-length");
@@ -111,16 +108,15 @@ void	SocketClient::defineBodyType(){
 			chunked = true;
 	}
 
-	if(!contentLength && !chunked){
+	if (!contentLength && !chunked){
 		throw ResponseException(_fd, 405);
 	}
 
 	if (chunked)
 		contentLength = false;
 
-	if (chunked || contentLength){
+	if (chunked || contentLength)
 		_request.openBodyFile(_fd);
-	}
 }
 
 /* ************************************************** */
@@ -158,12 +154,7 @@ void SocketClient::parseFirstLine(std::string &buffer, size_t &pos)
 	
 	_request.setMethod(method);
 	_request.setUri(uri);
-	
-
 	_request.setVersion(version);
-
-	// if (!isValidMethod())
-	// 		throw ResponseException(_fd, 405);
 
 	if (!isValidURI())
 		throw ResponseException(_fd, 400);
@@ -257,12 +248,12 @@ void SocketClient::parsingChunked()
 				return;
 			}
 
-			//isHex(char c)
-			// changer ca 
 			std::string line = _buffer.substr(0, pos);
-			// if (!isDigits(line)){
-			// 	throw ResponseException(_fd, 400);
-			// }
+			for (size_t i = 0; i < line.size(); i++) {
+				if (!isHex(line[i])) {
+					throw ResponseException(_fd, 400);
+				}
+			}
 			
 			_bytesPending = hexToLong(line);
 
