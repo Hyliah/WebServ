@@ -16,8 +16,7 @@
 /* construtor & destructors                           */
 /* ************************************************** */
 
-WebServer::WebServer(const std::vector<ServerConfig> &servers) : _servers(servers), _running(true)
-{
+WebServer::WebServer(const std::vector<ServerConfig> &servers) : _servers(servers), _running(true) {
 	initSockets();
 	cpyLinkConfig();
 }
@@ -39,20 +38,7 @@ WebServer::~WebServer(){
 }
 
 /* ************************************************** */
-/* getters & setters.                                 */
-/* ************************************************** */
-
-// SocketServer&	WebServer::getServer(size_t idx){}
-// SocketClient&	WebServer::getClient(int fd){}
-
-// void	WebServer::addClient(int fd, struct sockaddr_storage addr){
-// 	SocketClient* client = new SocketClient(fd, addr);
-// 	_socketClients[fd] = client;
-// }
-
-
-/* ************************************************** */
-/* PAUL LOOP			                              */
+/* POLL LOOP			                              */
 /* ************************************************** */
 
 void WebServer::pollLoop() {
@@ -197,7 +183,7 @@ void	WebServer::handleRequest(int fd){
 		
 		if (bytes < 0) { // EVAL : ici erreur donc on close 
     		closeConnection(fd);
-			//return 500
+			earlyError(500, fd);
 			return ;
 		}
 		
@@ -297,7 +283,7 @@ void	WebServer::sendResponse(int fd){
 		closeConnection(fd);
 	}
 	    catch (...) {
-		// response 500
+		earlyError(500, fd);
         closeConnection(fd);
     }
 }

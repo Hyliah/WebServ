@@ -37,7 +37,7 @@ const std::string&	SocketClient::getBuffer() const{ return (_buffer); }
 const SocketServer*	SocketClient::getServer() const { return (_server); }
 
 /* ************************************************** */
-/* parsing de la request du Paul                      */
+/* parsing de la request de Poll                      */
 /* ************************************************** */
 
 void	SocketClient::addBytes(long bytes){ _bytesRead += bytes; }
@@ -430,9 +430,3 @@ void	SocketClient::cleanBuffer(){
 	_buffer.erase(0, pos + 4);
 }
 
-/* ************************************************** */
-/* je ferai qu on y sera.                             */
-/* ************************************************** */
-
-void	SocketClient::closeSocket(){
-}

@@ -22,17 +22,14 @@ HttpResponse	WebServer::methodGet(SocketClient* client, const LocationConfig* lo
 
 	if (!isMethodAllowed(client->getRequest().getOriginPath(), "GET", location))
         return buildErrorResponse(405, client);
-	
     if (isCGI(location, path)) 
-        return executeCGI(client, location, path);
+        return executeCGI(client, path);
     
 	struct stat st;
 	if (stat(path.c_str(), &st) < 0)
 		return buildErrorResponse(404, client);
-
 	if (access(path.c_str(), R_OK) != 0) 
 		return buildErrorResponse(403, client);
-
 	if (st.st_mode & S_IFDIR)
 		return handleDirectory(client, path);
 
@@ -43,21 +40,18 @@ HttpResponse	WebServer::methodPost(SocketClient* client, const LocationConfig* l
 	std::string path = client->getRequest().getPath();
 
 	if (isCGI(location, path))
-		return (executeCGI(client, location, path));
-	
+		return (executeCGI(client, path));
     if (!isMethodAllowed(client->getRequest().getOriginPath(), "POST", location))
         return buildErrorResponse(405, client);
-	
 	else 
 		return (executeStatic(client, path));
-	
 }
 
 HttpResponse WebServer::methodDelete(SocketClient* client, const LocationConfig* location){
 	std::string path = client->getRequest().getPath();
 
 	if (isCGI(location, path))
-    	return executeCGI(client, location, path);
+    	return executeCGI(client, path);
 
 	else {
 		
@@ -116,6 +110,8 @@ bool WebServer::fullDelete(const std::string& path) {
         return (std::remove(path.c_str()) == 0);
 }
 
+
+// MAKE IT HTML
 HttpResponse WebServer::buildRedirectResponse(int returnCode, const std::string& url, SocketClient* client){
 	HttpResponse res;
 

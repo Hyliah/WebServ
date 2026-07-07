@@ -19,8 +19,8 @@
 
 class HttpResponse {
 	private:
-		// HttpResponse(const HttpResponse& other);
-		// HttpResponse& operator=(const HttpResponse& other);
+		HttpResponse(const HttpResponse& other);
+		HttpResponse& operator=(const HttpResponse& other);
 	
 	public:
 		std::string statusLine;

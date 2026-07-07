@@ -40,23 +40,16 @@ public:
 	~SocketServer();
 
 	void    createSocket();
-	void    listenSocket(int backlog = 10);
-
 	int     acceptClient();
-
 	void    closeSocket();
-
 	int     getFd() const;
 
-
-	struct addrinfo* getAddrinfo() const;
-
-	const std::string& getPort() const;
-
-
-	int initStructGetaddrinfo(struct addrinfo& hints, struct addrinfo** res);
-	void addServer(ServerConfig* server);
+	struct addrinfo* 	getAddrinfo() const;
+	const std::string& 	getPort() const;
 	const std::vector<const ServerConfig*>& getServers() const;
+
+	int		initStructGetaddrinfo(struct addrinfo& hints, struct addrinfo** res);
+	void	addServer(ServerConfig* server);
 };
 
 #endif

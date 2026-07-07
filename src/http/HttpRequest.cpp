@@ -14,12 +14,9 @@
 #include <cctype>
 #include <cstring>
 #include <map>
-
 #include <sstream>
 #include <ctime>
 #include <unistd.h>
-
-
 #include "WebServer.hpp"
 #include "Exceptions.hpp"
 

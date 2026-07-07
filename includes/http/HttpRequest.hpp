@@ -70,35 +70,3 @@ class HttpRequest
     void    closeBodyFile();
     void    openBodyFile(int fd);
 };
-
-// METHOD space URI space VERSION
-
-
-
-// Query string
-
-// GET /search?q=chatgpt&page=1 HTTP/1.1
-
-// URI :
-// /search?q=chatgpt&page=1
-
-// Tu dois séparer :
-
-// path = /search
-// query = q=chatgpt&page=1
-
-
-
-// URL encoding
-// /file%20name.txt
-
-// → %20 = espace
-
-
-
-
-// dans les headers, que faire si y en a 2 les memes ?
-
-// Erreur 400 bad request ! faire une fonction
-// singleton : content length, host, content type, authorization, Transfer-Encoding:
-

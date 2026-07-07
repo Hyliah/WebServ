@@ -15,7 +15,6 @@
 
 #include <stdexcept>
 #include <string>
-
 #include <exception>
 #include <string>
 #include <sstream>
@@ -32,24 +31,13 @@ public:
     }
 };
 
-// Enum classique compatible C++98
 enum ParseType {
     CONF,
     HTTP,
     CGI
 };
 
-// Fonction utilitaire pour convertir l'enum en string
-inline const char* parseTypeToString(ParseType type) {
-    switch (type) {
-        case CONF: return "CONF";
-        case HTTP: return "HTTP";
-        case CGI:  return "CGI";
-        default:   return "UNKNOWN";
-    }
-}
 
-// Exception de parsing
 class ParseException : public WebservException {
 public:
     ParseException(ParseType type, const std::string& msg)
@@ -63,8 +51,6 @@ private:
     }
 };
 
-
-// erreur de socket
 class SocketException : public WebservException {
 	public:
 		SocketException(const std::string& msg)
@@ -100,5 +86,14 @@ class ResponseException : public std::exception {
         int getFd() const { return _fd; }
         int getCode() const { return _code; }
 };
+
+inline const char* parseTypeToString(ParseType type) {
+    switch (type) {
+        case CONF: return "CONF";
+        case HTTP: return "HTTP";
+        case CGI:  return "CGI";
+        default:   return "UNKNOWN";
+    }
+}
 
 #endif

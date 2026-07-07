@@ -93,27 +93,27 @@ class WebServer{
 		void	parseBody(SocketClient* client);
 
 
-		//INIT -> dans le fichier wsUntilsInit.cpp
+		//INIT -> file : wsUntilsInit.cpp
 		void	cpyLinkConfig();
 		void	initSockets();
 		void	initPollStruct();
 		void 	checkTimeouts();
 		bool	isTimedOut(const SocketClient* client) const;
 
-		//UTILS RESPONSE -> dans le fichier wsResponse.cpp
+		//UTILS RESPONSE -> file : wsResponse.cpp
 		HttpResponse	methodGet(SocketClient* client, const LocationConfig* location);
 		HttpResponse	methodPost(SocketClient* client, const LocationConfig* location);
 		HttpResponse	methodDelete(SocketClient* client, const LocationConfig* location);
 
-		//UTILS GET -> dans le fichier wsUtilsGet.cpp
+		//UTILS GET -> file :  wsUtilsGet.cpp
 		HttpResponse	handleDirectory(const SocketClient* client, const std::string& path);
 		HttpResponse	generateListing(const std::string &path, const SocketClient* client);
 		HttpResponse	serveFile(const SocketClient* client, const std::string& path);
 		HttpResponse	fillResponseOK(std::string body, long size, std::string type, const SocketClient* client);
 		
-		//UTILS POST -> dans le fichier wsUtilsPost.cpp
+		//UTILS POST -> file : wsUtilsPost.cpp
 		bool			isCGI(const LocationConfig* location, const std::string& path);
-		HttpResponse	executeCGI(const SocketClient* client, const LocationConfig* location, const std::string& path);
+		HttpResponse	executeCGI(const SocketClient* client, const std::string& path);
 		HttpResponse	executeStatic(const SocketClient* client, const std::string& path);
 		HttpResponse	createCGIResponse(const SocketClient* client, std::string output);
 		std::string		extractPathInfo(const std::string& uri, const std::string& scriptPath);
@@ -126,7 +126,7 @@ class WebServer{
 		HttpResponse			buildRedirectResponse(int returnCode, const std::string& url, SocketClient* client);
 		bool					fullDelete(const std::string& path);
 		
-		//PATH -> dans le fichier wsPath.cpp
+		//PATH -> file : wsPath.cpp
 		void		resolvePath(SocketClient* client, const LocationConfig* location);
 		void		checkPathSecurity(const std::string &path, int fd);
 		std::string	decodePath(const std::string &path, int fd);
@@ -141,7 +141,7 @@ class WebServer{
 		std::string getMimeType(std::string path);
 
 		
-		//PAUL LOOP UTILS -> dans le fichier wsUtilsPollLoop.cpp
+		//PAUL LOOP UTILS -> file : wsUtilsPollLoop.cpp
 		bool	isServerFd(int fd);
 		bool 	isHeaderComplete(SocketClient* client);
 		

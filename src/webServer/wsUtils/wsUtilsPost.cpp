@@ -95,7 +95,7 @@ bool WebServer::isCGI(const LocationConfig* location, const std::string& path){
     return false;
 }
 
-HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationConfig* location, const std::string& path) {
+HttpResponse	WebServer::executeCGI(const SocketClient* client, const std::string& path) {
     if (access(path.c_str(), F_OK) == -1)
         return buildErrorResponse(404, client);
 
