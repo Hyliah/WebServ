@@ -90,9 +90,6 @@ void HttpRequest::openBodyFile(int fd)
         return;
 
     _bodyFilePath = "/tmp/webserv_body_" + generateId(fd);
-
-    LOG("BODY FILE CREATED: " << _bodyFilePath);
-
     _bodyFile.open(_bodyFilePath.c_str(), std::ios::binary);
     if (!_bodyFile.is_open())
         throw std::runtime_error("Failed to open body file");

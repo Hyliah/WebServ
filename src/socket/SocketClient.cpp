@@ -44,8 +44,6 @@ void	SocketClient::addBytes(long bytes){ _bytesRead += bytes; }
 void	SocketClient::appendBuffer(const std::string& str){ _buffer += str; }
 
 void	SocketClient::parseRequest(){
-	LOG("\n>>> PARSING REQUEST"); // ----------------------------------------------------------------------------------
-
 	size_t headerEnd = _buffer.find("\r\n\r\n");
 	size_t position = 0;
 	
@@ -125,7 +123,6 @@ void	SocketClient::defineBodyType(){
 
 void SocketClient::parseFirstLine(std::string &buffer, size_t &pos)
 {
-	LOG("\n>>> PARSE FIRST LINE"); //-----------------------------------------------
 	size_t end = buffer.find("\r\n", pos);
 	if (end == std::string::npos){
 		throw ResponseException(_fd, 400);
@@ -167,7 +164,6 @@ void SocketClient::parseFirstLine(std::string &buffer, size_t &pos)
 
 void SocketClient::parseHeaders(std::string &buffer, size_t &pos)
 {
-	LOG("\n>>> PARSE HEADERS"); //-----------------------------------------------
 	size_t end = buffer.find("\r\n\r\n", pos);
 	if (end == std::string::npos)
 		throw ResponseException(_fd, 400);
@@ -239,7 +235,6 @@ bool isDigits(const std::string& str)
 
 void SocketClient::parsingChunked()
 {
-	LOG("\n>>> PARSING CHUNKED");
 	while (true) {
 		if (_chunkState == CHUNK_SIZE) {
 			size_t pos = _buffer.find("\r\n");
@@ -301,10 +296,8 @@ void SocketClient::parsingChunked()
 
 		else if (_chunkState == CHUNK_DONE)
 		{
-			if (_buffer.size() < 2) {
-				LOG("[CHUNK] waiting final CRLF");
+			if (_buffer.size() < 2) 
 				return;
-			}
 
 			if (_buffer.compare(0, 2, "\r\n") != 0) {
 				throw ResponseException(_fd, 400);
@@ -323,7 +316,6 @@ void SocketClient::parsingChunked()
 }
 
 void SocketClient::parsingContentLength() {
-	LOG("\n>>> PARSING CONTENTNTNTNTN"); // ----------------------------------------------------------------------------------
 	size_t size = _buffer.size();
 	size_t remaining = _request.getContentLength() - _bytesRead;
 
@@ -395,7 +387,6 @@ size_t	SocketClient::getHeaderCount(const std::map<std::string, std::vector<std:
 	if (it == headers.end())
 		return 0;
 
-	LOG("NB  = " << it->second.size());
 	return it->second.size();
 }
 

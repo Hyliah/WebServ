@@ -13,8 +13,6 @@
 #include "WebServer.hpp"
 
 void WebServer::resolvePath(SocketClient* client, const LocationConfig* location) {
-    LOG("\n>>> RESOLVE PATH "); // -------------------------------------------------------------
-    
     const std::string& uri = client->getRequest().getUri();
     int fd = client->getFd();
     
@@ -22,7 +20,6 @@ void WebServer::resolvePath(SocketClient* client, const LocationConfig* location
     
     std::string locationPath = location->path;
 
-    LOG (" LOCATION PATH = " << locationPath);
     std::string path;
     std::string queryStr;
 
@@ -48,7 +45,6 @@ void WebServer::resolvePath(SocketClient* client, const LocationConfig* location
     
     std::string root = findRoot(client);
     cleanFinalPath(root, finalPath);
-    LOG("FINAL PATH = " << finalPath);
     if ((locationPath != "/") && (finalPath.compare(0, locationPath.size(), locationPath) != 0)) {
         throw ResponseException(fd, 403);
     }
@@ -59,14 +55,12 @@ void WebServer::resolvePath(SocketClient* client, const LocationConfig* location
 }
 
 std::string	WebServer::decodePath(const std::string &path, int fd){
-    LOG("\n>>> DECODE PATH "); // -------------------------------------------------------------
 	std::string output;
 
 	if (path.empty()){
 		throw ResponseException(fd, 400);
     }
 
-    LOG("le path est : " << path);
 	for (size_t i = 0 ; i < path.size() ; i++){
 		if (path[i] == '%') {
 			if (i + 2 >= path.size())
@@ -103,8 +97,6 @@ std::string	WebServer::decodePath(const std::string &path, int fd){
 }
 
 std::string	WebServer::normalizePath(const std::string &path, int fd){
-    LOG("\n>>> NORMALIZE PATH "); // -------------------------------------------------------------
-
 	std::vector<std::string> segmentPath;
 	std::stringstream ss(path);
 	std::string segment;
@@ -134,7 +126,6 @@ std::string	WebServer::normalizePath(const std::string &path, int fd){
 }
 
 void WebServer::cleanFinalPath(std::string& root, std::string& finalPath) {
-    LOG("\n>>> CLEAN FINAL PATH "); // -------------------------------------------------------------
     if (root.empty())
         return;
 
@@ -151,8 +142,6 @@ void WebServer::cleanFinalPath(std::string& root, std::string& finalPath) {
 }
 
 std::string WebServer::findRoot(const SocketClient* client){
-    LOG("\n>>> FIND ROOT "); // -------------------------------------------------------------
-	
 	const std::vector<const ServerConfig*>& conf = client->getServer()->getServers();
     const HttpRequest& req = client->getRequest();
     const std::map<std::string, std::vector<std::string> > & headers = req.getHeaders();
@@ -192,8 +181,6 @@ void	WebServer::checkErrorPath(const std::string &path, int fd){
 
 
 void WebServer::resolveQuery(SocketClient* client, std::string queryStr) {
-    LOG("\n>>> RESOLVE QUERY "); // -------------------------------------------------------------
-
     std::map<std::string, std::vector<std::string> > query;
 
     size_t posStart = 0;
@@ -233,8 +220,6 @@ void WebServer::resolveQuery(SocketClient* client, std::string queryStr) {
 
 
 std::string WebServer::UrlDecode(const SocketClient *client, std::string entry) {
-    LOG("\n>>> URL DECODE "); // -------------------------------------------------------------
-    
     std::string result;
 
     for (size_t i = 0; i < entry.length(); i++) {
@@ -257,14 +242,12 @@ std::string WebServer::UrlDecode(const SocketClient *client, std::string entry) 
             result += decoded;
             i += 2;
         }
-        else if (entry[i] == '+') {
+        else if (entry[i] == '+') 
             result += ' ';
-        }
-        else {
+        else 
             result += entry[i];
-        }
+        
     }
-
     return result;
 }
 
@@ -272,8 +255,6 @@ std::string WebServer::UrlDecode(const SocketClient *client, std::string entry) 
 
 void WebServer::checkPathSecurity(const std::string &uri, int fd)
 {
-    LOG("\n>>> CHECK SECURITY "); // -------------------------------------------------------------
-    LOG("URI TEST : " << uri);
     if (uri.empty())
         throw ResponseException(fd, 400);
 
@@ -318,21 +299,17 @@ bool WebServer::isMethodAllowed(const std::string& path, const std::string& meth
         return false;
 
     // VOIR CE QU ON EN FAIT
-    if (path.compare(0, location->path.size(), location->path) != 0){
+    if (path.compare(0, location->path.size(), location->path) != 0)
         return false;
-    }
-
-    if (method == "GET"){
+    
+    if (method == "GET")
         return location->hasGet;
-    }
-
-    if (method == "POST"){
+    
+    if (method == "POST")
         return location->hasPost;
-    }
-
-    if (method == "DELETE"){
+    
+    if (method == "DELETE")
         return location->hasDelete;
-    }
-
+    
     return false;
 }

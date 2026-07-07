@@ -26,8 +26,6 @@ std::string loadFile(const std::string& path){
 
 std::string resolveErrorPage(int code, const ServerConfig* config)
 {
-    LOG ("error page = " << code);
-
     if (config) {
         std::map<int, std::string>::const_iterator it = config->errorPages.find(code);
         if (it != config->errorPages.end())
@@ -58,8 +56,6 @@ std::string resolveErrorPage(int code, const ServerConfig* config)
         ret = it->second;
     else
         ret = "/errorPages/generic.html";
-
-    LOG ("le return est : " << ret);
     return ret;
 }
 

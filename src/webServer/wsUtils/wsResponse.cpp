@@ -18,59 +18,42 @@
 /* ************************************************** */
 
 HttpResponse	WebServer::methodGet(SocketClient* client, const LocationConfig* location){
-	LOG("\n>>> METHOD GET"); // ---------------------------------
-
     std::string path = client->getRequest().getPath();
 
-	if (!isMethodAllowed(client->getRequest().getOriginPath(), "GET", location)){
+	if (!isMethodAllowed(client->getRequest().getOriginPath(), "GET", location))
         return buildErrorResponse(405, client);
-	}
-
-    if (isCGI(location, path)) {
-        LOG(">>> CGI DETECTED");
+	
+    if (isCGI(location, path)) 
         return executeCGI(client, location, path);
-    }
-
+    
 	struct stat st;
-	if (stat(path.c_str(), &st) < 0){
+	if (stat(path.c_str(), &st) < 0)
 		return buildErrorResponse(404, client);
-	}
 
-	if (access(path.c_str(), R_OK) != 0) {
+	if (access(path.c_str(), R_OK) != 0) 
 		return buildErrorResponse(403, client);
-	}
 
-	LOG("le path est : " << path);
-	if (st.st_mode & S_IFDIR){
+	if (st.st_mode & S_IFDIR)
 		return handleDirectory(client, path);
-	}
 
-	return serveFile(client, path, st);
-
+	return serveFile(client, path);
 }
 
 HttpResponse	WebServer::methodPost(SocketClient* client, const LocationConfig* location){
-	LOG("\n>>> METHOD POST "); // -------------------------------------------------------------
-
 	std::string path = client->getRequest().getPath();
 
-	if (isCGI(location, path)){
+	if (isCGI(location, path))
 		return (executeCGI(client, location, path));
-	}
 	
-    if (!isMethodAllowed(client->getRequest().getOriginPath(), "POST", location)){
-		LOG("hey");
+    if (!isMethodAllowed(client->getRequest().getOriginPath(), "POST", location))
         return buildErrorResponse(405, client);
-	}
 	
-	else {
+	else 
 		return (executeStatic(client, path));
-	}
+	
 }
 
 HttpResponse WebServer::methodDelete(SocketClient* client, const LocationConfig* location){
-	LOG("\n>>> METHOD DELETE "); // -------------------------------------------------------------
-    
 	std::string path = client->getRequest().getPath();
 
 	if (isCGI(location, path))
@@ -101,9 +84,8 @@ HttpResponse WebServer::methodDelete(SocketClient* client, const LocationConfig*
 bool WebServer::fullDelete(const std::string& path) {
     struct stat st;
 
-    if (stat(path.c_str(), &st) != 0) {
+    if (stat(path.c_str(), &st) != 0)
         return false;
-    }
 
     if (S_ISDIR(st.st_mode)) {
         DIR* dir = opendir(path.c_str());
@@ -130,13 +112,11 @@ bool WebServer::fullDelete(const std::string& path) {
         return (std::remove(path.c_str()) == 0);
     } 
     
-    else {
+    else 
         return (std::remove(path.c_str()) == 0);
-    }
 }
 
 HttpResponse WebServer::buildRedirectResponse(int returnCode, const std::string& url, SocketClient* client){
-	LOG("\n>>> REDIRECT RESPONSE "); // -------------------------------------------------------------
 	HttpResponse res;
 
 	const ServerConfig* config = findMatchingConfig(client);

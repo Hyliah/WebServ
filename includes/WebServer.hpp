@@ -108,7 +108,7 @@ class WebServer{
 		//UTILS GET -> dans le fichier wsUtilsGet.cpp
 		HttpResponse	handleDirectory(const SocketClient* client, const std::string& path);
 		HttpResponse	generateListing(const std::string &path, const SocketClient* client);
-		HttpResponse	serveFile(const SocketClient* client, const std::string& path, struct stat& st);
+		HttpResponse	serveFile(const SocketClient* client, const std::string& path);
 		HttpResponse	fillResponseOK(std::string body, long size, std::string type, const SocketClient* client);
 		
 		//UTILS POST -> dans le fichier wsUtilsPost.cpp
@@ -118,7 +118,7 @@ class WebServer{
 		HttpResponse	createCGIResponse(const SocketClient* client, std::string output);
 		std::string		extractPathInfo(const std::string& uri, const std::string& scriptPath);
 
-		std::map<std::string, std::vector<std::string> > createEnvp(const SocketClient* client, const LocationConfig* location, const std::string& path);
+		std::map<std::string, std::vector<std::string> > createEnvp(const SocketClient* client, const std::string& path);
 		char**			convertMapToChar(const std::map<std::string, std::vector<std::string> >& env);
 		// 
 		const ServerConfig*		findMatchingConfig(const SocketClient* client) const;

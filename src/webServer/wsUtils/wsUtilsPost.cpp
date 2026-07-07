@@ -31,8 +31,6 @@ std::string getDirectoryFromPath(const std::string& path)
 }
 
 HttpResponse	WebServer::executeStatic(const SocketClient* client, const std::string& path) {
-    LOG("\n>>> EXECUTE STATIC ");// --------------------------------------------------------------------------------------------
-
     if (path.find("/cgi-bin/") != std::string::npos){
         return buildErrorResponse(403, client);
     }
@@ -45,24 +43,21 @@ HttpResponse	WebServer::executeStatic(const SocketClient* client, const std::str
     std::ifstream src(req.getBodyPath().c_str(), std::ios::binary);
     if (!src)
         return buildErrorResponse(500, client);
-    
-    LOG("la path est : " << path);
 
-    std::string dir = getDirectoryFromPath(path); // ex: /upload/
-
+    std::string dir = getDirectoryFromPath(path);
     struct stat st;
     if (stat(dir.c_str(), &st) != 0 || !S_ISDIR(st.st_mode)){
-        return buildErrorResponse(404, client); // dossier inexistant
+        return buildErrorResponse(404, client);
     }
 
     if (access(dir.c_str(), W_OK) != 0) {
-        return buildErrorResponse(403, client); // pas le droit d'écrire
+        return buildErrorResponse(403, client);
     }
 
     std::ofstream dst(path.c_str(), std::ios::binary | std::ios::trunc);
 
     if (!dst.is_open()) {
-        return buildErrorResponse(500, client); // erreur serveur
+        return buildErrorResponse(500, client);
     }
 
     dst << src.rdbuf();
@@ -79,8 +74,6 @@ HttpResponse	WebServer::executeStatic(const SocketClient* client, const std::str
 /* ************************************************** */
 
 bool WebServer::isCGI(const LocationConfig* location, const std::string& path){
-    LOG("\n>>> IS CGI ");// --------------------------------------------------------------------------------------------
-    
     if (!location){
         return false;
     }
@@ -103,7 +96,6 @@ bool WebServer::isCGI(const LocationConfig* location, const std::string& path){
 }
 
 HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationConfig* location, const std::string& path) {
-    LOG("\n>>> EXECUTE CGI "); // -------------------------------------------------------------------------------------------------
     if (access(path.c_str(), F_OK) == -1)
         return buildErrorResponse(404, client);
 
@@ -113,36 +105,35 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
     int bodyFd = -1;
 
     std::string bodyPath = client->getRequest().getBodyPath();
-    if (!bodyPath.empty())
-    {
+    if (!bodyPath.empty()) {
         bodyFd = open(bodyPath.c_str(), O_RDONLY);
         if (bodyFd == -1)
             return buildErrorResponse(500, client);
     }
 
-    std::map<std::string, std::vector<std::string> > map = createEnvp(client, location, path);
+    std::map<std::string, std::vector<std::string> > map = createEnvp(client, path);
     char** envp = convertMapToChar(map);
-    if (envp == NULL){
+    if (envp == NULL) {
         return buildErrorResponse(500, client);
     }
 
     int pipeFd[2] = {-1};
     
-    if (pipe(pipeFd) == -1){
+    if (pipe(pipeFd) == -1) {
         safeClose(&bodyFd);
         freeTab(&envp);
         return buildErrorResponse(500, client);
     }
 
     pid_t pid = fork();
-    if (pid == -1){
+    if (pid == -1) {
         safeClose(&bodyFd);
         safeClose(&pipeFd[0]); safeClose(&pipeFd[1]);
         freeTab(&envp);
         return buildErrorResponse(500, client);
     }
 
-    if (pid == 0){
+    if (pid == 0) {
         if (bodyFd != -1)
             dup2(bodyFd, STDIN_FILENO);
         else
@@ -165,7 +156,7 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
     time_t start = time(NULL);
     const int MAX_WAIT = 5;
 
-    while (true){
+    while (true) {
         pid_t result = waitpid(pid, &status, WNOHANG);
 
         if (result == pid)
@@ -176,8 +167,7 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
             return buildErrorResponse(500, client);
         }
 
-        if (difftime(time(NULL), start) > MAX_WAIT)
-        {
+        if (difftime(time(NULL), start) > MAX_WAIT) {
             kill(pid, SIGKILL);
             safeClose(&pipeFd[0]);
             freeTab(&envp);
@@ -203,7 +193,6 @@ HttpResponse	WebServer::executeCGI(const SocketClient* client, const LocationCon
 }
 
 HttpResponse	WebServer::createCGIResponse(const SocketClient* client, std::string raw){
-    LOG("\n>>> CREATE CGI RESPONSE "); // --------------------------------------------------------------------------------
     HttpResponse res;
 
     if (raw.empty())
@@ -215,14 +204,13 @@ HttpResponse	WebServer::createCGIResponse(const SocketClient* client, std::strin
     if (pos == std::string::npos)
         pos = raw.find("\n\n");
 
-    if (pos == std::string::npos)
-    {
+    if (pos == std::string::npos) {
         res.statusLine = "HTTP/1.1 200 OK";
         res.body = raw;
         return res;
     }
 
-    if (client->getRequest().getMethod() == "POST"){
+    if (client->getRequest().getMethod() == "POST") {
         if (pos == std::string::npos){
             return buildErrorResponse(500, client);
         }
@@ -263,9 +251,7 @@ HttpResponse	WebServer::createCGIResponse(const SocketClient* client, std::strin
 }
 
 
-std::map<std::string, std::vector<std::string> > WebServer::createEnvp(const SocketClient* client, const LocationConfig* location, const std::string& path){
-    LOG("\n>>> CREATE ENVP "); // -------------------------------------------------------------
-    (void)location;
+std::map<std::string, std::vector<std::string> > WebServer::createEnvp(const SocketClient* client, const std::string& path){
 
     std::map<std::string, std::vector<std::string> > env;
     const HttpRequest& req = client->getRequest();
@@ -289,9 +275,7 @@ std::map<std::string, std::vector<std::string> > WebServer::createEnvp(const Soc
     return env;
 }
 
-std::string WebServer::extractPathInfo(const std::string& uri, const std::string& scriptPath){
-    LOG("\n>>> EXTRACT PATH INFO "); // -------------------------------------------------------------
-
+std::string WebServer::extractPathInfo(const std::string& uri, const std::string& scriptPath) {
     if (uri.size() <= scriptPath.size())
         return "";
 
@@ -301,8 +285,7 @@ std::string WebServer::extractPathInfo(const std::string& uri, const std::string
     return uri.substr(scriptPath.size());
 }
 
-char**          WebServer::convertMapToChar(const std::map<std::string, std::vector<std::string> >& env){
-    LOG("\n>>> CONVERT MAP TO CHAR "); // -------------------------------------------------------------
+char**          WebServer::convertMapToChar(const std::map<std::string, std::vector<std::string> >& env) {
     char** res = new char*[env.size() + 1];
 
     for (size_t i = 0 ; i <= env.size(); ++i){

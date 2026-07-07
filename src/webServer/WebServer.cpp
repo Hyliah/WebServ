@@ -57,8 +57,6 @@ WebServer::~WebServer(){
 
 void WebServer::pollLoop() {
     initPollStruct();
-    LOG("\n---- NEW POLL LOOP ----"); //------------------------------------------
-
     while (_running) {
 
         int ret = poll(&_pollFds[0], _pollFds.size(), 1000);
@@ -71,9 +69,6 @@ void WebServer::pollLoop() {
                 throw RunningException(std::string("Poll: ") + strerror(errno));
             }
         }
-
-        // try { checkTimeouts(); }
-		// catch (const ResponseException& e) {earlyError(400, -1); }
         
 		checkTimeouts();
 		
@@ -116,19 +111,10 @@ void WebServer::pollLoop() {
             }
 
 			if (revents & (POLLHUP | POLLERR)) {
-
-				 LOG("POLLHUP/POLLERR fd=" << fd);
-
 				std::map<int, SocketClient*>::iterator it = _socketClients.find(fd);
 				if (it == _socketClients.end())
     				continue;
 				SocketClient* client = it->second;
-
-				LOG("requestCompleted="
-					<< (client ? client->requestCompleted : -1));
-
-				LOG("state="
-					<< (client ? client->state : -1));
 
 				if (client && client->state == PROCESSING) {
 					setPollOut(fd);
@@ -145,7 +131,7 @@ void WebServer::pollLoop() {
 }
 
 void	WebServer::acceptClient(int serverFd){
-	LOG("\n >>> ACCEPT CLIENT on server fd " << serverFd); // ---------------------
+	LOG("Accept client on server fd " << serverFd); // ---------------------
 
 	struct sockaddr_storage addr;
 	socklen_t addrlen = sizeof(addr);
@@ -154,8 +140,6 @@ void	WebServer::acceptClient(int serverFd){
 		return ;
 	
 	if (_socketClients.size() >= 1024) {
-		LOG("Too many clients");
-		
 		earlyError(503, clientFd);
 		return ;
 	}
@@ -199,8 +183,7 @@ void	WebServer::acceptClient(int serverFd){
 }
 
 void	WebServer::handleRequest(int fd){
-	LOG("\n>>> HANDLE REQUEST "); // -------------------------------------------
-	LOG(">>> handleRequest fd = " << fd); // -----------------------------------
+	LOG("HandleRequest fd = " << fd); // -----------------------------------
 	SocketClient* client = _socketClients[fd];
 
 	try {
@@ -232,18 +215,14 @@ void	WebServer::handleRequest(int fd){
             setPollOut(fd);
         }
 	}
-    catch (const ResponseException& e)
-    {
+    catch (const ResponseException& e) {
         client->errorCode = e.getCode();
-		LOG("error code : " << client->errorCode);
         client->state = ERROR;
         setPollOut(fd);
     }
 }
 
 void WebServer::parseBody(SocketClient* client){
-	LOG("\n>>> PARSE BODY "); // -------------------------------------------------------------
-
 	client->lastActivity = std::time(NULL);
 
 	if (client->getRequest().getMethod() == "DELETE" || client->getRequest().getMethod() == "GET")
@@ -266,7 +245,6 @@ void WebServer::parseBody(SocketClient* client){
 }
 
 void	WebServer::sendResponse(int fd){
-	LOG("\n>>> SEND RESPONSE "); // -------------------------------------------------------------
 	SocketClient* client = _socketClients[fd];
 	
 	try {
@@ -276,7 +254,6 @@ void	WebServer::sendResponse(int fd){
 		if (client->state != ERROR){
 			try { resolvePath(client, location); }
 			catch (const ResponseException& e) {
-				LOG("ERORRRRRRRRRRRRRRRRR N : " << client->errorCode);
 				client->state = ERROR;
 				client->errorCode = e.getCode();
 			}
@@ -286,18 +263,14 @@ void	WebServer::sendResponse(int fd){
 			res = buildErrorResponse(client->errorCode, client); 
 		}
 		
-		else if (!location){
+		else if (!location) {
 			res = buildErrorResponse(404, client); }
 
-		else if (location->returnCode){
+		else if (location->returnCode) {
 			res = buildRedirectResponse(location->returnCode, location->returnUrl, client); }
 
 		else {
-
 			std::string method = client->getRequest().getMethod();
-
-			LOG("la methose est : " << method);
-			
 
 			if (method == "GET")
 				res = methodGet(client, location);
@@ -312,8 +285,6 @@ void	WebServer::sendResponse(int fd){
 		size_t totalSent = 0;
 		while (totalSent < response.size()) {
 			ssize_t sent = send(fd, response.c_str() + totalSent, response.size() - totalSent, 0);
-			
-			LOG("Bytes sent: " << sent);
 				
 			if (sent <= 0 ) { // EVAL : erreur donc client supp
 				closeConnection(fd);
