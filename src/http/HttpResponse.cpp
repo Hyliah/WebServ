@@ -13,6 +13,15 @@
 #include "../http/HttpResponse.hpp"
 
 HttpResponse::HttpResponse(){}
+HttpResponse::HttpResponse(const HttpResponse& other) : statusLine(other.statusLine), headers(other.headers), body(other.body){}
+HttpResponse& HttpResponse::operator=(const HttpResponse& other){
+    if (this != &other){
+        statusLine = other.statusLine;
+        headers = other.headers;
+        body = other.body;
+    }
+    return *this;
+}
 HttpResponse::~HttpResponse(){}
 
 std::string HttpResponse::ResponseToString() const {

@@ -19,17 +19,18 @@
 
 class HttpResponse {
 	private:
-		HttpResponse(const HttpResponse& other);
-		HttpResponse& operator=(const HttpResponse& other);
 	
 	public:
+		HttpResponse();
+		HttpResponse(const HttpResponse& other);
+		HttpResponse& operator=(const HttpResponse& other);
+		~HttpResponse();
+
 		std::string statusLine;
 		std::map<std::string, std::vector<std::string> > headers;
 		std::string body;
 
 		std::string ResponseToString() const;
 
-		HttpResponse();
-		~HttpResponse();
 
 };

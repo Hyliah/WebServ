@@ -37,6 +37,14 @@ enum ParseType {
     CGI
 };
 
+inline const char* parseTypeToString(ParseType type) {
+    switch (type) {
+        case CONF: return "CONF";
+        case HTTP: return "HTTP";
+        case CGI:  return "CGI";
+        default:   return "UNKNOWN";
+    }
+}
 
 class ParseException : public WebservException {
 public:
@@ -87,13 +95,6 @@ class ResponseException : public std::exception {
         int getCode() const { return _code; }
 };
 
-inline const char* parseTypeToString(ParseType type) {
-    switch (type) {
-        case CONF: return "CONF";
-        case HTTP: return "HTTP";
-        case CGI:  return "CGI";
-        default:   return "UNKNOWN";
-    }
-}
+
 
 #endif

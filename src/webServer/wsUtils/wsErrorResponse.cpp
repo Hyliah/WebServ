@@ -81,6 +81,7 @@ HttpResponse WebServer::buildErrorResponse(int code, const SocketClient* client)
             "</html>";
     }
 
+
     if (code == 400) {
         statusText = "Bad Request";
         connection = "close";

@@ -254,7 +254,6 @@ void	WebServer::sendResponse(int fd){
 
 		else if (location->returnCode) {
 			res = buildRedirectResponse(location->returnCode, location->returnUrl, client); }
-
 		else {
 			std::string method = client->getRequest().getMethod();
 

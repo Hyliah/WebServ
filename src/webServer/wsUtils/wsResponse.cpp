@@ -20,18 +20,23 @@
 HttpResponse	WebServer::methodGet(SocketClient* client, const LocationConfig* location){
     std::string path = client->getRequest().getPath();
 
-	if (!isMethodAllowed(client->getRequest().getOriginPath(), "GET", location))
+	if (!isMethodAllowed(client->getRequest().getOriginPath(), "GET", location)){
         return buildErrorResponse(405, client);
-    if (isCGI(location, path)) 
+	}
+    if (isCGI(location, path)) {
         return executeCGI(client, path);
+	}
     
 	struct stat st;
-	if (stat(path.c_str(), &st) < 0)
-		return buildErrorResponse(404, client);
-	if (access(path.c_str(), R_OK) != 0) 
-		return buildErrorResponse(403, client);
-	if (st.st_mode & S_IFDIR)
-		return handleDirectory(client, path);
+	if (stat(path.c_str(), &st) < 0){
+			return buildErrorResponse(404, client);
+	}
+	if (access(path.c_str(), R_OK) != 0){ 
+			return buildErrorResponse(403, client);
+	}
+	if (st.st_mode & S_IFDIR){
+			return handleDirectory(client, path);
+	}
 
 	return serveFile(client, path);
 }
@@ -110,51 +115,27 @@ bool WebServer::fullDelete(const std::string& path) {
         return (std::remove(path.c_str()) == 0);
 }
 
-
-// MAKE IT HTML
 HttpResponse WebServer::buildRedirectResponse(int returnCode, const std::string& url, SocketClient* client){
 	HttpResponse res;
 
 	const ServerConfig* config = findMatchingConfig(client);
-    const std::map<int, std::string> errorPages = config->errorPages;
 
 	std::string status;
-	std::string imagePath;
 	std::string message;
 
 	if (returnCode == 301){
-		imagePath = "/Assets/301.jpg";
-        std::map<int, std::string>::const_iterator it = errorPages.find(301);
-        if (it != errorPages.end())
-            imagePath = it->second;
-		
 		status = "Moved Permanently";
 		message = "Moved Permanently";
 	}
 	else if (returnCode == 302){
-		imagePath = "/Assets/302.jpg";
-		std::map<int, std::string>::const_iterator it = errorPages.find(302);
-        if (it != errorPages.end())
-            imagePath = it->second;
-		
 		status = "Found";
 		message = "Found";
 	}
 	else if (returnCode == 307){
-		imagePath = "/Assets/307.jpg";
-		std::map<int, std::string>::const_iterator it = errorPages.find(307);
-        if (it != errorPages.end())
-            imagePath = it->second;
-		
 		status = "Temporary Redirect";
 		message = "Temporary Redirect";
 	}
 	else if (returnCode == 308){
-		imagePath = "/Assets/308.jpg";
-		std::map<int, std::string>::const_iterator it = errorPages.find(308);
-        if (it != errorPages.end())
-            imagePath = it->second;
-		
 		status = "Permament Redirect";
 		message = "Permament Redirect";
 	}
@@ -166,7 +147,6 @@ HttpResponse WebServer::buildRedirectResponse(int returnCode, const std::string&
         "<body style='text-align:center;font-family:sans-serif;'>"
         "<h1>" + longToString(returnCode) + " - " + status + "</h1>"
         "<p>" + message + "</p>"
-        "<img src='" + imagePath + "' width='400'>"
         "</body>"
         "</html>";
 
