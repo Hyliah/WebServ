@@ -118,8 +118,6 @@ bool WebServer::fullDelete(const std::string& path) {
 HttpResponse WebServer::buildRedirectResponse(int returnCode, const std::string& url, SocketClient* client){
 	HttpResponse res;
 
-	const ServerConfig* config = findMatchingConfig(client);
-
 	std::string status;
 	std::string message;
 

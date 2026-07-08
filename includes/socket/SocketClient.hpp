@@ -15,7 +15,7 @@
 
 
 #define MAX_HEADER_SIZE 8192 //8KB
-#define MAX_HEADER_COUNT 100 //BC WHY NOT -USUAL
+#define MAX_HEADER_COUNT 100 //-USUAL
 #define MAX_HEADER_LINE_SIZE 4096 //4KB
 
 #include <string>

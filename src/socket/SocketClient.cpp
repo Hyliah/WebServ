@@ -381,7 +381,6 @@ bool	SocketClient::isValidHeadersContent() {
 	return true;
 }
 
-// TESTER LES DOUBLES HEADERS A 42
 size_t	SocketClient::getHeaderCount(const std::map<std::string, std::vector<std::string> >& headers, const std::string& name) {
 	std::map<std::string, std::vector<std::string> >::const_iterator it = headers.find(name);
 	if (it == headers.end())

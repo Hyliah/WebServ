@@ -117,7 +117,7 @@ void WebServer::pollLoop() {
 }
 
 void	WebServer::acceptClient(int serverFd){
-	LOG("Accept client on server fd " << serverFd); // ---------------------
+	LOG("Accept client on server fd " << serverFd);
 
 	struct sockaddr_storage addr;
 	socklen_t addrlen = sizeof(addr);
@@ -165,11 +165,11 @@ void	WebServer::acceptClient(int serverFd){
 	pfd.revents = 0;
 	_pollFds.push_back(pfd);
 	
-	LOG("New client fd = " << clientFd); // ------------------------------------
+	LOG("New client fd = " << clientFd);
 }
 
 void	WebServer::handleRequest(int fd){
-	LOG("HandleRequest fd = " << fd); // -----------------------------------
+	LOG("HandleRequest fd = " << fd);
 	SocketClient* client = _socketClients[fd];
 
 	try {
@@ -286,49 +286,3 @@ void	WebServer::sendResponse(int fd){
         closeConnection(fd);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-HARDCODE DU SENDRESPONSE 
-
-// std::string toString(size_t n) {
-//     std::stringstream ss;
-//     ss << n;
-//     return ss.str();
-// }
-
-// void WebServer::sendResponse(int fd) {
-//     std::cout << "[SEND] réponse envoyée fd=" << fd << std::endl;
-    
-//     std::string body = "<html><body><h1>Ca marche</h1></body></html>";
-    
-//     // On construit la réponse proprement
-//     std::stringstream ss;
-//     ss << "HTTP/1.1 200 OK\r\n";
-//     ss << "Content-Type: text/html\r\n";
-//     ss << "Content-Length: " << body.size() << "\r\n"; // TRÈS IMPORTANT
-//     ss << "Connection: close\r\n";
-//     ss << "\r\n"; // La ligne vide qui sépare les headers du body
-//     ss << body;
-    
-//     std::string response = ss.str();
-//     send(fd, response.c_str(), response.size(), 0);
-    
-//     // On ferme après le send car on a mis "Connection: close"
-//     closeConnection(fd);
-// }
-
-*/
-

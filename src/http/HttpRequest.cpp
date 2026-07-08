@@ -20,7 +20,6 @@
 #include "WebServer.hpp"
 #include "Exceptions.hpp"
 
-
 /* ************************************************** */
 /* construtor & destructors                           */
 /* ************************************************** */

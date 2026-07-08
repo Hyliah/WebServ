@@ -1,5 +1,3 @@
-# makefile temporaire 
-
 NAME = Webserv
 CC = c++
 INCLUDES = -I includes/ -I includes/config -I includes/socket -I includes/utils

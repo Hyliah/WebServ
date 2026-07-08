@@ -298,7 +298,6 @@ bool WebServer::isMethodAllowed(const std::string& path, const std::string& meth
     if (!location)
         return false;
 
-    // VOIR CE QU ON EN FAIT
     if (path.compare(0, location->path.size(), location->path) != 0)
         return false;
     

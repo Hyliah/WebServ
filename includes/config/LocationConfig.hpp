@@ -46,8 +46,6 @@ public:
     LocationConfig(const LocationConfig& other);
     LocationConfig& operator=(const LocationConfig& other);
     ~LocationConfig();
-
-	//void updateMethodFlags();
 };
 
 #endif

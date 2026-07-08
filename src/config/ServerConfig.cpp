@@ -48,4 +48,3 @@ ServerConfig& ServerConfig::operator=(const ServerConfig &other) {
 	return *this;
 }
 ServerConfig::~ServerConfig() {}
-

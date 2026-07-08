@@ -43,7 +43,7 @@ int main (int ac, char **av)
 
         webserver.pollLoop();
 
-        g_server = 0; // cleanup propre
+        g_server = 0;
     }
     catch (const ParseException &e) {
         std::cerr << e.what() << std::endl;

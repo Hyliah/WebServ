@@ -12,7 +12,6 @@
 
 #include "WebServer.hpp"
 
-
 bool	WebServer::isServerFd(int fd){
 	for (size_t i = 0; i < _socketServers.size(); ++i){
 		if (_socketServers[i]->getFd() == fd)
@@ -46,7 +45,7 @@ void WebServer::closeConnection(int fd){ // voir avec chattos
 	LOG("Closing connection fd = " << fd);
 
 	if (_socketClients.find(fd) == _socketClients.end()) {
-		return; // securite double close a garder 
+		return;
 	}
 	
 	close(fd);

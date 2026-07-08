@@ -12,7 +12,6 @@
 
 #include "WebServer.hpp"
 
-
 std::string loadFile(const std::string& path){
     std::ifstream file(path.c_str(), std::ios::in | std::ios::binary);
     if (!file.is_open())
@@ -80,7 +79,6 @@ HttpResponse WebServer::buildErrorResponse(int code, const SocketClient* client)
             "</body>"
             "</html>";
     }
-
 
     if (code == 400) {
         statusText = "Bad Request";

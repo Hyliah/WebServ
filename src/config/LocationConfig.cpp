@@ -70,18 +70,3 @@ LocationConfig& LocationConfig::operator=(const LocationConfig &other) {
 }
 LocationConfig::~LocationConfig() {}
 
-
-// void LocationConfig::updateMethodFlags()
-// {
-//     for (size_t i = 0; i < methods.size(); ++i)
-//     {
-//         const std::string& m = methods[i];
-
-//         if (m == "GET")
-//             hasGet = true;
-//         else if (m == "POST")
-//             hasPost = true;
-//         else if (m == "DELETE")
-//             hasDelete = true;
-//     }
-// }

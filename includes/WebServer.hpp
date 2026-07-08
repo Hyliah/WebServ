@@ -21,12 +21,12 @@
 #include <map>
 #include <sys/stat.h>
 #include <fstream>
-#include <time.h> //trouver une version cpp
+#include <time.h>
 #include <signal.h>
 #include <cstdio>
 #include <cstdlib>
 #include <sys/wait.h>
-#include <dirent.h> //trouver une version cpp si y a 
+#include <dirent.h>
 
 
 #include "SocketClient.hpp"
@@ -69,19 +69,6 @@ class WebServer{
 		~WebServer();
 	
 		bool	_running;
-		
-
-
-		
-		//gettes & setters
-		// SocketServer&	getServer(size_t idx);
-		// SocketClient&	getClient(int fd);
-		// void				setSocket(SocketServer& socket);
-		// void 			setClient(int fd, SocketClient& client);
-		// void 	addClient(int fd, struct sockaddr_storage addr);
-		
-		// autres
-		//void	removeClient(int fd);
 		
 		//PAUL LOOP
 		void	pollLoop();

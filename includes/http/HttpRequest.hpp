@@ -22,7 +22,7 @@ class HttpRequest
     std::string _uri;
     std::string _version;
 
-    std::string _originPath; // pas utile mais potentiellement, on verra la flemme
+    std::string _originPath;
     std::string _originQuery;
 
     std::string _path;

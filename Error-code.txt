@@ -2,6 +2,8 @@ TYPE DE REPONSE ET CODE D ERREUR
 
 Successfull
 200 - OK
+201 - OK
+204 - OK
 
 Redir
 301 - moved permanently
